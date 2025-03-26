@@ -1,0 +1,48 @@
+meta {
+  name: Get All Tasks
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/tasks
+  body: none
+  auth: bearer
+}
+
+headers {
+  Content-Type: application/json
+}
+
+auth:bearer {
+  token: {{authToken}}
+}
+
+docs {
+  # Get All Tasks API
+  
+  This endpoint retrieves all tasks.
+  
+  ## Authentication
+  
+  Requires a valid JWT token.
+  
+  ## Response
+  
+  Array of task objects, each containing:
+  - `id`: Task ID
+  - `title`: Task title
+  - `description`: Task description
+  - `criteria`: Array of assessment criteria
+  - Other task metadata
+}
+
+tests {
+  test("Response status is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+  
+  test("Response is an array", function() {
+    expect(res.body).to.be.an('array');
+  });
+}

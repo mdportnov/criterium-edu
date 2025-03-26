@@ -1,0 +1,51 @@
+meta {
+  name: Login
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/auth/login
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "email": "admin@criterium-edu.com",
+    "password": "admin123"
+  }
+}
+
+tests {
+  test("Response status is 201", function() {
+    expect(res.status).to.equal(201);
+  });
+  
+  test("Response has access_token", function() {
+    expect(res.body).to.have.property('access_token');
+  });
+  
+  // Store the token for later use
+  bru.setEnvVar("authToken", res.body.access_token);
+}
+
+docs {
+  # Login API
+  
+  This endpoint authenticates a user and returns a JWT token.
+  
+  ## Request Body
+  
+  - `email`: The user's email address
+  - `password`: The user's password
+  
+  ## Response
+  
+  - `access_token`: JWT token for authenticated requests
+  - `user`: User details
+}

@@ -1,0 +1,53 @@
+meta {
+  name: Get Task Solution By ID
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/task-solutions/{{solutionId}}
+  body: none
+  auth: bearer
+}
+
+headers {
+  Content-Type: application/json
+}
+
+auth:bearer {
+  token: {{authToken}}
+}
+
+docs {
+  # Get Task Solution By ID API
+  
+  This endpoint retrieves a specific task solution by ID.
+  
+  ## Authentication
+  
+  Requires a valid JWT token.
+  
+  ## Path Parameters
+  
+  - `id`: The ID of the task solution to retrieve
+  
+  ## Response
+  
+  A task solution object containing:
+  - `id`: Solution ID
+  - `taskId`: Associated task ID
+  - `studentId`: ID of the student who submitted the solution
+  - `solutionText`: The submitted solution
+  - `status`: Current status (submitted, in_review, reviewed)
+  - Other metadata
+}
+
+tests {
+  test("Response status is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+  
+  test("Response has expected solution ID", function() {
+    expect(res.body).to.have.property('id', parseInt(bru.getEnvVar("solutionId")));
+  });
+}

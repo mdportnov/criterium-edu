@@ -1,0 +1,57 @@
+meta {
+  name: Get All Users
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/users
+  body: none
+  auth: bearer
+}
+
+headers {
+  Content-Type: application/json
+}
+
+auth:bearer {
+  token: {{authToken}}
+}
+
+docs {
+  # Get All Users API
+  
+  This endpoint retrieves all users. Only accessible to admin users.
+  
+  ## Authentication
+  
+  Requires a valid JWT token with admin role.
+  
+  ## Response
+  
+  Array of user objects, each containing:
+  - `id`: User ID
+  - `email`: User email
+  - `firstName`: User first name
+  - `lastName`: User last name
+  - `role`: User role (admin, mentor, student)
+  - Other user metadata
+}
+
+tests {
+  test("Response status is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+  
+  test("Response is an array", function() {
+    expect(res.body).to.be.an('array');
+  });
+  
+  test("Users have required properties", function() {
+    if (res.body.length > 0) {
+      expect(res.body[0]).to.have.property('id');
+      expect(res.body[0]).to.have.property('email');
+      expect(res.body[0]).to.have.property('role');
+    }
+  });
+}

@@ -1,0 +1,52 @@
+meta {
+  name: Get Task By ID
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/tasks/1
+  body: none
+  auth: bearer
+}
+
+headers {
+  Content-Type: application/json
+}
+
+auth:bearer {
+  token: {{authToken}}
+}
+
+tests {
+  test("Response status is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+  
+  test("Response has correct task ID", function() {
+    expect(res.body).to.have.property('id', 1);
+  });
+}
+
+docs {
+  # Get Task By ID API
+  
+  This endpoint retrieves a specific task by ID.
+  
+  ## Authentication
+  
+  Requires a valid JWT token.
+  
+  ## Path Parameters
+  
+  - `id`: The ID of the task to retrieve
+  
+  ## Response
+  
+  A task object containing:
+  - `id`: Task ID
+  - `title`: Task title
+  - `description`: Task description
+  - `criteria`: Array of assessment criteria
+  - Other task metadata
+}

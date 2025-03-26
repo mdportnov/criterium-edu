@@ -1,0 +1,67 @@
+meta {
+  name: Create User
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/users
+  body: json
+  auth: bearer
+}
+
+headers {
+  Content-Type: application/json
+}
+
+auth:bearer {
+  token: {{authToken}}
+}
+
+body:json {
+  {
+    "email": "mentor@example.com",
+    "firstName": "Mentor",
+    "lastName": "User",
+    "password": "mentor123",
+    "role": "mentor"
+  }
+}
+
+docs {
+  # Create User API
+  
+  This endpoint creates a new user. Only accessible to admin users.
+  
+  ## Authentication
+  
+  Requires a valid JWT token with admin role.
+  
+  ## Request Body
+  
+  - `email`: User email
+  - `firstName`: User first name
+  - `lastName`: User last name
+  - `password`: User password
+  - `role`: User role (admin, mentor, student)
+  
+  ## Response
+  
+  The created user object (password excluded).
+}
+
+tests {
+  test("Response status is 201", function() {
+    expect(res.status).to.equal(201);
+  });
+  
+  test("Response has user details", function() {
+    expect(res.body).to.have.property('id');
+    expect(res.body).to.have.property('email');
+    expect(res.body).to.have.property('role', 'mentor');
+  });
+  
+  test("Response does not include password", function() {
+    expect(res.body).not.to.have.property('password');
+  });
+}

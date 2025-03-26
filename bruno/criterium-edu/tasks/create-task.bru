@@ -1,0 +1,95 @@
+meta {
+  name: Create Task
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/tasks
+  body: json
+  auth: bearer
+}
+
+headers {
+  Content-Type: application/json
+}
+
+auth:bearer {
+  token: {{authToken}}
+}
+
+body:json {
+  {
+    "title": "Introduction to Algorithms",
+    "description": "This task requires you to implement basic sorting algorithms: Bubble Sort and Insertion Sort.",
+    "authorSolution": "```python\ndef bubble_sort(arr):\n    n = len(arr)\n    for i in range(n):\n        for j in range(0, n-i-1):\n            if arr[j] > arr[j+1]:\n                arr[j], arr[j+1] = arr[j+1], arr[j]\n    return arr\n\ndef insertion_sort(arr):\n    for i in range(1, len(arr)):\n        key = arr[i]\n        j = i-1\n        while j >= 0 and key < arr[j]:\n            arr[j+1] = arr[j]\n            j -= 1\n        arr[j+1] = key\n    return arr\n```",
+    "criteria": [
+      {
+        "name": "Correctness",
+        "description": "The algorithm implementation is correct and passes all test cases",
+        "maxPoints": 30,
+        "checkerComments": "Check if the sorting algorithms work for various inputs: empty arrays, arrays with duplicates, already sorted arrays, and reversed arrays."
+      },
+      {
+        "name": "Code Quality",
+        "description": "The code is well-structured, readable, and follows good programming practices",
+        "maxPoints": 20,
+        "checkerComments": "Look for meaningful variable names, proper indentation, and adherence to coding standards."
+      },
+      {
+        "name": "Algorithm Understanding",
+        "description": "The solution demonstrates understanding of the algorithm's principles",
+        "maxPoints": 25,
+        "checkerComments": "Check for comments explaining the algorithm steps and implementation choices."
+      },
+      {
+        "name": "Time & Space Complexity Analysis",
+        "description": "The solution includes correct analysis of time and space complexity",
+        "maxPoints": 25,
+        "checkerComments": "Verify that the student correctly identifies O(n²) time complexity for both algorithms."
+      }
+    ]
+  }
+}
+
+docs {
+  # Create Task API
+  
+  This endpoint creates a new task.
+  
+  ## Authentication
+  
+  Requires a valid JWT token. User must have admin or mentor role.
+  
+  ## Request Body
+  
+  - `title`: Task title
+  - `description`: Task description (supports Markdown)
+  - `authorSolution`: Optional reference solution (visible only to mentors)
+  - `criteria`: Array of assessment criteria, each containing:
+    - `name`: Criterion name
+    - `description`: Criterion description
+    - `maxPoints`: Maximum score for this criterion
+    - `checkerComments`: Optional notes for reviewers
+  
+  ## Response
+  
+  The created task object.
+}
+
+tests {
+  test("Response status is 201", function() {
+    expect(res.status).to.equal(201);
+  });
+  
+  test("Response has task details", function() {
+    expect(res.body).to.have.property('id');
+    expect(res.body).to.have.property('title');
+    expect(res.body).to.have.property('criteria').that.is.an('array');
+  });
+  
+  // Store the task ID for later use
+  if (res.body && res.body.id) {
+    bru.setEnvVar("taskId", res.body.id);
+  }
+}

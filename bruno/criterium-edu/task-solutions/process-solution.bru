@@ -1,0 +1,55 @@
+meta {
+  name: Process Task Solution
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/checker/process/{{solutionId}}
+  body: none
+  auth: bearer
+}
+
+headers {
+  Content-Type: application/json
+}
+
+auth:bearer {
+  token: {{authToken}}
+}
+
+docs {
+  # Process Task Solution API
+  
+  This endpoint triggers the automated assessment of a task solution.
+  
+  ## Authentication
+  
+  Requires a valid JWT token. User must have admin or mentor role.
+  
+  ## Path Parameters
+  
+  - `taskSolutionId`: The ID of the task solution to process
+  
+  ## Response
+  
+  The created review object.
+}
+
+tests {
+  test("Response status is 201", function() {
+    expect(res.status).to.equal(201);
+  });
+  
+  test("Response has review details", function() {
+    expect(res.body).to.have.property('id');
+    expect(res.body).to.have.property('taskSolutionId');
+    expect(res.body).to.have.property('totalScore');
+    expect(res.body).to.have.property('criteriaScores').that.is.an('array');
+  });
+  
+  // Store the review ID for later use
+  if (res.body && res.body.id) {
+    bru.setEnvVar("reviewId", res.body.id);
+  }
+}

@@ -1,0 +1,63 @@
+meta {
+  name: Submit Task Solution
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/task-solutions
+  body: json
+  auth: bearer
+}
+
+headers {
+  Content-Type: application/json
+}
+
+auth:bearer {
+  token: {{authToken}}
+}
+
+body:json {
+  {
+    "taskId": {{taskId}},
+    "solutionText": "# Sorting Algorithms Implementation\n\nBelow is my implementation of the required sorting algorithms in Python.\n\n```python\ndef bubble_sort(arr):\n    n = len(arr)\n    for i in range(n):\n        # Flag to optimize if no swaps occur\n        swapped = False\n        \n        for j in range(0, n-i-1):\n            # Compare adjacent elements\n            if arr[j] > arr[j+1]:\n                # Swap them if they're in the wrong order\n                arr[j], arr[j+1] = arr[j+1], arr[j]\n                swapped = True\n        \n        # If no swapping occurred in this pass, the array is sorted\n        if not swapped:\n            break\n            \n    return arr\n\ndef insertion_sort(arr):\n    # Start from the second element (index 1)\n    for i in range(1, len(arr)):\n        # Store the current element to be inserted\n        key = arr[i]\n        \n        # Initialize the position where we'll insert the element\n        j = i - 1\n        \n        # Shift elements that are greater than key to the right\n        while j >= 0 and key < arr[j]:\n            arr[j + 1] = arr[j]\n            j -= 1\n            \n        # Insert the key in its correct position\n        arr[j + 1] = key\n        \n    return arr\n\n# Time complexity analysis:\n# - Bubble Sort: O(n²) in worst and average cases, O(n) in best case when already sorted\n# - Insertion Sort: O(n²) in worst and average cases, O(n) in best case when already sorted\n\n# Space complexity analysis:\n# - Both algorithms use O(1) extra space as they sort in-place\n```\n\nI've added an optimization to bubble sort by breaking early if no swaps occur, which makes it O(n) in the best case when the array is already sorted."
+  }
+}
+
+tests {
+  test("Response status is 201", function() {
+    expect(res.status).to.equal(201);
+  });
+  
+  test("Response has solution details", function() {
+    expect(res.body).to.have.property('id');
+    expect(res.body).to.have.property('taskId');
+    expect(res.body).to.have.property('solutionText');
+    expect(res.body).to.have.property('status');
+  });
+  
+  // Store the solution ID for later use
+  if (res.body && res.body.id) {
+    bru.setEnvVar("solutionId", res.body.id);
+  }
+}
+
+docs {
+  # Submit Task Solution API
+  
+  This endpoint submits a solution for a specific task.
+  
+  ## Authentication
+  
+  Requires a valid JWT token. User must have student role.
+  
+  ## Request Body
+  
+  - `taskId`: ID of the task being solved
+  - `solutionText`: The solution content (supports Markdown)
+  
+  ## Response
+  
+  The created task solution object.
+}
