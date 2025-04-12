@@ -1,111 +1,109 @@
 # Criterium EDU
 
-Criterium EDU is an automated system for checking assignments based on criteria. It enables efficient evaluation of student work using predefined criteria and supports both automated and manual review processes.
+A comprehensive educational platform for managing tasks, solutions, and reviews with role-based access control.
 
 ## Project Structure
 
-This is a monorepo project with the following structure:
+This project is organized as a monorepo with two main parts:
 
-- `apps/api`: NestJS backend application
-- `apps/web`: React frontend application
-- `libs/shared`: Shared code between applications
+- `/apps/api`: Backend API built with NestJS, TypeORM, and PostgreSQL.
+- `/web`: Frontend application built with React, TypeScript, and DaisyUI/TailwindCSS.
 
 ## Features
 
-- Task management with criteria-based assessment
-- Student task solution submission
-- Automated assessment of student solutions
-- Manual review and feedback by mentors
-- User management with different roles (admin, mentor, student)
-- Authentication and authorization
+- **Authentication**: Secure login, registration, and JWT-based authentication.
+- **Role-Based Access Control**: Different privileges for admins, mentors, and students.
+- **Task Management**: Create, edit, and delete educational tasks with evaluation criteria.
+- **Solution Submission**: Students can submit solutions to tasks.
+- **Review System**: Manual and automatic review of solutions with feedback.
+- **User Management**: Admin panel for managing users and their roles.
+- **Dashboard**: Overview of tasks, solutions, and reviews.
 
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js (v18 or later)
+- Node.js (v16 or higher)
+- pnpm (v7 or higher)
 - PostgreSQL
 
-### Setup
+### Installation
 
-1. Clone the repository
-```
-git clone https://github.com/mdportnov/criterium-edu.git
-cd criterium-edu
-```
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/yourusername/criterium-edu.git
+   cd criterium-edu
+   ```
 
-2. Install dependencies
-```
-npm install
-```
+2. Install dependencies:
+   ```bash
+   pnpm install
+   ```
 
-3. Create a PostgreSQL database
-```
-createdb criterium_edu
-```
+3. Set up environment variables:
+   ```bash
+   cp .env.example .env
+   # Edit .env with your database credentials and other settings
+   ```
 
-4. Configure environment variables
-```
-cp .env.example .env
-```
-Then edit `.env` to match your local configuration.
+4. Run database migrations:
+   ```bash
+   cd apps/api
+   pnpm run migration:run
+   ```
 
-5. Run database migrations
-```
-npm run migration:run
-```
+### Running the Application
 
-6. Start the API server
-```
-npm run start:dev
-```
+#### Development Mode
 
-7. Start the web application
-```
-npm run web:dev
+To run both backend and frontend in development mode:
+
+```bash
+pnpm run start:all
 ```
 
-## Tech Stack
+To run only the backend:
+
+```bash
+pnpm run start:api
+```
+
+To run only the frontend:
+
+```bash
+pnpm run start:web
+```
+
+#### Production Build
+
+```bash
+pnpm run build
+```
+
+## API Documentation
+
+API documentation is available at `/api/docs` when the server is running.
+
+## Technologies Used
 
 ### Backend
 - NestJS
 - TypeORM
 - PostgreSQL
 - JWT Authentication
-- Pino Logger
-- Swagger
+- Swagger/OpenAPI
 
 ### Frontend
 - React
-- React Router
+- TypeScript
 - React Query
-- Formik & Yup
-- HeroUI (components library)
-- Tailwind CSS
+- React Router
+- React Hook Form
+- Zod
+- TailwindCSS
+- DaisyUI
 - Axios
-
-## Project Management
-
-### Backend Development
-
-- Run the server: `npm run start:dev`
-- Generate a migration: `npm run migration:generate -- -n MigrationName`
-- Run migrations: `npm run migration:run`
-- Revert the last migration: `npm run migration:revert`
-
-### Frontend Development
-
-- Run the development server: `npm run web:dev`
-- Build for production: `npm run web:build`
-
-## API Documentation
-
-API documentation is automatically generated with Swagger and can be accessed at:
-
-```
-http://localhost:3000/api/docs
-```
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+MIT

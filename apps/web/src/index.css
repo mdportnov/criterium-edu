@@ -1,0 +1,40 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    @apply scroll-smooth;
+  }
+  
+  body {
+    @apply bg-base-200 min-h-screen font-sans;
+  }
+}
+
+@layer components {
+  .container-fluid {
+    @apply w-full px-4 sm:px-6 lg:px-8 mx-auto max-w-7xl;
+  }
+  
+  .page-header {
+    @apply text-3xl font-bold tracking-tight text-gray-900 dark:text-white mb-6;
+  }
+  
+  .page-subheader {
+    @apply text-xl font-semibold tracking-tight text-gray-700 dark:text-gray-200 mb-4;
+  }
+  
+  /* Form styles */
+  .form-group {
+    @apply mb-4;
+  }
+  
+  .form-label {
+    @apply block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1;
+  }
+  
+  .form-error {
+    @apply mt-1 text-sm text-error;
+  }
+}
