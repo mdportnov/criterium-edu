@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Card, Button, FormInput, Alert } from '@/components/common';
+import { Card, Button, FormInput, Alert, Avatar } from '@/components/common';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { usersService } from '@/api';
 import { useAuth } from '@/context/AuthContext.tsx';
@@ -199,14 +199,10 @@ const ProfilePage = () => {
         <div className="lg:col-span-1">
           <Card title={<span className="text-gray-800">Account Information</span>}>
             <div className="flex items-center mb-6">
-              <div className="avatar placeholder mr-4">
-                <div className="bg-neutral-focus text-neutral-content rounded-full w-16">
-                  <span className="text-xl">
-                    {user.firstName?.[0] || ''}
-                    {user.lastName?.[0] || ''}
-                  </span>
-                </div>
-              </div>
+              <Avatar className="mr-4"
+                firstName={user.firstName || ''}
+                lastName={user.lastName || ''}
+              />
               <div>
                 <h3 className="text-lg font-semibold text-gray-800">
                   {user.firstName || 'User'} {user.lastName || ''}

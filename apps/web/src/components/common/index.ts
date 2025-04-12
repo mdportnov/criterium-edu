@@ -1,4 +1,5 @@
 export * from './Alert.tsx';
+export * from './Avatar.tsx';
 export * from './Button.tsx';
 export * from './Card.tsx';
 export * from './DataTable.tsx';

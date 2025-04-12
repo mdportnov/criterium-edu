@@ -1,4 +1,4 @@
-import React, { SelectHTMLAttributes } from 'react';
+import { SelectHTMLAttributes } from 'react';
 import { UseFormRegister, FieldError, FieldValues, Path } from 'react-hook-form';
 
 export interface SelectOption {

@@ -1,8 +1,7 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext.tsx';
 import { UserRole } from '@/types';
-import { ThemeSwitcher } from '@/components/common';
+import { ThemeSwitcher, Avatar } from '@/components/common';
 
 export const Navbar = () => {
   const { user, logout, hasRole } = useAuth();
@@ -46,12 +45,11 @@ export const Navbar = () => {
         
         {user ? (
           <div className="dropdown dropdown-end">
-            <label tabIndex={0} className="btn btn-ghost btn-circle avatar">
-              <div className="avatar placeholder">
-                <div className="bg-neutral-focus text-neutral-content rounded-full w-10">
-                  <span>{user.firstName?.[0] || ''}{user.lastName?.[0] || ''}</span>
-                </div>
-              </div>
+            <label tabIndex={0} className="btn btn-ghost btn-circle">
+              <Avatar 
+                firstName={user.firstName || ''} 
+                lastName={user.lastName || ''} 
+              />
             </label>
             <ul tabIndex={0} className="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-52">
               <li className="text-sm opacity-70 p-2">

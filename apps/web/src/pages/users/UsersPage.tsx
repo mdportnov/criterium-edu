@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { Card, DataTable, Button, Alert } from '@/components/common';
+import { Card, DataTable, Button, Alert, Avatar } from '@/components/common';
 import { usersService } from '@/api';
 import { UserRole } from '@/types';
 import { useToast, useAuth } from '@/hooks';
@@ -94,7 +94,16 @@ const UsersPage = () => {
           columns={[
             { 
               header: 'Name', 
-              accessor: (row) => `${row.firstName} ${row.lastName}`,
+              accessor: (row) => (
+                <div className="flex items-center gap-3">
+                  <Avatar 
+                    firstName={row.firstName} 
+                    lastName={row.lastName} 
+                    size="sm"
+                  />
+                  <span>{row.firstName} {row.lastName}</span>
+                </div>
+              ),
             },
             { 
               header: 'Email', 
