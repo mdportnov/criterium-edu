@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { Card, DataTable, Button } from '@/components/common';
+import { Card, DataTable } from '@/components/common';
 import { tasksService } from '@/api';
 import { useAuth } from '@/context/AuthContext.tsx';
 import { UserRole } from '@/types';
@@ -24,7 +24,7 @@ const TasksPage = () => {
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h1 className="page-header mb-0">Tasks</h1>
+        <h1 className="page-header mb-0 text-gray-900">Tasks</h1>
         {hasRole([UserRole.ADMIN, UserRole.MENTOR]) && (
           <Link to="/tasks/create" className="btn btn-primary">
             Create Task

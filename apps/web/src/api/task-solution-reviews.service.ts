@@ -3,7 +3,7 @@ import {
   TaskSolutionReview,
   CreateTaskSolutionReviewPayload,
   UpdateTaskSolutionReviewPayload,
-} from '../types';
+} from '@/types';
 
 export const taskSolutionReviewsService = {
   getAll: async (): Promise<TaskSolutionReview[]> => {

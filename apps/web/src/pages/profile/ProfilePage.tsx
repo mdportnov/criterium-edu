@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -113,7 +113,7 @@ const ProfilePage = () => {
 
   return (
     <div>
-      <h1 className="page-header">My Profile</h1>
+      <h1 className="page-header text-gray-900">My Profile</h1>
 
       {error && (
         <Alert variant="error" className="mb-6">
@@ -123,7 +123,7 @@ const ProfilePage = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
-          <Card title="Personal Information">
+          <Card title={<span className="text-gray-800">Personal Information</span>}>
             <form onSubmit={handleSubmit(onSubmit)}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <FormInput
@@ -197,40 +197,40 @@ const ProfilePage = () => {
         </div>
 
         <div className="lg:col-span-1">
-          <Card title="Account Information">
+          <Card title={<span className="text-gray-800">Account Information</span>}>
             <div className="flex items-center mb-6">
               <div className="avatar placeholder mr-4">
                 <div className="bg-neutral-focus text-neutral-content rounded-full w-16">
                   <span className="text-xl">
-                    {user.firstName[0]}
-                    {user.lastName[0]}
+                    {user.firstName?.[0] || ''}
+                    {user.lastName?.[0] || ''}
                   </span>
                 </div>
               </div>
               <div>
-                <h3 className="text-lg font-semibold">
-                  {user.firstName} {user.lastName}
+                <h3 className="text-lg font-semibold text-gray-800">
+                  {user.firstName || 'User'} {user.lastName || ''}
                 </h3>
-                <p className="text-sm opacity-70">{user.email}</p>
+                <p className="text-sm text-gray-600">{user.email}</p>
               </div>
             </div>
 
             <div className="space-y-4">
               <div>
-                <h3 className="font-semibold">Role:</h3>
+                <h3 className="font-semibold text-gray-800">Role:</h3>
                 <div className="badge badge-lg mt-1">
                   {user.role}
                 </div>
               </div>
 
               <div>
-                <h3 className="font-semibold">Member Since:</h3>
-                <p>{new Date(user.createdAt).toLocaleDateString()}</p>
+                <h3 className="font-semibold text-gray-800">Member Since:</h3>
+                <p className="text-gray-700">{user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}</p>
               </div>
 
               <div>
-                <h3 className="font-semibold">Last Updated:</h3>
-                <p>{new Date(user.updatedAt).toLocaleDateString()}</p>
+                <h3 className="font-semibold text-gray-800">Last Updated:</h3>
+                <p className="text-gray-700">{user.updatedAt ? new Date(user.updatedAt).toLocaleDateString() : 'N/A'}</p>
               </div>
             </div>
           </Card>

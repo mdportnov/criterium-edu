@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, Button, Alert } from '@/components/common';
 import { tasksService, taskSolutionsService } from '@/api';
 import { useAuth } from '@/context/AuthContext.tsx';
-import { UserRole, TaskSolutionStatus } from '@/types';
+import { UserRole } from '@/types';
 import { FormTextarea } from '@/components/common';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -38,8 +38,7 @@ const TaskDetailPage = () => {
   
   // Check if user has already submitted a solution
   const { 
-    data: userSolutions, 
-    isLoading: solutionsLoading 
+    data: userSolutions
   } = useQuery({
     queryKey: ['userSolutions', taskId, user?.id],
     queryFn: () => user ? taskSolutionsService.getAllByStudentId(user.id) : Promise.resolve([]),
@@ -132,7 +131,7 @@ const TaskDetailPage = () => {
   return (
     <div className="space-y-8">
       <div className="flex justify-between items-center">
-        <h1 className="page-header mb-0">{task.title}</h1>
+        <h1 className="page-header mb-0 text-gray-900">{task.title}</h1>
         <div className="flex gap-2">
           <Link to="/tasks" className="btn btn-ghost">
             Back to Tasks
@@ -154,35 +153,35 @@ const TaskDetailPage = () => {
         </div>
       </div>
       
-      <Card title="Task Description">
-        <div className="whitespace-pre-wrap">
+      <Card title={<span className="text-gray-800">Task Description</span>}>
+        <div className="whitespace-pre-wrap text-gray-700">
           {task.description}
         </div>
       </Card>
       
-      <Card title="Evaluation Criteria">
+      <Card title={<span className="text-gray-800">Evaluation Criteria</span>}>
         <div className="overflow-x-auto">
           <table className="table table-zebra w-full">
             <thead>
               <tr>
-                <th>Criterion</th>
-                <th>Description</th>
-                <th>Max Points</th>
+                <th className="text-gray-800">Criterion</th>
+                <th className="text-gray-800">Description</th>
+                <th className="text-gray-800">Max Points</th>
               </tr>
             </thead>
             <tbody>
               {task.criteria.map((criterion) => (
-                <tr key={criterion.id}>
-                  <td className="font-medium">{criterion.name}</td>
-                  <td>{criterion.description}</td>
-                  <td>{criterion.maxPoints}</td>
+                <tr key={criterion.id} className="text-gray-700">
+                  <td className="font-medium text-gray-700">{criterion.name}</td>
+                  <td className="text-gray-700">{criterion.description}</td>
+                  <td className="text-gray-700">{criterion.maxPoints}</td>
                 </tr>
               ))}
             </tbody>
             <tfoot>
               <tr>
-                <th colSpan={2}>Total</th>
-                <th>
+                <th colSpan={2} className="text-gray-800">Total</th>
+                <th className="text-gray-800">
                   {task.criteria.reduce((sum, criterion) => sum + Number(criterion.maxPoints), 0)}
                 </th>
               </tr>
@@ -192,7 +191,7 @@ const TaskDetailPage = () => {
       </Card>
       
       {user?.role === UserRole.STUDENT && (
-        <Card title="Submit Your Solution">
+        <Card title={<span className="text-gray-800">Submit Your Solution</span>}>
           {existingSolution ? (
             <div>
               <div className="alert alert-info mb-4">
@@ -210,8 +209,8 @@ const TaskDetailPage = () => {
               </div>
               
               <div className="card bg-base-200 p-4 rounded-box">
-                <h3 className="font-semibold mb-2">Your Submission:</h3>
-                <div className="whitespace-pre-wrap">
+                <h3 className="font-semibold mb-2 text-gray-800">Your Submission:</h3>
+                <div className="whitespace-pre-wrap text-gray-700">
                   {existingSolution.solutionText}
                 </div>
               </div>
@@ -257,8 +256,8 @@ const TaskDetailPage = () => {
       )}
       
       {hasRole([UserRole.ADMIN, UserRole.MENTOR]) && task.authorSolution && (
-        <Card title="Author Solution (Only visible to mentors and admins)">
-          <div className="whitespace-pre-wrap">
+        <Card title={<span className="text-gray-800">Author Solution (Only visible to mentors and admins)</span>}>
+          <div className="whitespace-pre-wrap text-gray-700">
             {task.authorSolution}
           </div>
         </Card>

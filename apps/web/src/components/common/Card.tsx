@@ -19,7 +19,7 @@ export const Card: React.FC<CardProps> = ({
   compact = false,
   bordered = true,
 }) => {
-  const baseClassName = 'card bg-base-100 shadow-sm';
+  const baseClassName = 'card bg-base-100 shadow-sm text-base-content';
   const compactClassName = compact ? 'card-compact' : '';
   const borderedClassName = bordered ? 'border border-base-300' : '';
   

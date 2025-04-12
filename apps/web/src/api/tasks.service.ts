@@ -1,5 +1,5 @@
 import api from './axios.ts';
-import { Task, CreateTaskPayload, UpdateTaskPayload } from '../types';
+import { Task, CreateTaskPayload, UpdateTaskPayload } from '@/types';
 
 export const tasksService = {
   getAll: async (): Promise<Task[]> => {

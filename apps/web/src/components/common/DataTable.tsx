@@ -43,7 +43,7 @@ export function DataTable<T>({
   if (data.length === 0) {
     return (
       <div className="text-center py-8 bg-base-200 rounded-lg">
-        <p className="text-gray-500">{emptyMessage}</p>
+        <p className="text-gray-700">{emptyMessage}</p>
       </div>
     );
   }
@@ -56,7 +56,7 @@ export function DataTable<T>({
             {columns.map((column, index) => (
               <th
                 key={index}
-                className={column.className}
+                className={`text-gray-800 ${column.className || ''}`}
               >
                 {column.header}
               </th>
@@ -68,10 +68,10 @@ export function DataTable<T>({
             <tr
               key={keyExtractor(item)}
               onClick={onRowClick ? () => onRowClick(item) : undefined}
-              className={onRowClick ? 'cursor-pointer hover:bg-base-200' : ''}
+              className={`${onRowClick ? 'cursor-pointer hover:bg-base-200' : ''} text-gray-700`}
             >
               {columns.map((column, index) => (
-                <td key={index} className={column.className}>
+                <td key={index} className={`text-gray-700 ${column.className || ''}`}>
                   {renderCell(item, column)}
                 </td>
               ))}

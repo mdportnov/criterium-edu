@@ -1,15 +1,13 @@
-import React from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, Button, Alert } from '@/components/common';
 import { taskSolutionsService, taskSolutionReviewsService } from '@/api';
 import { useAuth } from '@/context/AuthContext.tsx';
-import { UserRole, TaskSolutionStatus, ReviewSource } from '@/types';
+import { UserRole, TaskSolutionStatus } from '@/types';
 import { useToast } from '@/hooks';
 
 const SolutionDetailPage = () => {
   const { solutionId } = useParams();
-  const navigate = useNavigate();
   const { user, hasRole } = useAuth();
   const queryClient = useQueryClient();
   const { showToast } = useToast();

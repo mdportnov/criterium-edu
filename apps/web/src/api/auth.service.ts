@@ -1,5 +1,5 @@
 import api from './axios.ts';
-import { LoginPayload, RegisterPayload, TokenResponse } from '../types';
+import { LoginPayload, RegisterPayload, TokenResponse } from '@/types';
 
 export const authService = {
   login: async (payload: LoginPayload): Promise<TokenResponse> => {

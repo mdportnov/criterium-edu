@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -94,7 +94,7 @@ const LoginPage = () => {
         </Button>
         
         <div className="text-center mt-4">
-          <p className="text-sm text-gray-600 dark:text-gray-400">
+          <p className="text-sm text-base-content/60">
             Don't have an account?{' '}
             <Link to="/register" className="link link-primary">
               Sign up

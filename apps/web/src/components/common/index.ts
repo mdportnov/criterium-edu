@@ -5,3 +5,4 @@ export * from './DataTable.tsx';
 export * from './FormInput.tsx';
 export * from './FormSelect.tsx';
 export * from './FormTextarea.tsx';
+export * from './ThemeSwitcher.tsx';

@@ -1,4 +1,4 @@
-import React, { TextareaHTMLAttributes } from 'react';
+import { TextareaHTMLAttributes } from 'react';
 import { UseFormRegister, FieldError, FieldValues, Path } from 'react-hook-form';
 
 interface FormTextareaProps<T extends FieldValues> extends TextareaHTMLAttributes<HTMLTextAreaElement> {

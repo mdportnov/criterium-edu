@@ -3,7 +3,7 @@ import {
   TaskSolution,
   CreateTaskSolutionPayload,
   UpdateTaskSolutionPayload,
-} from '../types';
+} from '@/types';
 
 export const taskSolutionsService = {
   getAll: async (): Promise<TaskSolution[]> => {

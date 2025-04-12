@@ -1,5 +1,5 @@
 import api from './axios.ts';
-import { User, CreateUserPayload, UpdateUserPayload } from '../types';
+import { User, CreateUserPayload, UpdateUserPayload } from '@/types';
 
 export const usersService = {
   getAll: async (): Promise<User[]> => {
