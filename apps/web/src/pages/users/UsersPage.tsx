@@ -4,13 +4,15 @@ import { Link } from 'react-router-dom';
 import { Card, DataTable, Button, Alert } from '@/components/common';
 import { usersService } from '@/api';
 import { UserRole } from '@/types';
-import { useToast } from '@/hooks';
+import { useToast, useAuth } from '@/hooks';
 
 const UsersPage = () => {
   const queryClient = useQueryClient();
   const { showToast } = useToast();
+  const { user, loginAs } = useAuth();
   const [roleFilter, setRoleFilter] = useState<UserRole | 'all'>('all');
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [isLoggingInAs, setIsLoggingInAs] = useState<number | null>(null);
   
   // Fetch all users
   const { data: users, isLoading } = useQuery({
@@ -40,6 +42,17 @@ const UsersPage = () => {
     if (window.confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
       setDeleteError(null);
       deleteUserMutation.mutate(userId);
+    }
+  };
+
+  const handleLoginAs = async (userId: number) => {
+    try {
+      setIsLoggingInAs(userId);
+      await loginAs(userId);
+    } catch (error) {
+      console.error('Error logging in as user:', error);
+      showToast('Failed to login as user', 'error');
+      setIsLoggingInAs(null);
     }
   };
   
@@ -122,6 +135,17 @@ const UsersPage = () => {
                   >
                     Delete
                   </Button>
+                  {/* Admin can login as any user except themselves */}
+                  {user?.role === UserRole.ADMIN && user.id !== row.id && (
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      onClick={() => handleLoginAs(row.id)}
+                      isLoading={isLoggingInAs === row.id}
+                    >
+                      Login As
+                    </Button>
+                  )}
                 </div>
               ),
               className: 'w-40',

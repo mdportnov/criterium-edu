@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty, IsString, MinLength } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsNumber, IsString, MinLength } from 'class-validator';
 
 export class LoginDto {
   @IsEmail()
@@ -32,4 +32,10 @@ export class RegisterDto {
 
 export class TokenDto {
   access_token!: string;
+}
+
+export class LoginAsDto {
+  @IsNumber()
+  @IsNotEmpty()
+  userId: number;
 }

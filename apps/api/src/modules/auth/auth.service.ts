@@ -18,6 +18,8 @@ export class AuthService {
       email: user.email,
       sub: user.id,
       role: user.role,
+      firstName: user.firstName,
+      lastName: user.lastName,
     };
 
     return {
@@ -40,6 +42,31 @@ export class AuthService {
       email: user.email,
       sub: user.id,
       role: user.role,
+      firstName: user.firstName,
+      lastName: user.lastName,
+    };
+
+    return {
+      access_token: this.jwtService.sign(payload),
+    };
+  }
+
+  async loginAs(userId: number, adminId: number): Promise<TokenDto> {
+    // Check if the target user exists
+    const user = await this.usersService.findOne(userId);
+    
+    // Log this action for auditing purposes
+    console.log(`Admin with ID ${adminId} logged in as user with ID ${userId}`);
+    
+    // Create a JWT token for the target user
+    const payload = {
+      email: user.email,
+      sub: user.id,
+      role: user.role,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      // Add a flag to identify this as an impersonation session
+      impersonatedBy: adminId
     };
 
     return {
@@ -61,3 +88,4 @@ export class AuthService {
     return user;
   }
 }
+

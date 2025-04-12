@@ -12,6 +12,10 @@ export interface RegisterPayload {
   password: string;
 }
 
+export interface LoginAsPayload {
+  userId: number;
+}
+
 export interface TokenResponse {
   access_token: string;
 }
@@ -24,4 +28,6 @@ export interface JwtPayload {
   role: UserRole;
   iat: number;
   exp: number;
+  impersonatedBy?: number; // Optional field for admin impersonation
 }
+
