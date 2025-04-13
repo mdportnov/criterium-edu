@@ -27,7 +27,7 @@ services:
     container_name: criterium-edu-backend
     build:
       context: .
-      dockerfile: apps/api/Dockerfile
+      dockerfile: backend.Dockerfile
       args:
         NODE_ENV: ${NODE_ENV:-production}
     environment:
@@ -50,7 +50,7 @@ services:
     container_name: criterium-edu-frontend
     build:
       context: .
-      dockerfile: apps/web/Dockerfile
+      dockerfile: frontend.Dockerfile
       args:
         VITE_API_URL: ${VITE_API_URL:-http://localhost:3000}
     ports:
