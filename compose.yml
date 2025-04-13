@@ -13,7 +13,7 @@ services:
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -25,11 +25,11 @@ services:
   backend:
     image: ${REGISTRY:-ghcr.io}/${GITHUB_REPOSITORY_OWNER:-criterium}/${BACKEND_IMAGE:-criterium-edu-backend}:${IMAGE_TAG:-latest}
     container_name: criterium-edu-backend
-    build:
-      context: .
-      dockerfile: backend.Dockerfile
-      args:
-        NODE_ENV: ${NODE_ENV:-production}
+    #    build:
+    #      context: .
+    #      dockerfile: backend.Dockerfile
+    #      args:
+    #        NODE_ENV: ${NODE_ENV:-production}
     environment:
       NODE_ENV: ${NODE_ENV:-production}
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-criterium}
@@ -48,11 +48,11 @@ services:
   frontend:
     image: ${REGISTRY:-ghcr.io}/${GITHUB_REPOSITORY_OWNER:-criterium}/${FRONTEND_IMAGE:-criterium-edu-frontend}:${IMAGE_TAG:-latest}
     container_name: criterium-edu-frontend
-    build:
-      context: .
-      dockerfile: frontend.Dockerfile
-      args:
-        VITE_API_URL: ${VITE_API_URL:-http://localhost:3000}
+    #    build:
+    #      context: .
+    #      dockerfile: frontend.Dockerfile
+    #      args:
+    #        VITE_API_URL: ${VITE_API_URL:-http://localhost:3000}
     ports:
       - "${FRONTEND_PORT:-80}:80"
     restart: unless-stopped
