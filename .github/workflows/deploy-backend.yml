@@ -50,10 +50,10 @@ jobs:
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ vars.SSH_HOST }}
+          port: ${{ vars.SSH_PORT }}
           username: ${{ vars.SSH_USERNAME }}
           passphrase: ${{ secrets.PASSPHRASE }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: ${{ secrets.SSH_PORT }}
           source: "compose.yml,.env.example"
           target: "~/criterium-edu"
 
