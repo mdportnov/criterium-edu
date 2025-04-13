@@ -52,6 +52,7 @@ jobs:
           host: ${{ vars.SSH_HOST }}
           port: ${{ vars.SSH_PORT }}
           username: ${{ vars.SSH_USERNAME }}
+          passphrase: ${{ secrets.PASSPHRASE }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             # Log in to GitHub Container Registry
