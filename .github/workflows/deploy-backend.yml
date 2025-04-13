@@ -46,12 +46,12 @@ jobs:
             JWT_SECRET=${{ secrets.JWT_SECRET }}
 
       - name: Deploy to server
-        uses: appleboy/ssh-action@master
+        uses: appleboy/ssh-action@v1.2.2
         with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USERNAME }}
+          host: ${{ vars.SSH_HOST }}
+          port: ${{ vars.SSH_PORT }}
+          username: ${{ vars.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: ${{ secrets.SSH_PORT }}
           script: |
             # Log in to GitHub Container Registry
             echo ${{ secrets.CONTAINER_REGISTRY_PAT }} | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
