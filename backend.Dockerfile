@@ -1,4 +1,4 @@
-FROM node:18-alpine AS builder
+FROM node:22-alpine AS builder
 
 WORKDIR /app
 
@@ -7,18 +7,18 @@ COPY package*.json ./
 COPY tsconfig*.json ./
 COPY nest-cli.json ./
 
+# Install dependencies and NestJS CLI
+RUN npm ci && npm install -g @nestjs/cli
+
 # Copy apps and libs
 COPY apps/api ./apps/api
 COPY libs ./libs
 
-# Install dependencies
-RUN npm ci
-
 # Build the project
-RUN npm run build:api
+RUN nest build
 
 # Production stage
-FROM node:18-alpine
+FROM node:22-alpine
 
 WORKDIR /app
 
