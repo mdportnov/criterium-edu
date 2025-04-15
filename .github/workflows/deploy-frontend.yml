@@ -41,30 +41,39 @@ jobs:
           build-args: |
             VITE_API_URL=${{ secrets.VITE_API_URL }}
 
-      - name: Deploy to server
-        uses: appleboy/ssh-action@master
+      - name: Copy compose.yml files to server
+        uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USERNAME }}
+          host: criterium.digital.mephi.ru
+          port: 2250
+          username: ubuntu
+          passphrase: ${{ secrets.PASSPHRASE }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: ${{ secrets.SSH_PORT }}
+          source: "compose.yml,.env.example"
+          target: "~/criterium/"
+
+      - name: Deploy to server
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: criterium.digital.mephi.ru
+          port: 2250
+          username: ubuntu
+          passphrase: ${{ secrets.PASSPHRASE }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            # Log in to GitHub Container Registry
-            echo ${{ secrets.CONTAINER_REGISTRY_PAT }} | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
+            sudo mkdir -p /var/www/criterium
+            sudo chown -R ubuntu:ubuntu /var/www/criterium
             
-            # Pull the latest image
-            docker pull ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest
+            cp -f ~/criterium/compose.yml /var/www/criterium/
+            cp -f ~/criterium/.env.example /var/www/criterium/
             
-            # Stop any running container
-            docker stop criterium-frontend || true
-            docker rm criterium-frontend || true
+            cd /var/www/criterium
             
-            # Run the new container
-            docker run -d \
-              --name criterium-frontend \
-              --restart unless-stopped \
-              -p 80:80 \
-              ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest
+            mkdir -p ./data/pg
+            chmod -R 777 ./data
             
-            # Clean up old images
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            
+            docker compose pull
+            docker compose up -d frontend
             docker system prune -af

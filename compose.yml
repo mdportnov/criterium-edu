@@ -41,27 +41,27 @@ services:
         condition: service_healthy
     ports:
       - "${BACKEND_PORT:-3000}:3000"
-    restart: unless-stopped
+    restart: always
     networks:
       - criterium-network
 
-  # Frontend Web Service
-#  frontend:
-#    image: ghcr.io/mdportnov/criterium-edu-frontend:latest
-#    #image: ${REGISTRY:-ghcr.io}/${GITHUB_REPOSITORY_OWNER:-criterium}/${FRONTEND_IMAGE:-criterium-edu-frontend}:${IMAGE_TAG:-latest}
-#    container_name: criterium-edu-frontend
-#    #    build:
-#    #      context: .
-#    #      dockerfile: frontend.Dockerfile
-#    #      args:
-#    #        VITE_API_URL: ${VITE_API_URL:-http://localhost:3000}
-#    ports:
-#      - "${FRONTEND_PORT:-80}:80"
-#    restart: unless-stopped
-#    depends_on:
-#      - backend
-#    networks:
-#      - criterium-network
+#   Frontend Web Service
+  frontend:
+    image: ghcr.io/mdportnov/criterium-edu-frontend:latest
+    #image: ${REGISTRY:-ghcr.io}/${GITHUB_REPOSITORY_OWNER:-criterium}/${FRONTEND_IMAGE:-criterium-edu-frontend}:${IMAGE_TAG:-latest}
+    container_name: criterium-edu-frontend
+    #    build:
+    #      context: .
+    #      dockerfile: frontend.Dockerfile
+    #      args:
+    #        VITE_API_URL: ${VITE_API_URL:-http://localhost:3000}
+    ports:
+      - "${FRONTEND_PORT:-80}:80"
+    restart: always
+    depends_on:
+      - backend
+    networks:
+      - criterium-network
 
 networks:
   criterium-network:
