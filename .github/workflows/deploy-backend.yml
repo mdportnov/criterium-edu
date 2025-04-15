@@ -46,20 +46,13 @@ jobs:
             DATABASE_URL=${{ secrets.DATABASE_URL }}
             JWT_SECRET=${{ secrets.JWT_SECRET }}
 
-      - name: Decode SSH private key
-        run: |
-          echo "$(echo "${{ secrets.SSH_PRIVATE_KEY }}" | cut -c 1-20)"
-          echo "$(echo "${{ secrets.SSH_PRIVATE_KEY }}" | wc -c)"
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" | base64 -d > ssh_key
-          chmod 600 ssh_key
-
       - name: Copy compose.yml files to server
         uses: appleboy/scp-action@v0.1.7
         with:
           host: criterium.digital.mephi.ru
           port: 2250
           username: ubuntu
-          key: ./ssh_key
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
           source: "compose.yml,.env.example"
           target: "/var/www/criterium/"
 
@@ -69,7 +62,7 @@ jobs:
           host: criterium.digital.mephi.ru
           port: 2250
           username: ubuntu
-          key: ./ssh_key
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             sudo mkdir -p /var/www/criterium
             sudo chown -R ubuntu:ubuntu /var/www/criterium
