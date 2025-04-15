@@ -52,6 +52,7 @@ jobs:
           host: criterium.digital.mephi.ru
           port: 2250
           username: ubuntu
+          passphrase: ${{ secrets.PASSPHRASE }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           source: "compose.yml,.env.example"
           target: "/var/www/criterium/"
@@ -62,6 +63,7 @@ jobs:
           host: criterium.digital.mephi.ru
           port: 2250
           username: ubuntu
+          passphrase: ${{ secrets.PASSPHRASE }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             sudo mkdir -p /var/www/criterium
