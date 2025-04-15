@@ -23,7 +23,8 @@ services:
 
   # Backend API Service
   backend:
-    image: ${REGISTRY:-ghcr.io}/${GITHUB_REPOSITORY_OWNER:-criterium}/${BACKEND_IMAGE:-criterium-edu-backend}:${IMAGE_TAG:-latest}
+    #image: ${REGISTRY:-ghcr.io}/${GITHUB_REPOSITORY_OWNER:-criterium}/${BACKEND_IMAGE:-criterium-edu-backend}:${IMAGE_TAG:-latest}
+    image: ghcr.io/mdportnov/criterium-edu-backend:latest
     container_name: criterium-edu-backend
     #    build:
     #      context: .
@@ -46,7 +47,8 @@ services:
 
   # Frontend Web Service
   frontend:
-    image: ${REGISTRY:-ghcr.io}/${GITHUB_REPOSITORY_OWNER:-criterium}/${FRONTEND_IMAGE:-criterium-edu-frontend}:${IMAGE_TAG:-latest}
+    image: ghcr.io/mdportnov/criterium-edu-frontend:latest
+    #image: ${REGISTRY:-ghcr.io}/${GITHUB_REPOSITORY_OWNER:-criterium}/${FRONTEND_IMAGE:-criterium-edu-frontend}:${IMAGE_TAG:-latest}
     container_name: criterium-edu-frontend
     #    build:
     #      context: .
