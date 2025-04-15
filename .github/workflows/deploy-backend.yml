@@ -55,7 +55,7 @@ jobs:
           passphrase: ${{ secrets.PASSPHRASE }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           source: "compose.yml,.env.example"
-          target: "/var/www/criterium/"
+          target: "~/criterium/"
 
       - name: Deploy to server
         uses: appleboy/ssh-action@v1.2.2
@@ -69,8 +69,8 @@ jobs:
             sudo mkdir -p /var/www/criterium
             sudo chown -R ubuntu:ubuntu /var/www/criterium
             
-            cp -f ~/criterium-edu/compose.yml /var/www/criterium/
-            cp -f ~/criterium-edu/.env.example /var/www/criterium/
+            cp -f ~/criterium/compose.yml /var/www/criterium/
+            cp -f ~/criterium/.env.example /var/www/criterium/
             
             cd /var/www/criterium
             
