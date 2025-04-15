@@ -77,10 +77,10 @@ jobs:
             mkdir -p ./data/pg
             chmod -R 777 ./data
             
-            if [ ! -f ".env" ]; then
-              cp .env.example .env
-              sed -i "s/GITHUB_REPOSITORY_OWNER=criterium/GITHUB_REPOSITORY_OWNER=${{ github.repository_owner }}/g" .env
-            fi
+#            if [ ! -f ".env" ]; then
+#              cp .env.example .env
+#              sed -i "s/GITHUB_REPOSITORY_OWNER=criterium/GITHUB_REPOSITORY_OWNER=${{ github.repository_owner }}/g" .env
+#            fi
             
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             
