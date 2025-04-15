@@ -77,14 +77,13 @@ jobs:
             mkdir -p ./data/pg
             chmod -R 777 ./data
             
-            cd /var/www/criterium
-  
             if [ ! -f ".env" ]; then
               cp .env.example .env
               sed -i "s/GITHUB_REPOSITORY_OWNER=criterium/GITHUB_REPOSITORY_OWNER=${{ github.repository_owner }}/g" .env
             fi
             
-            echo "${{ secrets.CONTAINER_REGISTRY_PAT }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            
             docker compose pull
             docker compose up -d
             docker system prune -af
