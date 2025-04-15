@@ -15,6 +15,7 @@ jobs:
 
     env:
       IMAGE_NAME: criterium-edu-frontend
+      NGINX_IMAGE_NAME: criterium-edu-nginx
       REGISTRY: ghcr.io
 
     steps:
@@ -31,7 +32,15 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push Docker image
+      - name: Build and push Nginx Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: nginx.Dockerfile
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.NGINX_IMAGE_NAME }}:${{ github.sha }},${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.NGINX_IMAGE_NAME }}:latest
+
+      - name: Build and push Frontend Docker image
         uses: docker/build-push-action@v4
         with:
           context: .
@@ -75,5 +84,5 @@ jobs:
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             
             docker compose pull
-            docker compose up -d frontend
+            docker compose up -d frontend nginx
             docker system prune -af

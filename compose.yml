@@ -23,45 +23,48 @@ services:
 
   # Backend API Service
   backend:
-    #image: ${REGISTRY:-ghcr.io}/${GITHUB_REPOSITORY_OWNER:-criterium}/${BACKEND_IMAGE:-criterium-edu-backend}:${IMAGE_TAG:-latest}
     image: ghcr.io/mdportnov/criterium-edu-backend:latest
     container_name: criterium-edu-backend
-    #    build:
-    #      context: .
-    #      dockerfile: backend.Dockerfile
-    #      args:
-    #        NODE_ENV: ${NODE_ENV:-production}
     environment:
       NODE_ENV: ${NODE_ENV:-production}
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-criterium}
       JWT_SECRET: ${JWT_SECRET:-your-secret-key}
-      PORT: 3000
+      PORT: ${BACKEND_PORT:-3000}
     depends_on:
       postgres:
         condition: service_healthy
-    ports:
-      - "${BACKEND_PORT:-3000}:3000"
+    expose:
+      - "${BACKEND_PORT:-3000}"
     restart: always
     networks:
       - criterium-network
 
-#   Frontend Web Service
+  # Frontend Web Service
   frontend:
     image: ghcr.io/mdportnov/criterium-edu-frontend:latest
-    #image: ${REGISTRY:-ghcr.io}/${GITHUB_REPOSITORY_OWNER:-criterium}/${FRONTEND_IMAGE:-criterium-edu-frontend}:${IMAGE_TAG:-latest}
     container_name: criterium-edu-frontend
-    #    build:
-    #      context: .
-    #      dockerfile: frontend.Dockerfile
-    #      args:
-    #        VITE_API_URL: ${VITE_API_URL:-http://localhost:3000}
-    ports:
-      - "${FRONTEND_PORT:-80}:80"
+    expose:
+      - "${FRONTEND_PORT:-3001}"
     restart: always
     depends_on:
       - backend
     networks:
       - criterium-network
+  
+  # Nginx Service (Reverse Proxy)
+  nginx:
+    image: ghcr.io/mdportnov/criterium-edu-nginx:latest
+    container_name: criterium-edu-nginx
+    environment:
+      - BACKEND_PORT=${BACKEND_PORT:-3000}
+      - FRONTEND_PORT=${FRONTEND_PORT:-3001}
+    ports:
+      - "80:80"
+    restart: always
+    networks:
+      - criterium-network
+    volumes:
+      - /var/www/frontend/data:/var/www/frontend/data
 
 networks:
   criterium-network:
