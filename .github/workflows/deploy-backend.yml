@@ -46,36 +46,34 @@ jobs:
             DATABASE_URL=${{ secrets.DATABASE_URL }}
             JWT_SECRET=${{ secrets.JWT_SECRET }}
 
+      - name: Decode SSH private key
+        run: |
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" | base64 -d > ssh_key
+          chmod 600 ssh_key
+
       - name: Copy compose.yml files to server
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ vars.SSH_HOST }}
-          port: ${{ vars.SSH_PORT }}
-          username: ${{ vars.SSH_USERNAME }}
-          passphrase: ${{ secrets.PASSPHRASE }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "compose.yml,.env.example"
-          target: "~/criterium-edu"
+        run: |
+          ssh -p 2250 -o "StrictHostKeyChecking=no" -i ssh_key ubuntu@criterium.digital.mephi.ru \
+          "sudo mkdir -p /var/www/criterium && sudo chown -R ubuntu:ubuntu /var/www/criterium"
+
+          scp -P 2250 -o "StrictHostKeyChecking=no" \
+          -i ssh_key \
+          compose.yml .env.example \
+          ubuntu@criterium.digital.mephi.ru:/var/www/criterium/
 
       - name: Deploy to server
-        uses: appleboy/ssh-action@v1.2.2
-        with:
-          host: ${{ vars.SSH_HOST }}
-          port: ${{ vars.SSH_PORT }}
-          username: ${{ vars.SSH_USERNAME }}
-          passphrase: ${{ secrets.PASSPHRASE }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            cd ~/criterium-edu
+        env:
+          GITHUB_REPO_OWNER: ${{ github.repository_owner }}
+          CONTAINER_REGISTRY_PAT: ${{ secrets.CONTAINER_REGISTRY_PAT }}
+        run: |
+          ssh -p 2250 -o "StrictHostKeyChecking=no" -i ssh_key ubuntu@criterium.digital.mephi.ru << "ENDSSH"
+            cd /var/www/criterium
 
-            # Log in to GitHub Container Registry
-            echo ${{ secrets.CONTAINER_REGISTRY_PAT }} | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
+            mkdir -p ./data/pg
+            chmod -R 777 ./data
 
-            # Pull the latest images
+            echo "${CONTAINER_REGISTRY_PAT}" | docker login ghcr.io -u ${GITHUB_REPO_OWNER} --password-stdin
             docker compose pull
-            
-            # Deploy with docker-compose
             docker compose up -d
-            
-            # Clean up old images
             docker system prune -af
+          ENDSSH
