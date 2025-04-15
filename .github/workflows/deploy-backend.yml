@@ -2,7 +2,7 @@ name: Deploy Backend
 
 on:
   push:
-    branches: [ main ]
+    branches: [ master ]
     paths:
       - 'apps/api/**'
       - 'libs/**'
@@ -46,34 +46,37 @@ jobs:
             DATABASE_URL=${{ secrets.DATABASE_URL }}
             JWT_SECRET=${{ secrets.JWT_SECRET }}
 
-      - name: Decode SSH private key
-        run: |
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" | base64 -d > ssh_key
-          chmod 600 ssh_key
 
       - name: Copy compose.yml files to server
-        run: |
-          ssh -p 2250 -o "StrictHostKeyChecking=no" -i ssh_key ubuntu@criterium.digital.mephi.ru \
-          "sudo mkdir -p /var/www/criterium && sudo chown -R ubuntu:ubuntu /var/www/criterium"
-
-          scp -P 2250 -o "StrictHostKeyChecking=no" \
-          -i ssh_key \
-          compose.yml .env.example \
-          ubuntu@criterium.digital.mephi.ru:/var/www/criterium/
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: criterium.digital.mephi.ru
+          port: 2250
+          username: ubuntu
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "compose.yml,.env.example"
+          target: "/var/www/criterium/"
 
       - name: Deploy to server
-        env:
-          GITHUB_REPO_OWNER: ${{ github.repository_owner }}
-          CONTAINER_REGISTRY_PAT: ${{ secrets.CONTAINER_REGISTRY_PAT }}
-        run: |
-          ssh -p 2250 -o "StrictHostKeyChecking=no" -i ssh_key ubuntu@criterium.digital.mephi.ru << "ENDSSH"
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: criterium.digital.mephi.ru
+          port: 2250
+          username: ubuntu
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            sudo mkdir -p /var/www/criterium
+            sudo chown -R ubuntu:ubuntu /var/www/criterium
+            
+            cp -f ~/criterium-edu/compose.yml /var/www/criterium/
+            cp -f ~/criterium-edu/.env.example /var/www/criterium/
+            
             cd /var/www/criterium
-
+            
             mkdir -p ./data/pg
             chmod -R 777 ./data
-
-            echo "${CONTAINER_REGISTRY_PAT}" | docker login ghcr.io -u ${GITHUB_REPO_OWNER} --password-stdin
+            
+            echo "${{ secrets.CONTAINER_REGISTRY_PAT }}" | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
             docker compose pull
             docker compose up -d
             docker system prune -af
-          ENDSSH
