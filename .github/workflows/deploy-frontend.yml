@@ -40,31 +40,3 @@ jobs:
           tags: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ github.sha }},${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest
           build-args: |
             VITE_API_URL=${{ secrets.VITE_API_URL }}
-
-      - name: Deploy to server
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USERNAME }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: ${{ secrets.SSH_PORT }}
-          script: |
-            # Log in to GitHub Container Registry
-            echo ${{ secrets.CONTAINER_REGISTRY_PAT }} | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
-            
-            # Pull the latest image
-            docker pull ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest
-            
-            # Stop any running container
-            docker stop criterium-frontend || true
-            docker rm criterium-frontend || true
-            
-            # Run the new container
-            docker run -d \
-              --name criterium-frontend \
-              --restart unless-stopped \
-              -p 80:80 \
-              ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest
-            
-            # Clean up old images
-            docker system prune -af
