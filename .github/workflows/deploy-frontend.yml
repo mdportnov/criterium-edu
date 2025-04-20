@@ -56,9 +56,9 @@ jobs:
       - name: Copy compose.yml files to server
         uses: appleboy/scp-action@v0.1.7
         with:
-          host: criterium.digital.mephi.ru
-          port: 2250
-          username: ubuntu
+          host: ${{ secrets.SSH_HOST }}
+          port: ${{ secrets.SSH_PORT }}
+          username: ${{ secrets.SSH_USER }}
           passphrase: ${{ secrets.PASSPHRASE }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           source: "compose.yml,.env.example"
@@ -67,14 +67,14 @@ jobs:
       - name: Deploy to server
         uses: appleboy/ssh-action@v1.2.2
         with:
-          host: criterium.digital.mephi.ru
-          port: 2250
-          username: ubuntu
+          host: ${{ secrets.SSH_HOST }}
+          port: ${{ secrets.SSH_PORT }}
+          username: ${{ secrets.SSH_USER }}
           passphrase: ${{ secrets.PASSPHRASE }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             sudo mkdir -p /var/www/criterium
-            sudo chown -R ubuntu:ubuntu /var/www/criterium
+            sudo chown -R ${{ secrets.SSH_USER }}:${{ secrets.SSH_USER }} /var/www/criterium
             
             cp -f ~/criterium/compose.yml /var/www/criterium/
             cp -f ~/criterium/.env.example /var/www/criterium/
