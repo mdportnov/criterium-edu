@@ -6,43 +6,38 @@ import {
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
-  UpdateDateColumn,
+  UpdateDateColumn
 } from 'typeorm';
-import { TaskSolutionStatus } from '@app/shared';
 import { User } from '../../users/entities/user.entity';
 import { Task } from '../../tasks/entities/task.entity';
+import { TaskSolutionReview } from '../../task-solution-reviews/entities/task-solution-review.entity';
+import { SolutionSource } from './solution-source.entity';
 
 @Entity('task_solutions')
 export class TaskSolution {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'int' })
-  taskId: number;
+  @Column({ type: 'text' })
+  content: string;
+
+  @Column({ type: 'varchar', nullable: true })
+  externalId: string;
+
+  @ManyToOne(() => User, { nullable: true })
+  @JoinColumn({ name: 'user_id' })
+  user: User;
 
   @ManyToOne(() => Task)
-  @JoinColumn({ name: 'taskId' })
+  @JoinColumn({ name: 'task_id' })
   task: Task;
 
-  @Column({ type: 'int' })
-  studentId: number;
+  @ManyToOne(() => SolutionSource, { nullable: true })
+  @JoinColumn({ name: 'source_id' })
+  source: SolutionSource;
 
-  @ManyToOne(() => User)
-  @JoinColumn({ name: 'studentId' })
-  student: User;
-
-  @Column({ type: 'text' })
-  solutionText: string;
-
-  @Column({
-    type: 'enum',
-    enum: TaskSolutionStatus,
-    default: TaskSolutionStatus.SUBMITTED,
-  })
-  status: TaskSolutionStatus;
-
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
-  submittedAt: Date;
+  @OneToMany(() => TaskSolutionReview, review => review.solution)
+  reviews: TaskSolutionReview[];
 
   @CreateDateColumn()
   createdAt: Date;
