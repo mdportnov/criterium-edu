@@ -1,0 +1,72 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:17-alpine
+    container_name: criterium-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-criterium}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - /var/www/criterium/data/pg:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - criterium-network
+
+  # Backend API Service
+  backend:
+    image: ghcr.io/mdportnov/criterium-edu-backend:latest
+    container_name: criterium-edu-backend
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-criterium}
+      JWT_SECRET: ${JWT_SECRET:-your-secret-key}
+      PORT: ${BACKEND_PORT:-3000}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    expose:
+      - "${BACKEND_PORT:-3000}"
+    restart: always
+    networks:
+      - criterium-network
+
+  # Frontend Web Service
+  frontend:
+    image: ghcr.io/mdportnov/criterium-edu-frontend:latest
+    container_name: criterium-edu-frontend
+    expose:
+      - "${FRONTEND_PORT:-3001}"
+    restart: always
+    depends_on:
+      - backend
+    networks:
+      - criterium-network
+  
+  # Nginx Service (Reverse Proxy)
+  nginx:
+    image: ghcr.io/mdportnov/criterium-edu-nginx:latest
+    container_name: criterium-edu-nginx
+    environment:
+      - BACKEND_PORT=${BACKEND_PORT:-3000}
+      - FRONTEND_PORT=${FRONTEND_PORT:-3001}
+    ports:
+      - "80:80"
+    restart: always
+    networks:
+      - criterium-network
+    volumes:
+      - /var/www/frontend/data:/var/www/frontend/data
+
+networks:
+  criterium-network:
+    driver: bridge
+    attachable: true
