@@ -3,7 +3,7 @@ import { useToast } from './hooks';
 
 function App() {
   const { ToastContainer } = useToast();
-  
+
   return (
     <>
       <Outlet />

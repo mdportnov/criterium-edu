@@ -11,42 +11,41 @@ const SolutionDetailPage = () => {
   const { user, hasRole } = useAuth();
   const queryClient = useQueryClient();
   const { showToast } = useToast();
-  
+
   // Get solution details
-  const { 
-    data: solution, 
-    isLoading: solutionLoading, 
-    error: solutionError 
+  const {
+    data: solution,
+    isLoading: solutionLoading,
+    error: solutionError,
   } = useQuery({
     queryKey: ['solution', solutionId],
     queryFn: () => taskSolutionsService.getById(Number(solutionId)),
     enabled: !!solutionId,
   });
-  
+
   // Get task details
-  const { 
-    data: task, 
-    isLoading: taskLoading 
-  } = useQuery({
+  const { data: task, isLoading: taskLoading } = useQuery({
     queryKey: ['task', solution?.taskId],
-    queryFn: () => solution ? taskSolutionsService.getById(solution.taskId) : Promise.resolve(null),
+    queryFn: () =>
+      solution
+        ? taskSolutionsService.getById(solution.taskId)
+        : Promise.resolve(null),
     enabled: !!solution,
   });
-  
+
   // Get review if it exists
-  const { 
-    data: review, 
-    isLoading: reviewLoading 
-  } = useQuery({
+  const { data: review, isLoading: reviewLoading } = useQuery({
     queryKey: ['review', solutionId],
-    queryFn: () => taskSolutionReviewsService.getByTaskSolutionId(Number(solutionId)),
+    queryFn: () =>
+      taskSolutionReviewsService.getByTaskSolutionId(Number(solutionId)),
     enabled: !!solutionId,
     retry: false,
   });
-  
+
   // Mutation for updating solution status (for mentors/admins)
   const updateStatusMutation = useMutation({
-    mutationFn: (status: TaskSolutionStatus) => taskSolutionsService.update(Number(solutionId), { status }),
+    mutationFn: (status: TaskSolutionStatus) =>
+      taskSolutionsService.update(Number(solutionId), { status }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['solution', solutionId] });
       showToast('Status updated successfully!', 'success');
@@ -56,13 +55,13 @@ const SolutionDetailPage = () => {
       showToast('Failed to update status.', 'error');
     },
   });
-  
+
   const handleStartReview = () => {
     updateStatusMutation.mutate(TaskSolutionStatus.IN_REVIEW);
   };
-  
+
   const isLoading = solutionLoading || taskLoading || reviewLoading;
-  
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center py-16">
@@ -70,7 +69,7 @@ const SolutionDetailPage = () => {
       </div>
     );
   }
-  
+
   if (solutionError || !solution) {
     return (
       <div className="py-8">
@@ -85,12 +84,12 @@ const SolutionDetailPage = () => {
       </div>
     );
   }
-  
+
   // Check if the user has permission to view this solution
-  const canViewSolution = 
-    hasRole([UserRole.ADMIN, UserRole.MENTOR]) || 
+  const canViewSolution =
+    hasRole([UserRole.ADMIN, UserRole.MENTOR]) ||
     (user && user.id === solution.studentId);
-  
+
   if (!canViewSolution) {
     return (
       <div className="py-8">
@@ -105,7 +104,7 @@ const SolutionDetailPage = () => {
       </div>
     );
   }
-  
+
   return (
     <div className="space-y-8">
       <div className="flex justify-between items-center">
@@ -116,43 +115,48 @@ const SolutionDetailPage = () => {
           <Link to="/solutions" className="btn btn-ghost">
             Back to Solutions
           </Link>
-          
-          {hasRole([UserRole.ADMIN, UserRole.MENTOR]) && solution.status === TaskSolutionStatus.SUBMITTED && (
-            <Button
-              variant="primary"
-              onClick={handleStartReview}
-              isLoading={updateStatusMutation.isPending}
-            >
-              Start Review
-            </Button>
-          )}
-          
-          {hasRole([UserRole.ADMIN, UserRole.MENTOR]) && solution.status === TaskSolutionStatus.IN_REVIEW && !review && (
-            <Link 
-              to={`/reviews/create?solutionId=${solution.id}`}
-              className="btn btn-primary"
-            >
-              Create Review
-            </Link>
-          )}
+
+          {hasRole([UserRole.ADMIN, UserRole.MENTOR]) &&
+            solution.status === TaskSolutionStatus.SUBMITTED && (
+              <Button
+                variant="primary"
+                onClick={handleStartReview}
+                isLoading={updateStatusMutation.isPending}
+              >
+                Start Review
+              </Button>
+            )}
+
+          {hasRole([UserRole.ADMIN, UserRole.MENTOR]) &&
+            solution.status === TaskSolutionStatus.IN_REVIEW &&
+            !review && (
+              <Link
+                to={`/reviews/create?solutionId=${solution.id}`}
+                className="btn btn-primary"
+              >
+                Create Review
+              </Link>
+            )}
         </div>
       </div>
-      
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
           <Card title="Solution">
             <div className="mb-4">
-              <div className="badge badge-lg mr-2">Status: {solution.status}</div>
+              <div className="badge badge-lg mr-2">
+                Status: {solution.status}
+              </div>
               <div className="badge badge-outline badge-lg">
                 Submitted: {new Date(solution.submittedAt).toLocaleDateString()}
               </div>
             </div>
-            
+
             <div className="mockup-code p-4 whitespace-pre-wrap text-left">
               {solution.solutionText}
             </div>
           </Card>
-          
+
           {/* Review section if it exists */}
           {review && (
             <Card title="Review Feedback" className="mt-6">
@@ -164,22 +168,25 @@ const SolutionDetailPage = () => {
                   Source: {review.source}
                 </div>
               </div>
-              
+
               <div className="whitespace-pre-wrap">
                 {review.feedbackToStudent}
               </div>
-              
-              {hasRole([UserRole.ADMIN, UserRole.MENTOR]) && review.mentorComment && (
-                <div className="mt-4 p-4 bg-base-200 rounded-box">
-                  <h3 className="font-semibold mb-2">Mentor Comments (only visible to mentors):</h3>
-                  <div className="whitespace-pre-wrap">
-                    {review.mentorComment}
+
+              {hasRole([UserRole.ADMIN, UserRole.MENTOR]) &&
+                review.mentorComment && (
+                  <div className="mt-4 p-4 bg-base-200 rounded-box">
+                    <h3 className="font-semibold mb-2">
+                      Mentor Comments (only visible to mentors):
+                    </h3>
+                    <div className="whitespace-pre-wrap">
+                      {review.mentorComment}
+                    </div>
                   </div>
-                </div>
-              )}
-              
+                )}
+
               <div className="divider">Criteria Scores</div>
-              
+
               <div className="overflow-x-auto">
                 <table className="table table-zebra w-full">
                   <thead>
@@ -191,10 +198,15 @@ const SolutionDetailPage = () => {
                   </thead>
                   <tbody>
                     {review.criteriaScores.map((score) => {
-                      const criterion = task?.criteria.find(c => c.id === score.criterionId);
+                      const criterion = task?.criteria.find(
+                        (c) => c.id === score.criterionId,
+                      );
                       return (
                         <tr key={score.criterionId}>
-                          <td>{criterion?.name || `Criterion #${score.criterionId}`}</td>
+                          <td>
+                            {criterion?.name ||
+                              `Criterion #${score.criterionId}`}
+                          </td>
                           <td>
                             {score.score} / {criterion?.maxPoints || '?'}
                           </td>
@@ -205,10 +217,10 @@ const SolutionDetailPage = () => {
                   </tbody>
                 </table>
               </div>
-              
+
               {hasRole([UserRole.ADMIN, UserRole.MENTOR]) && (
                 <div className="mt-4 flex justify-end">
-                  <Link 
+                  <Link
                     to={`/reviews/${review.id}/edit`}
                     className="btn btn-secondary"
                   >
@@ -219,32 +231,39 @@ const SolutionDetailPage = () => {
             </Card>
           )}
         </div>
-        
+
         <div className="lg:col-span-1">
           {/* Task details sidebar */}
           <Card title="Task Details">
             <h3 className="font-semibold mb-2">Description:</h3>
-            <p className="mb-4">{task?.description || 'Loading task details...'}</p>
-            
+            <p className="mb-4">
+              {task?.description || 'Loading task details...'}
+            </p>
+
             <h3 className="font-semibold mb-2">Evaluation Criteria:</h3>
             <ul className="list-disc list-inside space-y-2 mb-4">
               {task?.criteria.map((criterion) => (
                 <li key={criterion.id}>
                   <span className="font-medium">{criterion.name}</span>
-                  {' - '}{criterion.description}
-                  {' ('}<span className="font-semibold">{criterion.maxPoints} points</span>)
+                  {' - '}
+                  {criterion.description}
+                  {' ('}
+                  <span className="font-semibold">
+                    {criterion.maxPoints} points
+                  </span>
+                  )
                 </li>
               ))}
             </ul>
-            
-            <Link 
+
+            <Link
               to={`/tasks/${solution.taskId}`}
               className="btn btn-outline btn-sm w-full"
             >
               View Full Task
             </Link>
           </Card>
-          
+
           {/* Student info for mentors/admins */}
           {hasRole([UserRole.ADMIN, UserRole.MENTOR]) && (
             <Card title="Student Information" className="mt-6">
@@ -261,11 +280,13 @@ const SolutionDetailPage = () => {
                   <h3 className="font-semibold">
                     {solution.student?.firstName} {solution.student?.lastName}
                   </h3>
-                  <p className="text-sm opacity-70">{solution.student?.email}</p>
+                  <p className="text-sm opacity-70">
+                    {solution.student?.email}
+                  </p>
                 </div>
               </div>
-              
-              <Link 
+
+              <Link
                 to={`/users/${solution.studentId}`}
                 className="btn btn-outline btn-sm w-full"
               >

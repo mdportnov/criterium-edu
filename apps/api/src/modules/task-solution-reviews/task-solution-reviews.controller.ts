@@ -33,10 +33,14 @@ export class TaskSolutionReviewsController {
   @Get()
   @Roles(UserRole.ADMIN, UserRole.MENTOR)
   @ApiQuery({ name: 'taskSolutionId', required: false })
+  @ApiQuery({ name: 'taskId', required: false })
   async findAll(
     @Query('taskSolutionId') taskSolutionId?: number,
+    @Query('taskId') taskId?: number,
   ): Promise<TaskSolutionReviewDto[]> {
-    if (taskSolutionId) {
+    if (taskId) {
+      return this.reviewsService.findByTask(taskId);
+    } else if (taskSolutionId) {
       return this.reviewsService.findByTaskSolution(taskSolutionId);
     }
 
@@ -48,12 +52,14 @@ export class TaskSolutionReviewsController {
     @Param('id') id: number,
     @Request() req,
   ): Promise<TaskSolutionReviewDto> {
-    const review = await this.reviewsService.findOne(id);
+    const review = await this.reviewsService.findOne(id, {
+      relations: ['taskSolution', 'taskSolution.user'],
+    });
 
     // If student, verify they are the owner of the associated task solution
     if (req.user.role === UserRole.STUDENT) {
       const taskSolution = review.taskSolution;
-      if (taskSolution.studentId !== req.user.id) {
+      if (!taskSolution.user || taskSolution.user.id !== req.user.id) {
         throw new Error('You can only view reviews for your own solutions');
       }
     }

@@ -9,18 +9,19 @@ import { UserRole } from '@/types';
 const TasksPage = () => {
   const { hasRole } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
-  
+
   const { data: tasks, isLoading } = useQuery({
     queryKey: ['tasks'],
     queryFn: () => tasksService.getAll(),
   });
-  
+
   // Filter tasks based on search query
-  const filteredTasks = tasks?.filter(task => 
-    task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    task.description.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredTasks = tasks?.filter(
+    (task) =>
+      task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      task.description.toLowerCase().includes(searchQuery.toLowerCase()),
   );
-  
+
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
@@ -31,7 +32,7 @@ const TasksPage = () => {
           </Link>
         )}
       </div>
-      
+
       <Card>
         <div className="mb-6">
           <input
@@ -39,32 +40,39 @@ const TasksPage = () => {
             placeholder="Search tasks..."
             className="input input-bordered w-full"
             value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
+            onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
-        
+
         <DataTable
           columns={[
             { header: 'Title', accessor: 'title' },
-            { 
-              header: 'Description', 
-              accessor: (row) => row.description.length > 100 
-                ? `${row.description.substring(0, 100)}...` 
-                : row.description 
+            {
+              header: 'Description',
+              accessor: (row) =>
+                row.description.length > 100
+                  ? `${row.description.substring(0, 100)}...`
+                  : row.description,
             },
-            { 
-              header: 'Created At', 
-              accessor: (row) => new Date(row.createdAt).toLocaleDateString() 
+            {
+              header: 'Created At',
+              accessor: (row) => new Date(row.createdAt).toLocaleDateString(),
             },
-            { 
-              header: 'Actions', 
+            {
+              header: 'Actions',
               accessor: (row) => (
                 <div className="flex gap-2">
-                  <Link to={`/tasks/${row.id}`} className="btn btn-sm btn-primary">
+                  <Link
+                    to={`/tasks/${row.id}`}
+                    className="btn btn-sm btn-primary"
+                  >
                     View
                   </Link>
                   {hasRole([UserRole.ADMIN, UserRole.MENTOR]) && (
-                    <Link to={`/tasks/${row.id}/edit`} className="btn btn-sm btn-secondary">
+                    <Link
+                      to={`/tasks/${row.id}/edit`}
+                      className="btn btn-sm btn-secondary"
+                    >
                       Edit
                     </Link>
                   )}

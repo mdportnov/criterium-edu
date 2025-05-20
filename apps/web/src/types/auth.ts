@@ -30,4 +30,3 @@ export interface JwtPayload {
   exp: number;
   impersonatedBy?: number; // Optional field for admin impersonation
 }
-

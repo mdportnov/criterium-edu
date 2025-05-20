@@ -25,11 +25,25 @@ export function DataTable<T>({
   onRowClick,
   className = '',
 }: DataTableProps<T>) {
-  const renderCell = (item: T, column: Column<T>) => {
+  const renderCell = (item: T, column: Column<T>): React.ReactNode => {
     if (typeof column.accessor === 'function') {
       return column.accessor(item);
     }
-    return item[column.accessor];
+    const value = item[column.accessor];
+    // Check if value is a primitive type, a React element, null, or undefined
+    if (
+      typeof value === 'string' ||
+      typeof value === 'number' ||
+      typeof value === 'boolean' ||
+      React.isValidElement(value) ||
+      value === null ||
+      value === undefined
+    ) {
+      return value as React.ReactNode; // It's safe to cast here
+    }
+    // For other types (like objects or arrays not meant to be React elements),
+    // convert to string. Consider more sophisticated rendering for specific object types if needed.
+    return String(value);
   };
 
   if (isLoading) {
@@ -71,7 +85,10 @@ export function DataTable<T>({
               className={`${onRowClick ? 'cursor-pointer hover:bg-base-200' : ''} text-gray-700`}
             >
               {columns.map((column, index) => (
-                <td key={index} className={`text-gray-700 ${column.className || ''}`}>
+                <td
+                  key={index}
+                  className={`text-gray-700 ${column.className || ''}`}
+                >
                   {renderCell(item, column)}
                 </td>
               ))}

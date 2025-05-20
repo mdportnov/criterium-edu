@@ -1,15 +1,16 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Equal } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import { AutoAssessment } from './entities/auto-assessment.entity';
-import { TaskSolution } from '@app/shared';
+import { TaskSolution } from '../task-solutions/entities/task-solution.entity';
 import { Task } from '../tasks/entities/task.entity';
 import {
   AutoAssessRequestDto,
   SourceAutoAssessRequestDto,
   TaskAutoAssessRequestDto,
 } from '../task-solutions/entities/solution-import.dto';
+import { OpenAIService } from '../shared/services/openai.service';
 
 interface AssessmentResult {
   criteriaScores: Record<string, number>;
@@ -57,44 +58,40 @@ export class AutoAssessmentService {
   async assessSolutionsByTask(
     dto: TaskAutoAssessRequestDto,
   ): Promise<AutoAssessment[]> {
-    const task = await this.taskRepository.findOne({
-      where: { id: dto.taskId },
-    });
-
-    if (!task) {
-      throw new NotFoundException(`Task with ID ${dto.taskId} not found`);
-    }
-
+    const model = dto.llmModel || this.defaultModel;
     const solutions = await this.solutionRepository.find({
-      where: { task: { id: dto.taskId } },
+      where: { task: Equal(dto.taskId) },
+      relations: ['task', 'user', 'source'],
     });
 
-    if (solutions.length === 0) {
+    if (!solutions.length) {
       return [];
     }
 
     const solutionIds = solutions.map((s) => s.id);
     return this.assessSolutions({
       solutionIds,
-      llmModel: dto.llmModel,
+      llmModel: model,
     });
   }
 
   async assessSolutionsBySource(
     dto: SourceAutoAssessRequestDto,
   ): Promise<AutoAssessment[]> {
+    const model = dto.llmModel || this.defaultModel;
     const solutions = await this.solutionRepository.find({
-      where: { source: { id: dto.sourceId } },
+      where: { source: Equal(dto.sourceId) },
+      relations: ['task', 'user', 'source'],
     });
 
-    if (solutions.length === 0) {
+    if (!solutions.length) {
       return [];
     }
 
     const solutionIds = solutions.map((s) => s.id);
     return this.assessSolutions({
       solutionIds,
-      llmModel: dto.llmModel,
+      llmModel: model,
     });
   }
 
@@ -148,9 +145,14 @@ export class AutoAssessmentService {
   private createAssessmentPrompt(task: Task, solution: TaskSolution): string {
     // Get task details
     const taskDescription = task.description;
-    const taskCriteria =
-      task.evaluationCriteria || 'No specific criteria provided';
-    const idealSolution = task.idealSolution || 'No ideal solution provided';
+    const taskCriteriaString = task.criteria
+      ? task.criteria
+          .map(
+            (c) => `${c.name} (Max Points: ${c.maxPoints}): ${c.description}`,
+          )
+          .join('\n')
+      : 'No specific criteria provided';
+    const idealSolution = task.authorSolution || 'No ideal solution provided';
 
     return `
 You are an experienced educator tasked with evaluating a student's solution to a programming or technical task.
@@ -159,7 +161,7 @@ You are an experienced educator tasked with evaluating a student's solution to a
 ${taskDescription}
 
 ## Evaluation Criteria:
-${taskCriteria}
+${taskCriteriaString}
 
 ## Ideal Solution (Reference Only):
 ${idealSolution}

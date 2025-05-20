@@ -1,18 +1,25 @@
 import { SelectHTMLAttributes } from 'react';
-import { UseFormRegister, FieldError, FieldValues, Path } from 'react-hook-form';
+import {
+  UseFormRegister,
+  FieldError,
+  FieldValues,
+  Path,
+} from 'react-hook-form';
 
 export interface SelectOption {
   value: string;
   label: string;
 }
 
-interface FormSelectProps<T extends FieldValues> extends SelectHTMLAttributes<HTMLSelectElement> {
+interface FormSelectProps<T extends FieldValues>
+  extends SelectHTMLAttributes<HTMLSelectElement> {
   label: string;
   name: Path<T>;
   register: UseFormRegister<T>;
   options: SelectOption[];
   error?: FieldError;
   helperText?: string;
+  placeholder?: string;
 }
 
 export const FormSelect = <T extends FieldValues>({
@@ -22,8 +29,9 @@ export const FormSelect = <T extends FieldValues>({
   options,
   error,
   helperText,
+  placeholder,
   className = '',
-  ...props
+  ...rest
 }: FormSelectProps<T>) => {
   return (
     <div className="form-group">
@@ -34,11 +42,11 @@ export const FormSelect = <T extends FieldValues>({
         id={name}
         className={`select select-bordered w-full ${error ? 'select-error' : ''} ${className}`}
         {...register(name)}
-        {...props}
+        {...rest}
       >
-        {props.placeholder && (
-          <option value="" disabled>
-            {props.placeholder}
+        {placeholder && (
+          <option value="" disabled selected hidden>
+            {placeholder}
           </option>
         )}
         {options.map((option) => (
@@ -47,7 +55,9 @@ export const FormSelect = <T extends FieldValues>({
           </option>
         ))}
       </select>
-      {helperText && !error && <p className="mt-1 text-sm text-gray-500">{helperText}</p>}
+      {helperText && !error && (
+        <p className="mt-1 text-sm text-gray-500">{helperText}</p>
+      )}
       {error && <p className="form-error">{error.message}</p>}
     </div>
   );

@@ -24,31 +24,32 @@ const TaskDetailPage = () => {
   const queryClient = useQueryClient();
   const { showToast } = useToast();
   const [submitError, setSubmitError] = useState<string | null>(null);
-  
+
   // Get task details
-  const { 
-    data: task, 
-    isLoading, 
-    error 
+  const {
+    data: task,
+    isLoading,
+    error,
   } = useQuery({
     queryKey: ['task', taskId],
     queryFn: () => tasksService.getById(Number(taskId)),
     enabled: !!taskId,
   });
-  
+
   // Check if user has already submitted a solution
-  const { 
-    data: userSolutions
-  } = useQuery({
+  const { data: userSolutions } = useQuery({
     queryKey: ['userSolutions', taskId, user?.id],
-    queryFn: () => user ? taskSolutionsService.getAllByStudentId(user.id) : Promise.resolve([]),
+    queryFn: () =>
+      user
+        ? taskSolutionsService.getAllByStudentId(user.id)
+        : Promise.resolve([]),
     enabled: !!user && user.role === UserRole.STUDENT,
   });
-  
+
   const existingSolution = userSolutions?.find(
-    solution => solution.taskId === Number(taskId)
+    (solution) => solution.taskId === Number(taskId),
   );
-  
+
   // Form setup for solution submission
   const {
     register,
@@ -57,14 +58,14 @@ const TaskDetailPage = () => {
   } = useForm<SolutionFormData>({
     resolver: zodResolver(solutionSchema),
   });
-  
+
   // Mutation for submitting a solution
   const submitSolutionMutation = useMutation({
     mutationFn: (data: SolutionFormData) => {
       if (!user) {
         throw new Error('User not authenticated');
       }
-      
+
       return taskSolutionsService.create({
         taskId: Number(taskId),
         solutionText: data.solutionText,
@@ -79,7 +80,7 @@ const TaskDetailPage = () => {
       setSubmitError('Failed to submit solution. Please try again.');
     },
   });
-  
+
   // Mutation for deleting a task
   const deleteTaskMutation = useMutation({
     mutationFn: () => tasksService.delete(Number(taskId)),
@@ -93,18 +94,22 @@ const TaskDetailPage = () => {
       showToast('Failed to delete task. Please try again.', 'error');
     },
   });
-  
+
   const onSubmitSolution = (data: SolutionFormData) => {
     setSubmitError(null);
     submitSolutionMutation.mutate(data);
   };
-  
+
   const handleDeleteTask = () => {
-    if (window.confirm('Are you sure you want to delete this task? This action cannot be undone.')) {
+    if (
+      window.confirm(
+        'Are you sure you want to delete this task? This action cannot be undone.',
+      )
+    ) {
       deleteTaskMutation.mutate();
     }
   };
-  
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center py-16">
@@ -112,7 +117,7 @@ const TaskDetailPage = () => {
       </div>
     );
   }
-  
+
   if (error || !task) {
     return (
       <div className="py-8">
@@ -127,7 +132,7 @@ const TaskDetailPage = () => {
       </div>
     );
   }
-  
+
   return (
     <div className="space-y-8">
       <div className="flex justify-between items-center">
@@ -152,13 +157,13 @@ const TaskDetailPage = () => {
           )}
         </div>
       </div>
-      
+
       <Card title={<span className="text-gray-800">Task Description</span>}>
         <div className="whitespace-pre-wrap text-gray-700">
           {task.description}
         </div>
       </Card>
-      
+
       <Card title={<span className="text-gray-800">Evaluation Criteria</span>}>
         <div className="overflow-x-auto">
           <table className="table table-zebra w-full">
@@ -170,9 +175,11 @@ const TaskDetailPage = () => {
               </tr>
             </thead>
             <tbody>
-              {task.criteria.map((criterion) => (
-                <tr key={criterion.id} className="text-gray-700">
-                  <td className="font-medium text-gray-700">{criterion.name}</td>
+              {task.criteria.map((criterion, index) => (
+                <tr key={index} className="text-gray-700">
+                  <td className="font-medium text-gray-700">
+                    {criterion.name}
+                  </td>
                   <td className="text-gray-700">{criterion.description}</td>
                   <td className="text-gray-700">{criterion.maxPoints}</td>
                 </tr>
@@ -180,44 +187,64 @@ const TaskDetailPage = () => {
             </tbody>
             <tfoot>
               <tr>
-                <th colSpan={2} className="text-gray-800">Total</th>
+                <th colSpan={2} className="text-gray-800">
+                  Total
+                </th>
                 <th className="text-gray-800">
-                  {task.criteria.reduce((sum, criterion) => sum + Number(criterion.maxPoints), 0)}
+                  {task.criteria.reduce(
+                    (sum, criterion) => sum + Number(criterion.maxPoints),
+                    0,
+                  )}
                 </th>
               </tr>
             </tfoot>
           </table>
         </div>
       </Card>
-      
+
       {user?.role === UserRole.STUDENT && (
-        <Card title={<span className="text-gray-800">Submit Your Solution</span>}>
+        <Card
+          title={<span className="text-gray-800">Submit Your Solution</span>}
+        >
           {existingSolution ? (
             <div>
               <div className="alert alert-info mb-4">
                 <div>
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="stroke-current flex-shrink-0 w-6 h-6">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    className="stroke-current flex-shrink-0 w-6 h-6"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    ></path>
                   </svg>
                   <span>
-                    You've already submitted a solution for this task. Current status: 
+                    You've already submitted a solution for this task. Current
+                    status:
                     <span className="badge badge-ghost ml-2">
                       {existingSolution.status}
                     </span>
                   </span>
                 </div>
               </div>
-              
+
               <div className="card bg-base-200 p-4 rounded-box">
-                <h3 className="font-semibold mb-2 text-gray-800">Your Submission:</h3>
+                <h3 className="font-semibold mb-2 text-gray-800">
+                  Your Submission:
+                </h3>
                 <div className="whitespace-pre-wrap text-gray-700">
                   {existingSolution.solutionText}
                 </div>
               </div>
-              
+
               <div className="mt-4">
-                <Link 
-                  to={`/solutions/${existingSolution.id}`} 
+                <Link
+                  to={`/solutions/${existingSolution.id}`}
                   className="btn btn-primary"
                 >
                   View Full Solution
@@ -231,7 +258,7 @@ const TaskDetailPage = () => {
                   {submitError}
                 </Alert>
               )}
-              
+
               <FormTextarea
                 label="Your Solution"
                 name="solutionText"
@@ -240,7 +267,7 @@ const TaskDetailPage = () => {
                 placeholder="Write your solution here..."
                 rows={10}
               />
-              
+
               <div className="mt-4">
                 <Button
                   type="submit"
@@ -254,9 +281,15 @@ const TaskDetailPage = () => {
           )}
         </Card>
       )}
-      
+
       {hasRole([UserRole.ADMIN, UserRole.MENTOR]) && task.authorSolution && (
-        <Card title={<span className="text-gray-800">Author Solution (Only visible to mentors and admins)</span>}>
+        <Card
+          title={
+            <span className="text-gray-800">
+              Author Solution (Only visible to mentors and admins)
+            </span>
+          }
+        >
           <div className="whitespace-pre-wrap text-gray-700">
             {task.authorSolution}
           </div>

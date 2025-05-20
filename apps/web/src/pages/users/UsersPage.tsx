@@ -13,18 +13,18 @@ const UsersPage = () => {
   const [roleFilter, setRoleFilter] = useState<UserRole | 'all'>('all');
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [isLoggingInAs, setIsLoggingInAs] = useState<number | null>(null);
-  
+
   // Fetch all users
   const { data: users, isLoading } = useQuery({
     queryKey: ['users'],
     queryFn: () => usersService.getAll(),
   });
-  
+
   // Filter users by role if filter is active
   const filteredUsers = users?.filter(
-    user => roleFilter === 'all' || user.role === roleFilter
+    (user) => roleFilter === 'all' || user.role === roleFilter,
   );
-  
+
   // Mutation for deleting a user
   const deleteUserMutation = useMutation({
     mutationFn: (userId: number) => usersService.delete(userId),
@@ -34,12 +34,18 @@ const UsersPage = () => {
     },
     onError: (error) => {
       console.error('Error deleting user:', error);
-      setDeleteError('Failed to delete user. The user might have associated data.');
+      setDeleteError(
+        'Failed to delete user. The user might have associated data.',
+      );
     },
   });
-  
+
   const handleDeleteUser = (userId: number) => {
-    if (window.confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
+    if (
+      window.confirm(
+        'Are you sure you want to delete this user? This action cannot be undone.',
+      )
+    ) {
       setDeleteError(null);
       deleteUserMutation.mutate(userId);
     }
@@ -55,7 +61,7 @@ const UsersPage = () => {
       setIsLoggingInAs(null);
     }
   };
-  
+
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
@@ -64,13 +70,17 @@ const UsersPage = () => {
           Create User
         </Link>
       </div>
-      
+
       {deleteError && (
-        <Alert variant="error" className="mb-6" onClose={() => setDeleteError(null)}>
+        <Alert
+          variant="error"
+          className="mb-6"
+          onClose={() => setDeleteError(null)}
+        >
           {deleteError}
         </Alert>
       )}
-      
+
       <Card>
         <div className="mb-6 flex flex-wrap gap-4">
           <div className="form-control">
@@ -80,7 +90,9 @@ const UsersPage = () => {
             <select
               className="select select-bordered"
               value={roleFilter}
-              onChange={(e) => setRoleFilter(e.target.value as UserRole | 'all')}
+              onChange={(e) =>
+                setRoleFilter(e.target.value as UserRole | 'all')
+              }
             >
               <option value="all">All Roles</option>
               <option value={UserRole.ADMIN}>Admin</option>
@@ -89,50 +101,54 @@ const UsersPage = () => {
             </select>
           </div>
         </div>
-        
+
         <DataTable
           columns={[
-            { 
-              header: 'Name', 
+            {
+              header: 'Name',
               accessor: (row) => (
                 <div className="flex items-center gap-3">
-                  <Avatar 
-                    firstName={row.firstName} 
-                    lastName={row.lastName} 
+                  <Avatar
+                    firstName={row.firstName}
+                    lastName={row.lastName}
                     size="sm"
                   />
-                  <span>{row.firstName} {row.lastName}</span>
+                  <span>
+                    {row.firstName} {row.lastName}
+                  </span>
                 </div>
               ),
             },
-            { 
-              header: 'Email', 
+            {
+              header: 'Email',
               accessor: 'email',
             },
-            { 
-              header: 'Role', 
+            {
+              header: 'Role',
               accessor: (row) => (
-                <div className={`badge ${
-                  row.role === UserRole.ADMIN 
-                    ? 'badge-primary' 
-                    : row.role === UserRole.MENTOR 
-                      ? 'badge-secondary' 
-                      : 'badge-accent'
-                }`}>
+                <div
+                  className={`badge ${
+                    row.role === UserRole.ADMIN
+                      ? 'badge-primary'
+                      : row.role === UserRole.MENTOR
+                        ? 'badge-secondary'
+                        : 'badge-accent'
+                  }`}
+                >
                   {row.role}
                 </div>
               ),
             },
-            { 
-              header: 'Created', 
+            {
+              header: 'Created',
               accessor: (row) => new Date(row.createdAt).toLocaleDateString(),
             },
-            { 
-              header: 'Actions', 
+            {
+              header: 'Actions',
               accessor: (row) => (
                 <div className="flex gap-2">
-                  <Link 
-                    to={`/users/${row.id}/edit`} 
+                  <Link
+                    to={`/users/${row.id}/edit`}
                     className="btn btn-sm btn-secondary"
                   >
                     Edit

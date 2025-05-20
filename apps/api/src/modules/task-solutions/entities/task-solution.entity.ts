@@ -6,12 +6,13 @@ import {
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
-  UpdateDateColumn
+  UpdateDateColumn,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { Task } from '../../tasks/entities/task.entity';
 import { TaskSolutionReview } from '../../task-solution-reviews/entities/task-solution-review.entity';
 import { SolutionSource } from './solution-source.entity';
+import { TaskSolutionStatus } from '@app/shared';
 
 @Entity('task_solutions')
 export class TaskSolution {
@@ -23,6 +24,13 @@ export class TaskSolution {
 
   @Column({ type: 'varchar', nullable: true })
   externalId: string;
+
+  @Column({
+    type: 'enum',
+    enum: TaskSolutionStatus,
+    default: TaskSolutionStatus.SUBMITTED,
+  })
+  status: TaskSolutionStatus;
 
   @ManyToOne(() => User, { nullable: true })
   @JoinColumn({ name: 'user_id' })
@@ -36,7 +44,7 @@ export class TaskSolution {
   @JoinColumn({ name: 'source_id' })
   source: SolutionSource;
 
-  @OneToMany(() => TaskSolutionReview, review => review.solution)
+  @OneToMany(() => TaskSolutionReview, (review) => review.taskSolution)
   reviews: TaskSolutionReview[];
 
   @CreateDateColumn()

@@ -22,14 +22,16 @@ export const Card: React.FC<CardProps> = ({
   const baseClassName = 'card bg-base-100 shadow-sm text-base-content';
   const compactClassName = compact ? 'card-compact' : '';
   const borderedClassName = bordered ? 'border border-base-300' : '';
-  
+
   const combinedClassName = `
     ${baseClassName}
     ${compactClassName}
     ${borderedClassName}
     ${className}
-  `.trim().replace(/\s+/g, ' ');
-  
+  `
+    .trim()
+    .replace(/\s+/g, ' ');
+
   return (
     <div className={combinedClassName}>
       {title && (
@@ -38,9 +40,7 @@ export const Card: React.FC<CardProps> = ({
           {actions && <div>{actions}</div>}
         </div>
       )}
-      <div className="card-body">
-        {children}
-      </div>
+      <div className="card-body">{children}</div>
       {footer && (
         <div className="card-footer p-6 pt-0 bg-base-200 rounded-b-box">
           {footer}

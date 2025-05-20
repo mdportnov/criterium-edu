@@ -9,20 +9,30 @@ import { useAuth } from '@/context/AuthContext.tsx';
 import { useToast } from '@/hooks';
 
 // Validation schema
-const profileSchema = z.object({
-  firstName: z.string().min(2, 'First name must be at least 2 characters'),
-  lastName: z.string().min(2, 'Last name must be at least 2 characters'),
-  email: z.string().email('Please enter a valid email'),
-  currentPassword: z.string().optional().or(z.literal('')),
-  newPassword: z.string().min(6, 'New password must be at least 6 characters').optional().or(z.literal('')),
-  confirmPassword: z.string().optional().or(z.literal('')),
-}).refine(data => !data.newPassword || data.newPassword === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ["confirmPassword"],
-}).refine(data => !data.newPassword || data.currentPassword, {
-  message: "Current password is required to set a new password",
-  path: ["currentPassword"],
-});
+const profileSchema = z
+  .object({
+    firstName: z.string().min(2, 'First name must be at least 2 characters'),
+    lastName: z.string().min(2, 'Last name must be at least 2 characters'),
+    email: z.string().email('Please enter a valid email'),
+    currentPassword: z.string().optional().or(z.literal('')),
+    newPassword: z
+      .string()
+      .min(6, 'New password must be at least 6 characters')
+      .optional()
+      .or(z.literal('')),
+    confirmPassword: z.string().optional().or(z.literal('')),
+  })
+  .refine(
+    (data) => !data.newPassword || data.newPassword === data.confirmPassword,
+    {
+      message: "Passwords don't match",
+      path: ['confirmPassword'],
+    },
+  )
+  .refine((data) => !data.newPassword || data.currentPassword, {
+    message: 'Current password is required to set a new password',
+    path: ['currentPassword'],
+  });
 
 type ProfileFormData = z.infer<typeof profileSchema>;
 
@@ -56,24 +66,24 @@ const ProfilePage = () => {
       if (!user) {
         throw new Error('User not authenticated');
       }
-      
+
       const payload = {
         firstName: data.firstName,
         lastName: data.lastName,
         email: data.email,
       };
-      
+
       // Add password only if new password is provided
       if (data.newPassword) {
         Object.assign(payload, { password: data.newPassword });
       }
-      
+
       return usersService.update(user.id, payload);
     },
     onSuccess: (updatedUser) => {
       queryClient.invalidateQueries({ queryKey: ['user', user?.id] });
       showToast('Profile updated successfully!', 'success');
-      
+
       // Reset password fields
       reset({
         firstName: updatedUser.firstName,
@@ -123,7 +133,9 @@ const ProfilePage = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
-          <Card title={<span className="text-gray-800">Personal Information</span>}>
+          <Card
+            title={<span className="text-gray-800">Personal Information</span>}
+          >
             <form onSubmit={handleSubmit(onSubmit)}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <FormInput
@@ -197,9 +209,12 @@ const ProfilePage = () => {
         </div>
 
         <div className="lg:col-span-1">
-          <Card title={<span className="text-gray-800">Account Information</span>}>
+          <Card
+            title={<span className="text-gray-800">Account Information</span>}
+          >
             <div className="flex items-center mb-6">
-              <Avatar className="mr-4"
+              <Avatar
+                className="mr-4"
                 firstName={user.firstName || ''}
                 lastName={user.lastName || ''}
               />
@@ -214,19 +229,25 @@ const ProfilePage = () => {
             <div className="space-y-4">
               <div>
                 <h3 className="font-semibold text-gray-800">Role:</h3>
-                <div className="badge badge-lg mt-1">
-                  {user.role}
-                </div>
+                <div className="badge badge-lg mt-1">{user.role}</div>
               </div>
 
               <div>
                 <h3 className="font-semibold text-gray-800">Member Since:</h3>
-                <p className="text-gray-700">{user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}</p>
+                <p className="text-gray-700">
+                  {user.createdAt
+                    ? new Date(user.createdAt).toLocaleDateString()
+                    : 'N/A'}
+                </p>
               </div>
 
               <div>
                 <h3 className="font-semibold text-gray-800">Last Updated:</h3>
-                <p className="text-gray-700">{user.updatedAt ? new Date(user.updatedAt).toLocaleDateString() : 'N/A'}</p>
+                <p className="text-gray-700">
+                  {user.updatedAt
+                    ? new Date(user.updatedAt).toLocaleDateString()
+                    : 'N/A'}
+                </p>
               </div>
             </div>
           </Card>

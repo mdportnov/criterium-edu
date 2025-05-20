@@ -26,7 +26,7 @@ export class CheckerService {
       // Get task solution with task details
       const taskSolution =
         await this.taskSolutionsService.findOne(taskSolutionId);
-      const task = await this.tasksService.findOne(taskSolution.taskId);
+      const task = await this.tasksService.findOne(taskSolution.task.id);
 
       // Generate criteria scores based on AI model evaluation
       const criteriaScores = await this.evaluateSolution(task, taskSolution);

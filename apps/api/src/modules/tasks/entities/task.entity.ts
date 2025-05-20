@@ -25,6 +25,12 @@ export class Task {
   @Column({ type: 'text', nullable: true })
   authorSolution: string;
 
+  @Column({ type: 'simple-array', nullable: true })
+  categories: string[];
+
+  @Column({ type: 'simple-array', nullable: true })
+  tags: string[];
+
   @Column({ type: 'int' })
   createdBy: number;
 

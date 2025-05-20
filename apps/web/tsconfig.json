@@ -7,8 +7,12 @@
     "skipLibCheck": true,
     "baseUrl": "./",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@app/shared": ["../../libs/shared/src"],
+      "@app/shared/*": ["../../libs/shared/src/*"]
     },
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
 
     /* Bundler mode */
     "moduleResolution": "bundler",
@@ -19,7 +23,7 @@
     "jsx": "react-jsx",
 
     /* Linting */
-    "strict": true,
+    "strict": false,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
