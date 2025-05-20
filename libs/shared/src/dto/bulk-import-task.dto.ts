@@ -1,4 +1,10 @@
-import { IsArray, IsNotEmpty, IsOptional, IsString, ValidateNested } from 'class-validator';
+import {
+  IsArray,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  ValidateNested,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 import { BulkImportTaskCriterionDto } from './bulk-import-task-criterion.dto';
@@ -14,14 +20,16 @@ export class BulkImportTaskDto {
 
   @ApiProperty({
     description: 'Detailed description of the task requirements',
-    example: 'Create a REST API with endpoints for managing users and products.',
+    example:
+      'Create a REST API with endpoints for managing users and products.',
   })
   @IsString()
   @IsNotEmpty()
   description: string;
 
   @ApiProperty({
-    description: 'Optional author solution or reference implementation for the task',
+    description:
+      'Optional author solution or reference implementation for the task',
     example: 'console.log("Hello World");',
     required: false,
   })
