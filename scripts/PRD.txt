@@ -1,0 +1,284 @@
+<context>
+# Overview  
+Criterium-Edu is a specialized educational assessment platform designed for teachers to efficiently evaluate student work using a combination of AI and human expertise. The platform eliminates the traditional student-facing component, focusing instead on empowering educators with tools to upload student submissions (manually or through automated imports), process them using Large Language Models (LLMs), and approve assessments either manually or automatically.
+
+The primary goal is to reduce the assessment workload for teachers while maintaining high-quality feedback through structured review criteria and AI-assisted evaluation. By streamlining the assessment workflow, teachers can focus more on instructional design and targeted interventions based on assessment insights.
+
+# Core Features  
+## User Management
+- **What it does**: Provides role-based access control with Admin and Teacher (Mentor) roles, secure authentication, and profile management
+- **Why it's important**: Ensures proper access permissions and security for educational assessment data
+- **How it works**: JWT-based authentication system with hashed passwords and role-specific access controls
+
+## Task Management
+- **What it does**: Enables creation and editing of assessment tasks with rich text descriptions and scoring criteria
+- **Why it's important**: Forms the foundation for structured assessment and consistent evaluation
+- **How it works**: Task editor with reference solution storage and rubric definition tools
+
+## Solution Import System
+- **What it does**: Provides multiple methods for importing student solution submissions
+- **Why it's important**: Streamlines the collection process for diverse submission formats
+- **How it works**: Manual upload interface, batch import functionality, and API integrations with external systems
+
+## AI-Powered Assessment
+- **What it does**: Automatically evaluates student submissions against defined criteria using LLMs
+- **Why it's important**: Dramatically reduces teacher workload while maintaining assessment quality
+- **How it works**: OpenAI integration with structured prompts based on task criteria and reference solutions
+
+## Dashboard and Analytics
+- **What it does**: Provides assessment overviews, performance insights, and export capabilities
+- **Why it's important**: Enables efficient management of assessment workflow and data-driven insights
+- **How it works**: Visual dashboards with assessment queue management and statistical analysis tools
+
+# User Experience  
+## User Personas
+**Administrator**:
+- Responsible for system configuration, user management, and oversight
+- Configures assessment criteria and rubrics at an institutional level
+- Monitors assessment consistency and AI performance
+
+**Teacher (Mentor)**:
+- Creates specific assessment tasks and criteria
+- Imports student solutions for evaluation
+- Reviews and approves AI-generated assessments
+- Exports assessment results to external systems
+
+## Key User Flows
+**Administrator Flow**:
+1. Manage teacher accounts (create, edit, disable)
+2. Configure system-wide assessment rules and templates
+3. Monitor assessment quality and AI performance metrics
+4. Manage integrations with external systems
+
+**Teacher Flow**:
+1. Create assessment tasks and define evaluation criteria
+2. Import student solutions (manual upload or configure automated import)
+3. Review AI-generated assessments (approve, modify, or override)
+4. Export assessment results and feedback
+5. Analyze assessment insights for instructional improvement
+
+## UI/UX Considerations
+- **Streamlined workflow** optimized for efficiency in the assessment process
+- **Batch operations** for handling multiple assessments simultaneously
+- **Clear visualization** of AI-generated assessments vs. teacher modifications
+- **Intuitive review interface** with quick access to original submissions and criteria
+- **Responsive design** for flexibility across devices (desktop focus with tablet support)
+</context>
+<PRD>
+# Technical Architecture  
+## System Components
+- **Frontend Application**
+  - React-based SPA with TypeScript
+  - React Router for navigation
+  - Tailwind CSS with DaisyUI for styling
+  - Context API for state management
+
+- **Backend API**
+  - NestJS framework with TypeScript
+  - RESTful API endpoints for all core functionality
+  - JWT-based authentication and authorization
+  - Swagger documentation
+
+- **Database**
+  - PostgreSQL for relational data storage
+  - TypeORM for database interaction and migrations
+
+- **AI Integration Layer**
+  - OpenAI API client for assessment processing
+  - Prompt management system
+  - Result parsing and formatting
+
+- **Import/Export Service**
+  - File upload handling for various formats
+  - Scheduled import capabilities
+  - Export templates for different formats
+
+## Data Models
+- **Users**: ID, email, firstName, lastName, password (hashed), role, timestamps
+- **Tasks**: ID, title, description, authorSolution, createdBy, timestamps
+- **Task Criteria**: ID, name, description, maxPoints, checkerComments, taskId
+- **Task Solutions**: ID, taskId, externalStudentId, solutionText, status, importedAt, timestamps
+- **Task Solution Reviews**: ID, taskSolutionId, mentorId, totalScore, feedbackText, mentorComment, source, timestamps
+- **Criterion Scores**: ID, reviewId, criterionId, score, comment
+- **Import Configurations**: ID, taskId, source, configuration, schedule, lastRun, createdBy, timestamps
+
+## APIs and Integrations
+- **Authentication API**: Login, token refresh, password management
+- **User Management API**: CRUD operations for user accounts, profile management
+- **Task Management API**: CRUD operations for tasks/criteria, task duplication
+- **Solution Import API**: File upload, batch import, import history
+- **Assessment API**: AI assessment, review workflow, batch operations
+- **Analytics API**: Statistics, metrics, insights
+- **Export API**: Formatted exports, integration with external systems
+- **OpenAI Integration**: API client, prompt management, response processing
+
+## Infrastructure Requirements
+- **Web Server**: NGINX for static files and reverse proxy
+- **Application Server**: Node.js environment
+- **Database Server**: PostgreSQL
+- **File Storage**: Secure solution storage and retrieval
+- **Development Environment**: Docker Compose, CI/CD pipeline
+
+# Development Roadmap  
+## Phase 1: Foundation
+- Basic user authentication system with role-based access
+- User management for admin and teacher roles
+- Core database schema and migrations
+- Basic UI layout and navigation
+
+## Phase 2: Task Management
+- Task creation and editing functionality
+- Assessment criteria definition
+- Task listing and detail views
+- Reference solution storage
+
+## Phase 3: Manual Solution Import
+- Manual solution upload interface
+- Solution organization by task
+- Basic metadata association
+- Solution listing and viewing
+
+## Phase 4: AI Assessment Integration
+- OpenAI API integration
+- Basic automated assessment based on criteria
+- Review interface for teachers
+- Manual approval workflow
+
+## Phase 5: Dashboard and Exports
+- Assessment queue management
+- Basic assessment statistics
+- Simple export functionality
+- Assessment history and tracking
+
+## Phase 6: Advanced Import Options
+- Batch import functionality
+- Scheduled imports from external sources
+- Import configuration templates
+- Error handling and validation
+
+## Phase 7: Enhanced AI Assessment
+- Improved assessment prompts and strategies
+- Auto-approval rules and conditions
+- Confidence scoring for AI assessments
+- Feedback template customization
+
+## Phase 8: Advanced Analytics
+- Comprehensive assessment insights
+- Pattern recognition in student errors
+- Assessment efficiency metrics
+- Performance visualizations
+
+## Phase 9: Integration Capabilities
+- LMS integration (Canvas, Moodle, etc.)
+- API for third-party extensions
+- Advanced export formatting
+- Synchronization with external gradebooks
+
+# Logical Dependency Chain
+1. **User Authentication System**
+   - Login, JWT implementation
+   - Role-based permissions foundation
+
+2. **Task Management**
+   - Task creation and criteria definition
+   - Reference solution storage
+
+3. **Solution Import**
+   - Manual upload functionality
+   - Solution organization and metadata
+
+4. **Basic AI Assessment**
+   - OpenAI integration
+   - Assessment generation based on criteria
+
+5. **Assessment Review**
+   - Review interface for teachers
+   - Approval/modification workflow
+
+6. **Auto-Approval Configuration**
+   - Rules for automated approval
+   - Confidence thresholds
+
+7. **Advanced Import Options**
+   - Batch and scheduled imports
+   - Integration with external sources
+
+8. **Analytics and Reporting**
+   - Assessment insights
+   - Efficiency metrics
+
+# Risks and Mitigations  
+## Technical Challenges
+- **Risk**: AI assessment quality and consistency
+  **Mitigation**: Implement structured prompting techniques, thorough testing with diverse submissions, teacher review system, and continuous prompt refinement based on feedback.
+
+- **Risk**: Handling diverse file formats and import sources
+  **Mitigation**: Create standardized parsing layers, implement thorough validation, and provide clear error messages for problematic imports.
+
+- **Risk**: API rate limits and costs with LLM services
+  **Mitigation**: Implement queuing system, batch processing during off-peak hours, caching of similar assessments, and token usage optimization.
+
+## User Experience Challenges
+- **Risk**: Complex configuration creating adoption barriers
+  **Mitigation**: Develop guided setup wizards, provide templates for common assessment types, and create comprehensive documentation with examples.
+
+- **Risk**: Trust issues with AI-generated assessments
+  **Mitigation**: Implement transparency features showing criteria matching, provide side-by-side comparisons of AI vs. reference assessments, and build confidence gradually with review statistics.
+
+- **Risk**: Workflow efficiency not meeting expectations
+  **Mitigation**: Focus on batch operations, keyboard shortcuts, and automation rules that significantly reduce manual work compared to traditional methods.
+
+## Resource Constraints
+- **Risk**: Development team bandwidth limitations
+  **Mitigation**: Prioritize core features for MVP, implement iterative development cycles, and use reusable components to accelerate development.
+
+- **Risk**: Operational costs for AI services
+  **Mitigation**: Implement usage quotas, optimize prompt efficiency, and consider a tiered service model based on assessment complexity.
+
+# Appendix  
+## Technology Stack
+- **Frontend**: React, TypeScript, Tailwind CSS, DaisyUI
+- **Backend**: NestJS, TypeScript, TypeORM
+- **Database**: PostgreSQL
+- **Infrastructure**: Docker, NGINX
+- **AI Integration**: OpenAI API
+- **Authentication**: JWT, Passport
+
+## Role Permissions Matrix
+| Feature | Admin | Teacher (Mentor) |
+|---------|-------|------------------|
+| User Management | Full access | Self-profile only |
+| Task Creation | Create/Edit | Create/Edit |
+| Task Criteria | Define/Edit | Define/Edit |
+| Solution Import | Configure/Import | Configure/Import |
+| Assessment Review | Perform/Override | Perform/Approve |
+| Auto-Approval Rules | Configure | Use |
+| Dashboard | Full analytics | Own tasks |
+| System Settings | Full access | No access |
+
+## Assessment Workflow
+1. **Task Creation Phase**:
+   - Teacher creates task
+   - Teacher defines assessment criteria
+   - Teacher provides reference solution (optional)
+
+2. **Solution Import Phase**:
+   - Teacher manually uploads solutions OR
+   - System automatically imports from configured source
+   - Solutions are associated with task and external student identifiers
+
+3. **Assessment Phase**:
+   - System sends solution to LLM with appropriate prompts
+   - LLM generates assessment based on criteria
+   - System parses and formats LLM response
+
+4. **Review Phase**:
+   - Teacher reviews AI-generated assessment
+   - Teacher approves, modifies, or rejects assessment
+   - System applies auto-approval rules if configured
+
+5. **Export Phase**:
+   - Teacher exports assessment results
+   - System formats according to export template
+   - Results integrated with external systems if configured
+</PRD>
