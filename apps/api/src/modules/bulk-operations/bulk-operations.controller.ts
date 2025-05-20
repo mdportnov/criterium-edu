@@ -22,14 +22,17 @@ export class BulkOperationsController {
 
   // Endpoint for JSON Task Import
   @Post('tasks/import/json')
-  @ApiBody({ 
+  @ApiBody({
     description: 'JSON array of tasks to import',
-    type: [BulkImportTaskDto], 
+    type: [BulkImportTaskDto],
   })
   async importTasksJson(@Body() tasksData: BulkImportTaskDto[]) {
     // TODO: Replace placeholder userId with actual user ID from auth context
-    const placeholderUserId = 1; 
-    return this.bulkOperationsService.importTasksJson(tasksData, placeholderUserId);
+    const placeholderUserId = 1;
+    return this.bulkOperationsService.importTasksJson(
+      tasksData,
+      placeholderUserId,
+    );
   }
 
   // Endpoint for CSV Task Import
@@ -52,7 +55,10 @@ export class BulkOperationsController {
   async importTasksCsv(@UploadedFile() file: Express.Multer.File) {
     // TODO: Replace placeholder userId with actual user ID from auth context
     const placeholderUserId = 1;
-    return this.bulkOperationsService.importTasksCsv(file.buffer, placeholderUserId);
+    return this.bulkOperationsService.importTasksCsv(
+      file.buffer,
+      placeholderUserId,
+    );
   }
 
   // Endpoint for JSON Task Export

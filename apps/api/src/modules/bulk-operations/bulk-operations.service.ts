@@ -1,6 +1,11 @@
-import { Injectable, BadRequestException, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { TasksService } from '../tasks/tasks.service';
-import { BulkImportTaskDto, CreateTaskDto, TaskCriterionDto, TaskDto } from '@app/shared/dto';
+import {
+  BulkImportTaskDto,
+  CreateTaskDto,
+  TaskCriterionDto,
+  TaskDto,
+} from '@app/shared/dto';
 // We'll need a CSV parsing library like 'papaparse' later
 // import * as Papa from 'papaparse';
 
@@ -8,9 +13,18 @@ import { BulkImportTaskDto, CreateTaskDto, TaskCriterionDto, TaskDto } from '@ap
 export class BulkOperationsService {
   constructor(private readonly tasksService: TasksService) {}
 
-  async importTasksJson(tasksData: BulkImportTaskDto[], userId: number /* Placeholder for actual user ID */): Promise<{ successfullyImported: number; totalTasks: number; errors: any[] }> {
+  async importTasksJson(
+    tasksData: BulkImportTaskDto[],
+    userId: number /* Placeholder for actual user ID */,
+  ): Promise<{
+    successfullyImported: number;
+    totalTasks: number;
+    errors: any[];
+  }> {
     if (!Array.isArray(tasksData) || tasksData.length === 0) {
-      throw new BadRequestException('Invalid JSON data: Expected an array of tasks.');
+      throw new BadRequestException(
+        'Invalid JSON data: Expected an array of tasks.',
+      );
     }
 
     const results: TaskDto[] = [];
@@ -25,18 +39,22 @@ export class BulkOperationsService {
           authorSolution: bulkTask.authorSolution,
           categories: bulkTask.categories || [],
           tags: bulkTask.tags || [],
-          criteria: bulkTask.criteria?.map(
-            (crit): TaskCriterionDto => ({
-              name: crit.name,
-              description: crit.description,
-              maxPoints: crit.maxPoints,
-              // id and checkerComments are optional in TaskCriterionDto and not in BulkImportTaskCriterionDto
-            }),
-          ) || [],
+          criteria:
+            bulkTask.criteria?.map(
+              (crit): TaskCriterionDto => ({
+                name: crit.name,
+                description: crit.description,
+                maxPoints: crit.maxPoints,
+                // id and checkerComments are optional in TaskCriterionDto and not in BulkImportTaskCriterionDto
+              }),
+            ) || [],
         };
-        
+
         // Assuming userId will be provided, e.g., from authenticated user or a specific import user
-        const createdTask = await this.tasksService.create(createTaskDto, userId); 
+        const createdTask = await this.tasksService.create(
+          createTaskDto,
+          userId,
+        );
         results.push(createdTask);
       } catch (error) {
         errors.push({ taskTitle: bulkTask.title, error: error.message });
@@ -62,7 +80,10 @@ export class BulkOperationsService {
     // and handling criteria (e.g., from a JSON string in a 'criteria' column)
     console.log('Importing tasks from CSV string of length:', csvString.length);
     // Placeholder implementation
-    return { message: 'Successfully imported tasks from CSV. (Placeholder - CSV parsing to be implemented)' };
+    return {
+      message:
+        'Successfully imported tasks from CSV. (Placeholder - CSV parsing to be implemented)',
+    };
   }
 
   async exportTasksJson(): Promise<string> {

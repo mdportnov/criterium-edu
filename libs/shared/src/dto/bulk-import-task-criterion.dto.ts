@@ -12,7 +12,8 @@ export class BulkImportTaskCriterionDto {
 
   @ApiProperty({
     description: 'Detailed description of what this criterion assesses',
-    example: 'The code should be clear, well-commented, and easy to understand.',
+    example:
+      'The code should be clear, well-commented, and easy to understand.',
   })
   @IsString()
   @IsNotEmpty()
