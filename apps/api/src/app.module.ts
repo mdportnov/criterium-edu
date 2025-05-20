@@ -13,6 +13,7 @@ import { TasksModule } from './modules/tasks/tasks.module';
 import { TaskSolutionsModule } from './modules/task-solutions/task-solutions.module';
 import { TaskSolutionReviewsModule } from './modules/task-solution-reviews/task-solution-reviews.module';
 import { CheckerModule } from './modules/checker/checker.module';
+import { BulkOperationsModule } from './modules/bulk-operations/bulk-operations.module';
 
 @Module({
   imports: [
@@ -70,6 +71,7 @@ import { CheckerModule } from './modules/checker/checker.module';
     TaskSolutionsModule,
     TaskSolutionReviewsModule,
     CheckerModule,
+    BulkOperationsModule,
   ],
 })
 export class AppModule {}
