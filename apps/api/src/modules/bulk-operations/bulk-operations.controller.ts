@@ -4,16 +4,11 @@ import {
   Get,
   Post,
   Res,
-  UploadedFile,
-  UseInterceptors,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
 import { BulkOperationsService } from './bulk-operations.service';
-import { ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiConsumes, ApiBody, ApiResponse } from '@nestjs/swagger';
 import { Response } from 'express';
 import { BulkImportTaskDto } from '@app/shared/dto';
-
-// DTOs will be created later
 
 @ApiTags('Bulk Operations')
 @Controller('bulk-operations')
@@ -22,60 +17,39 @@ export class BulkOperationsController {
 
   // Endpoint for JSON Task Import
   @Post('tasks/import/json')
-  @ApiBody({
+  @ApiOperation({ summary: 'Import tasks from a JSON file' })
+  @ApiConsumes('application/json')
+  @ApiBody({ 
     description: 'JSON array of tasks to import',
-    type: [BulkImportTaskDto],
+    type: [BulkImportTaskDto], 
   })
+  @ApiResponse({ status: 201, description: 'Tasks imported successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid JSON data' })
   async importTasksJson(@Body() tasksData: BulkImportTaskDto[]) {
     // TODO: Replace placeholder userId with actual user ID from auth context
     const placeholderUserId = 1;
-    return this.bulkOperationsService.importTasksJson(
-      tasksData,
-      placeholderUserId,
-    );
+    return this.bulkOperationsService.importTasksJson(tasksData, placeholderUserId);
   }
 
-  // Endpoint for CSV Task Import
-  @Post('tasks/import/csv')
-  @UseInterceptors(FileInterceptor('file'))
-  @ApiConsumes('multipart/form-data')
-  @ApiBody({
-    description: 'CSV file containing tasks to import',
-    type: 'object',
-    schema: {
-      type: 'object',
-      properties: {
-        file: {
+  // Endpoint for JSON Task Export
+  @Get('tasks/export/json')
+  @ApiOperation({ summary: 'Export all tasks to a JSON file' })
+  @ApiResponse({
+    status: 200,
+    description: 'JSON file of all tasks',
+    content: {
+      'application/json': {
+        schema: {
           type: 'string',
           format: 'binary',
         },
       },
     },
   })
-  async importTasksCsv(@UploadedFile() file: Express.Multer.File) {
-    // TODO: Replace placeholder userId with actual user ID from auth context
-    const placeholderUserId = 1;
-    return this.bulkOperationsService.importTasksCsv(
-      file.buffer,
-      placeholderUserId,
-    );
-  }
-
-  // Endpoint for JSON Task Export
-  @Get('tasks/export/json')
   async exportTasksJson(@Res() res: Response) {
     const tasksJson = await this.bulkOperationsService.exportTasksJson();
     res.header('Content-Type', 'application/json');
     res.header('Content-Disposition', 'attachment; filename=tasks.json');
     res.send(tasksJson);
-  }
-
-  // Endpoint for CSV Task Export
-  @Get('tasks/export/csv')
-  async exportTasksCsv(@Res() res: Response) {
-    const tasksCsv = await this.bulkOperationsService.exportTasksCsv();
-    res.header('Content-Type', 'text/csv');
-    res.header('Content-Disposition', 'attachment; filename=tasks.csv');
-    res.send(tasksCsv);
   }
 }
