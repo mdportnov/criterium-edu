@@ -5,6 +5,7 @@ import { CriterionScore } from './entities/criterion-score.entity';
 import { TaskSolutionReviewsService } from './task-solution-reviews.service';
 import { TaskSolutionReviewsController } from './task-solution-reviews.controller';
 import { TaskSolution } from '../task-solutions/entities/task-solution.entity';
+import { TaskSolutionsModule } from '../task-solutions/task-solutions.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { TaskSolution } from '../task-solutions/entities/task-solution.entity';
       CriterionScore,
       TaskSolution,
     ]),
+    TaskSolutionsModule,
   ],
   providers: [TaskSolutionReviewsService],
   controllers: [TaskSolutionReviewsController],
