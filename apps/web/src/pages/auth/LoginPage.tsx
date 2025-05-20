@@ -19,7 +19,7 @@ const LoginPage = () => {
   const { login } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  
+
   const {
     register,
     handleSubmit,
@@ -27,7 +27,7 @@ const LoginPage = () => {
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
   });
-  
+
   const onSubmit = async (data: LoginFormData) => {
     try {
       setIsLoading(true);
@@ -41,10 +41,10 @@ const LoginPage = () => {
       setIsLoading(false);
     }
   };
-  
+
   return (
-    <AuthLayout 
-      title="Sign in to your account" 
+    <AuthLayout
+      title="Sign in to your account"
       subtitle="Enter your credentials to access the platform"
     >
       {error && (
@@ -52,7 +52,7 @@ const LoginPage = () => {
           {error}
         </Alert>
       )}
-      
+
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <FormInput
           label="Email"
@@ -64,7 +64,7 @@ const LoginPage = () => {
           autoComplete="email"
           required
         />
-        
+
         <FormInput
           label="Password"
           name="password"
@@ -75,7 +75,7 @@ const LoginPage = () => {
           autoComplete="current-password"
           required
         />
-        
+
         <div className="flex items-center justify-between">
           <div className="text-sm">
             <Link to="/forgot-password" className="link link-primary">
@@ -83,16 +83,16 @@ const LoginPage = () => {
             </Link>
           </div>
         </div>
-        
-        <Button 
-          type="submit" 
-          variant="primary" 
-          isFullWidth 
+
+        <Button
+          type="submit"
+          variant="primary"
+          isFullWidth
           isLoading={isLoading}
         >
           Sign in
         </Button>
-        
+
         <div className="text-center mt-4">
           <p className="text-sm text-base-content/60">
             Don't have an account?{' '}

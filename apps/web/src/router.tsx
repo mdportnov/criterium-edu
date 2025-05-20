@@ -7,31 +7,45 @@ import { UserRole } from './types';
 // Lazy loading pages for better performance
 const LoginPage = React.lazy(() => import('./pages/auth/LoginPage.tsx'));
 const RegisterPage = React.lazy(() => import('./pages/auth/RegisterPage.tsx'));
-const DashboardPage = React.lazy(() => import('./pages/dashboard/DashboardPage.tsx'));
+const DashboardPage = React.lazy(
+  () => import('./pages/dashboard/DashboardPage.tsx'),
+);
 const TasksPage = React.lazy(() => import('./pages/tasks/TasksPage.tsx'));
-const TaskDetailPage = React.lazy(() => import('./pages/tasks/TaskDetailPage.tsx'));
-const TaskCreatePage = React.lazy(() => import('./pages/tasks/TaskCreatePage.tsx'));
+const TaskDetailPage = React.lazy(
+  () => import('./pages/tasks/TaskDetailPage.tsx'),
+);
+const TaskCreatePage = React.lazy(
+  () => import('./pages/tasks/TaskCreatePage.tsx'),
+);
 const TaskEditPage = React.lazy(() => import('./pages/tasks/TaskEditPage.tsx'));
-const SolutionsPage = React.lazy(() => import('./pages/solutions/SolutionsPage.tsx'));
-const SolutionDetailPage = React.lazy(() => import('./pages/solutions/SolutionDetailPage.tsx'));
+const SolutionsPage = React.lazy(
+  () => import('./pages/solutions/SolutionsPage.tsx'),
+);
+const SolutionDetailPage = React.lazy(
+  () => import('./pages/solutions/SolutionDetailPage.tsx'),
+);
 const ReviewsPage = React.lazy(() => import('./pages/reviews/ReviewsPage.tsx'));
-const ReviewDetailPage = React.lazy(() => import('./pages/reviews/ReviewDetailPage.tsx'));
+const ReviewDetailPage = React.lazy(
+  () => import('./pages/reviews/ReviewDetailPage.tsx'),
+);
 const UsersPage = React.lazy(() => import('./pages/users/UsersPage.tsx'));
-const UserCreatePage = React.lazy(() => import('./pages/users/UserCreatePage.tsx'));
+const UserCreatePage = React.lazy(
+  () => import('./pages/users/UserCreatePage.tsx'),
+);
 const UserEditPage = React.lazy(() => import('./pages/users/UserEditPage.tsx'));
 const ProfilePage = React.lazy(() => import('./pages/profile/ProfilePage.tsx'));
 const NotFoundPage = React.lazy(() => import('./pages/NotFoundPage.tsx'));
 
 // Higher Order Component for protected routes
-const ProtectedRoute = ({ 
-  children, 
-  requiredRoles = [] 
-}: { 
+const ProtectedRoute = ({
+  children,
+  requiredRoles = [],
+}: {
   children: React.ReactNode;
   requiredRoles?: UserRole[];
 }) => {
   const { isAuthenticated, hasRole, isLoading } = useAuth();
-  
+
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -39,22 +53,22 @@ const ProtectedRoute = ({
       </div>
     );
   }
-  
+
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
-  
+
   if (requiredRoles.length > 0 && !hasRole(requiredRoles)) {
     return <Navigate to="/dashboard" replace />;
   }
-  
+
   return <>{children}</>;
 };
 
 // Higher Order Component for auth routes (accessible only when not authenticated)
 const AuthRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, isLoading } = useAuth();
-  
+
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -62,18 +76,18 @@ const AuthRoute = ({ children }: { children: React.ReactNode }) => {
       </div>
     );
   }
-  
+
   if (isAuthenticated) {
     return <Navigate to="/dashboard" replace />;
   }
-  
+
   return <>{children}</>;
 };
 
 // Component for lazy loaded pages with Suspense fallback
 const LazyOutlet = () => {
   return (
-    <React.Suspense 
+    <React.Suspense
       fallback={
         <div className="flex min-h-screen items-center justify-center">
           <span className="loading loading-spinner loading-lg text-primary"></span>

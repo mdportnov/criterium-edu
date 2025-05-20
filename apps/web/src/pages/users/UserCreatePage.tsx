@@ -3,10 +3,16 @@ import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Card, Button, FormInput, FormSelect, Alert } from '@/components/common';
+import {
+  Card,
+  Button,
+  FormInput,
+  FormSelect,
+  Alert,
+} from '@/components/common';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { usersService } from '@/api';
-import { UserRole } from '@/types';
+import { UserRole, CreateUserPayload } from '@/types';
 import { useToast } from '@/hooks';
 
 // Validation schema
@@ -44,7 +50,16 @@ const UserCreatePage = () => {
 
   // Mutation for creating a user
   const createUserMutation = useMutation({
-    mutationFn: (data: UserFormData) => usersService.create(data),
+    mutationFn: (formData: UserFormData) => {
+      const payload: CreateUserPayload = {
+        email: formData.email,
+        password: formData.password,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        role: formData.role,
+      };
+      return usersService.create(payload);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
       showToast('User created successfully!', 'success');
@@ -69,10 +84,7 @@ const UserCreatePage = () => {
     <div>
       <div className="flex justify-between items-center mb-6">
         <h1 className="page-header mb-0">Create User</h1>
-        <Button
-          variant="ghost"
-          onClick={() => navigate('/users')}
-        >
+        <Button variant="ghost" onClick={() => navigate('/users')}>
           Cancel
         </Button>
       </div>

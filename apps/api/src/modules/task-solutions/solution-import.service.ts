@@ -1,11 +1,15 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { BatchImportSolutionsDto, ImportSolutionDto } from './entities/solution-import.dto';
-import { TaskSolution } from '@app/shared';
+import {
+  BatchImportSolutionsDto,
+  ImportSolutionDto,
+} from './entities/solution-import.dto';
+import { TaskSolution } from './entities/task-solution.entity';
 import { SolutionSource } from './entities/solution-source.entity';
 import { UsersService } from '../users/users.service';
 import { TasksService } from '../tasks/tasks.service';
+import { TaskSolutionStatus } from '@app/shared';
 
 @Injectable()
 export class SolutionImportService {
@@ -91,6 +95,7 @@ export class SolutionImportService {
       task,
       user,
       source,
+      status: TaskSolutionStatus.SUBMITTED,
     });
 
     return this.solutionRepository.save(solution);

@@ -1,7 +1,11 @@
 import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { UserRole } from '@app/shared';
 import { ApiTags } from '@nestjs/swagger';
-import { AutoAssessRequestDto, TaskAutoAssessRequestDto } from '../task-solutions/entities/solution-import.dto';
+import {
+  AutoAssessRequestDto,
+  TaskAutoAssessRequestDto,
+  SourceAutoAssessRequestDto,
+} from '../task-solutions/entities/solution-import.dto';
 import { AutoAssessmentService } from './auto-assessment.service';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';

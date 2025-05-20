@@ -3,7 +3,13 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Card, Button, FormInput, FormSelect, Alert } from '@/components/common';
+import {
+  Card,
+  Button,
+  FormInput,
+  FormSelect,
+  Alert,
+} from '@/components/common';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { usersService } from '@/api';
 import { UserRole } from '@/types';
@@ -14,7 +20,11 @@ const userSchema = z.object({
   firstName: z.string().min(2, 'First name must be at least 2 characters'),
   lastName: z.string().min(2, 'Last name must be at least 2 characters'),
   email: z.string().email('Please enter a valid email'),
-  password: z.string().min(6, 'Password must be at least 6 characters').optional().or(z.literal('')),
+  password: z
+    .string()
+    .min(6, 'Password must be at least 6 characters')
+    .optional()
+    .or(z.literal('')),
   role: z.enum([UserRole.ADMIN, UserRole.MENTOR, UserRole.STUDENT]),
 });
 
@@ -28,7 +38,11 @@ const UserEditPage = () => {
   const [error, setError] = useState<string | null>(null);
 
   // Fetch user data
-  const { data: user, isLoading, isError } = useQuery({
+  const {
+    data: user,
+    isLoading,
+    isError,
+  } = useQuery({
     queryKey: ['user', userId],
     queryFn: () => usersService.getById(Number(userId)),
     enabled: !!userId,
@@ -110,10 +124,7 @@ const UserEditPage = () => {
           Failed to load user details. Please try again.
         </Alert>
         <div className="mt-4">
-          <Button
-            variant="primary"
-            onClick={() => navigate('/users')}
-          >
+          <Button variant="primary" onClick={() => navigate('/users')}>
             Back to Users
           </Button>
         </div>
@@ -124,11 +135,10 @@ const UserEditPage = () => {
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h1 className="page-header mb-0">Edit User: {user.firstName} {user.lastName}</h1>
-        <Button
-          variant="ghost"
-          onClick={() => navigate('/users')}
-        >
+        <h1 className="page-header mb-0">
+          Edit User: {user.firstName} {user.lastName}
+        </h1>
+        <Button variant="ghost" onClick={() => navigate('/users')}>
           Cancel
         </Button>
       </div>

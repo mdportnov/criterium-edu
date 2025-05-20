@@ -27,11 +27,10 @@ export class AuthController {
   @Roles(UserRole.ADMIN)
   async loginAs(
     @Body() loginAsDto: LoginAsDto,
-    @Req() req: any
+    @Req() req: any,
   ): Promise<TokenDto> {
     // Get admin's ID from the JWT token for logging purposes
     const adminId = req.user.sub;
     return this.authService.loginAs(loginAsDto.userId, adminId);
   }
 }
-

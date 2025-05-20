@@ -1,7 +1,13 @@
 import { InputHTMLAttributes } from 'react';
-import { UseFormRegister, FieldError, FieldValues, Path } from 'react-hook-form';
+import {
+  UseFormRegister,
+  FieldError,
+  FieldValues,
+  Path,
+} from 'react-hook-form';
 
-interface FormInputProps<T extends FieldValues> extends InputHTMLAttributes<HTMLInputElement> {
+interface FormInputProps<T extends FieldValues>
+  extends InputHTMLAttributes<HTMLInputElement> {
   label: string;
   name: Path<T>;
   register: UseFormRegister<T>;
@@ -29,7 +35,9 @@ export const FormInput = <T extends FieldValues>({
         {...register(name)}
         {...props}
       />
-      {helperText && !error && <p className="mt-1 text-sm text-gray-500">{helperText}</p>}
+      {helperText && !error && (
+        <p className="mt-1 text-sm text-gray-500">{helperText}</p>
+      )}
       {error && <p className="form-error">{error.message}</p>}
     </div>
   );

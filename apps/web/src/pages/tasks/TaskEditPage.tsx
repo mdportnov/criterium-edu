@@ -3,10 +3,17 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Card, Button, FormInput, FormTextarea, Alert } from '@/components/common';
+import {
+  Card,
+  Button,
+  FormInput,
+  FormTextarea,
+  Alert,
+} from '@/components/common';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { tasksService } from '@/api';
 import { useToast } from '@/hooks';
+import { UpdateTaskPayload } from '@/types';
 
 // Validation schema
 const criterionSchema = z.object({
@@ -20,7 +27,9 @@ const taskSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters'),
   description: z.string().min(10, 'Description must be at least 10 characters'),
   authorSolution: z.string().optional(),
-  criteria: z.array(criterionSchema).min(1, 'At least one criterion is required'),
+  criteria: z
+    .array(criterionSchema)
+    .min(1, 'At least one criterion is required'),
 });
 
 type TaskFormData = z.infer<typeof taskSchema>;
@@ -33,7 +42,11 @@ const TaskEditPage = () => {
   const [error, setError] = useState<string | null>(null);
 
   // Fetch task data
-  const { data: task, isLoading, isError } = useQuery({
+  const {
+    data: task,
+    isLoading,
+    isError,
+  } = useQuery({
     queryKey: ['task', taskId],
     queryFn: () => tasksService.getById(Number(taskId)),
     enabled: !!taskId,
@@ -63,8 +76,7 @@ const TaskEditPage = () => {
         title: task.title,
         description: task.description,
         authorSolution: task.authorSolution || '',
-        criteria: task.criteria.map(c => ({
-          id: c.id,
+        criteria: task.criteria.map((c) => ({
           name: c.name,
           description: c.description,
           maxPoints: Number(c.maxPoints),
@@ -81,7 +93,21 @@ const TaskEditPage = () => {
 
   // Mutation for updating a task
   const updateTaskMutation = useMutation({
-    mutationFn: (data: TaskFormData) => tasksService.update(Number(taskId), data),
+    mutationFn: (formData: TaskFormData) => {
+      const payload: UpdateTaskPayload = {};
+      if (formData.title) payload.title = formData.title;
+      if (formData.description) payload.description = formData.description;
+      if (formData.authorSolution)
+        payload.authorSolution = formData.authorSolution;
+      if (formData.criteria) {
+        payload.criteria = formData.criteria.map((c) => ({
+          name: c.name,
+          description: c.description,
+          maxPoints: c.maxPoints,
+        }));
+      }
+      return tasksService.update(Number(taskId), payload);
+    },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
       queryClient.invalidateQueries({ queryKey: ['task', taskId] });
@@ -118,10 +144,7 @@ const TaskEditPage = () => {
           Failed to load task details. Please try again.
         </Alert>
         <div className="mt-4">
-          <Button
-            variant="primary"
-            onClick={() => navigate('/tasks')}
-          >
+          <Button variant="primary" onClick={() => navigate('/tasks')}>
             Back to Tasks
           </Button>
         </div>
@@ -133,10 +156,7 @@ const TaskEditPage = () => {
     <div>
       <div className="flex justify-between items-center mb-6">
         <h1 className="page-header mb-0">Edit Task</h1>
-        <Button
-          variant="ghost"
-          onClick={() => navigate(`/tasks/${taskId}`)}
-        >
+        <Button variant="ghost" onClick={() => navigate(`/tasks/${taskId}`)}>
           Cancel
         </Button>
       </div>
@@ -177,16 +197,12 @@ const TaskEditPage = () => {
           />
         </Card>
 
-        <Card 
-          title="Evaluation Criteria" 
+        <Card
+          title="Evaluation Criteria"
           className="mb-6"
           footer={
             <div className="flex justify-end">
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={addCriterion}
-              >
+              <Button type="button" variant="secondary" onClick={addCriterion}>
                 Add Criterion
               </Button>
             </div>
@@ -199,7 +215,10 @@ const TaskEditPage = () => {
           )}
 
           {fields.map((field, index) => (
-            <div key={field.id} className="card bg-base-200 p-4 mb-4 rounded-box">
+            <div
+              key={field.id}
+              className="card bg-base-200 p-4 mb-4 rounded-box"
+            >
               <div className="flex justify-between items-center mb-2">
                 <h3 className="font-semibold">Criterion #{index + 1}</h3>
                 {index > 0 && (

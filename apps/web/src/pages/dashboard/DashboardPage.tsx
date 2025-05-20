@@ -17,7 +17,10 @@ const DashboardPage = () => {
   // Fetch user's solutions if user is a student
   const { data: solutions, isLoading: isSolutionsLoading } = useQuery({
     queryKey: ['solutions', user?.id],
-    queryFn: () => user ? taskSolutionsService.getAllByStudentId(user.id) : Promise.resolve([]),
+    queryFn: () =>
+      user
+        ? taskSolutionsService.getAllByStudentId(user.id)
+        : Promise.resolve([]),
     enabled: user?.role === UserRole.STUDENT,
   });
 
@@ -29,7 +32,9 @@ const DashboardPage = () => {
         {/* Stats Cards */}
         <Card className="bg-primary text-white shadow-md hover:shadow-lg transition-shadow dark:bg-primary-focus">
           <div className="flex flex-col">
-            <div className="text-xl font-semibold mb-2 text-white">Total Tasks</div>
+            <div className="text-xl font-semibold mb-2 text-white">
+              Total Tasks
+            </div>
             <div className="text-4xl font-bold">
               {isTasksLoading ? (
                 <div className="h-10 flex items-center">
@@ -45,7 +50,9 @@ const DashboardPage = () => {
         {user?.role === UserRole.STUDENT && (
           <Card className="bg-accent text-black shadow-md hover:shadow-lg transition-shadow dark:bg-accent-focus">
             <div className="flex flex-col">
-              <div className="text-xl font-semibold mb-2 text-black">My Solutions</div>
+              <div className="text-xl font-semibold mb-2 text-black">
+                My Solutions
+              </div>
               <div className="text-4xl font-bold">
                 {isSolutionsLoading ? (
                   <div className="h-10 flex items-center">
@@ -62,7 +69,9 @@ const DashboardPage = () => {
         {(user?.role === UserRole.ADMIN || user?.role === UserRole.MENTOR) && (
           <Card className="bg-secondary text-white shadow-md hover:shadow-lg transition-shadow dark:bg-secondary-focus">
             <div className="flex flex-col">
-              <div className="text-xl font-semibold mb-2 text-white">Pending Reviews</div>
+              <div className="text-xl font-semibold mb-2 text-white">
+                Pending Reviews
+              </div>
               <div className="text-4xl font-bold">
                 {/* This would ideally be a separate query */}
                 <span>0</span>
@@ -87,7 +96,11 @@ const DashboardPage = () => {
       {/* Recent Tasks Section */}
       <div className="mt-8">
         <Card
-          title={<h2 className="text-xl font-semibold text-gray-800">Recent Tasks</h2>}
+          title={
+            <h2 className="text-xl font-semibold text-gray-800">
+              Recent Tasks
+            </h2>
+          }
           actions={
             <Link to="/tasks" className="btn btn-sm btn-ghost">
               View All
@@ -104,18 +117,22 @@ const DashboardPage = () => {
                 { header: 'Title', accessor: 'title' },
                 {
                   header: 'Created At',
-                  accessor: (row) => new Date(row.createdAt).toLocaleDateString()
+                  accessor: (row) =>
+                    new Date(row.createdAt).toLocaleDateString(),
                 },
                 {
                   header: 'Actions',
                   accessor: (row) => (
-                    <Link to={`/tasks/${row.id}`} className="btn btn-sm btn-primary">
+                    <Link
+                      to={`/tasks/${row.id}`}
+                      className="btn btn-sm btn-primary"
+                    >
                       View
                     </Link>
-                  )
+                  ),
                 },
               ]}
-              data={tasks.slice(0, 5)}  // Show only the 5 most recent tasks
+              data={tasks.slice(0, 5)} // Show only the 5 most recent tasks
               keyExtractor={(item) => item.id.toString()}
             />
           ) : (
@@ -130,7 +147,11 @@ const DashboardPage = () => {
       {user?.role === UserRole.STUDENT && (
         <div className="mt-8">
           <Card
-            title={<h2 className="text-xl font-semibold text-gray-800">My Recent Solutions</h2>}
+            title={
+              <h2 className="text-xl font-semibold text-gray-800">
+                My Recent Solutions
+              </h2>
+            }
             actions={
               <Link to="/solutions" className="btn btn-sm btn-ghost">
                 View All
@@ -146,30 +167,32 @@ const DashboardPage = () => {
                 columns={[
                   {
                     header: 'Task',
-                    accessor: (row) => row.task?.title || `Task #${row.taskId}`
+                    accessor: (row) => row.task?.title || `Task #${row.taskId}`,
                   },
                   {
                     header: 'Status',
                     accessor: (row) => (
-                      <div className="badge badge-outline">
-                        {row.status}
-                      </div>
-                    )
+                      <div className="badge badge-outline">{row.status}</div>
+                    ),
                   },
                   {
                     header: 'Submitted At',
-                    accessor: (row) => new Date(row.submittedAt).toLocaleDateString()
+                    accessor: (row) =>
+                      new Date(row.submittedAt).toLocaleDateString(),
                   },
                   {
                     header: 'Actions',
                     accessor: (row) => (
-                      <Link to={`/solutions/${row.id}`} className="btn btn-sm btn-primary">
+                      <Link
+                        to={`/solutions/${row.id}`}
+                        className="btn btn-sm btn-primary"
+                      >
                         View
                       </Link>
-                    )
+                    ),
                   },
                 ]}
-                data={solutions.slice(0, 5)}  // Show only the 5 most recent solutions
+                data={solutions.slice(0, 5)} // Show only the 5 most recent solutions
                 keyExtractor={(item) => item.id.toString()}
               />
             ) : (
@@ -186,7 +209,11 @@ const DashboardPage = () => {
 
       {/* Quick Links Section */}
       <div className="mt-8">
-        <Card title={<h2 className="text-xl font-semibold text-gray-800">Quick Links</h2>}>
+        <Card
+          title={
+            <h2 className="text-xl font-semibold text-gray-800">Quick Links</h2>
+          }
+        >
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             <Link to="/tasks" className="btn btn-outline btn-primary">
               Browse Tasks
@@ -198,7 +225,8 @@ const DashboardPage = () => {
               </Link>
             )}
 
-            {(user?.role === UserRole.ADMIN || user?.role === UserRole.MENTOR) && (
+            {(user?.role === UserRole.ADMIN ||
+              user?.role === UserRole.MENTOR) && (
               <Link to="/reviews" className="btn btn-outline btn-secondary">
                 Reviews
               </Link>

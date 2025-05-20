@@ -1,7 +1,19 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  ReactNode,
+} from 'react';
 import { jwtDecode } from 'jwt-decode';
 import { authService } from '@/api';
-import { JwtPayload, LoginPayload, RegisterPayload, User, UserRole } from '@/types';
+import {
+  JwtPayload,
+  LoginPayload,
+  RegisterPayload,
+  User,
+  UserRole,
+} from '@/types';
 
 interface AuthContextType {
   user: User | null;
@@ -23,8 +35,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isImpersonating, setIsImpersonating] = useState(false);
-  const [originalAdmin, setOriginalAdmin] = useState<{ id: number } | undefined>(undefined);
-  
+  const [originalAdmin, setOriginalAdmin] = useState<
+    { id: number } | undefined
+  >(undefined);
+
   useEffect(() => {
     const initAuth = async () => {
       try {
@@ -35,7 +49,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           if (decoded.exp * 1000 < Date.now()) {
             throw new Error('Token expired');
           }
-          
+
           setUser({
             id: decoded.sub,
             email: decoded.email,
@@ -63,15 +77,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setIsLoading(false);
       }
     };
-    
+
     initAuth();
   }, []);
-  
+
   const login = async (data: LoginPayload) => {
     try {
       const response = await authService.login(data);
       localStorage.setItem('accessToken', response.access_token);
-      
+
       const decoded = jwtDecode<JwtPayload>(response.access_token);
       setUser({
         id: decoded.sub,
@@ -87,12 +101,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       throw error;
     }
   };
-  
+
   const register = async (data: RegisterPayload) => {
     try {
       const response = await authService.register(data);
       localStorage.setItem('accessToken', response.access_token);
-      
+
       const decoded = jwtDecode<JwtPayload>(response.access_token);
       setUser({
         id: decoded.sub,
@@ -108,12 +122,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       throw error;
     }
   };
-  
+
   const loginAs = async (userId: number) => {
     try {
       const response = await authService.loginAs({ userId });
       localStorage.setItem('accessToken', response.access_token);
-      
+
       const decoded = jwtDecode<JwtPayload>(response.access_token);
       setUser({
         id: decoded.sub,
@@ -148,7 +162,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // Redirect to users page
     window.location.href = '/users';
   };
-  
+
   const logout = () => {
     localStorage.removeItem('accessToken');
     setUser(null);
@@ -157,12 +171,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // Redirect to login
     window.location.href = '/login';
   };
-  
+
   const hasRole = (roles: UserRole[]) => {
     if (!user) return false;
     return roles.includes(user.role);
   };
-  
+
   return (
     <AuthContext.Provider
       value={{
@@ -191,4 +205,3 @@ export const useAuth = () => {
   }
   return context;
 };
-

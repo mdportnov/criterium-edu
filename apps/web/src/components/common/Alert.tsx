@@ -21,13 +21,15 @@ export const Alert: React.FC<AlertProps> = ({
 }) => {
   const baseClassName = 'alert';
   const variantClassName = variant ? `alert-${variant}` : '';
-  
+
   const combinedClassName = `
     ${baseClassName}
     ${variantClassName}
     ${className}
-  `.trim().replace(/\s+/g, ' ');
-  
+  `
+    .trim()
+    .replace(/\s+/g, ' ');
+
   return (
     <div className={combinedClassName}>
       {icon && <div className="alert-icon">{icon}</div>}
