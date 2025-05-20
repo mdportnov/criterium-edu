@@ -19,7 +19,7 @@ export class TasksService {
     private readonly criteriaRepository: Repository<TaskCriterion>,
   ) {}
 
-  private mapTaskCriterionToDto(criterion: TaskCriterion): TaskCriterionDto {
+  private mapTaskCriterionToDto = (criterion: TaskCriterion): TaskCriterionDto => {
     return {
       id: criterion.id,
       name: criterion.name,
@@ -28,7 +28,7 @@ export class TasksService {
     };
   }
 
-  private mapTaskToDto(task: Task): TaskDto {
+  private mapTaskToDto = (task: Task): TaskDto => {
     return {
       id: task.id,
       title: task.title,
@@ -49,7 +49,7 @@ export class TasksService {
     const tasks = await this.tasksRepository.find({
       relations: ['criteria', 'creator'], // Eager load criteria and creator
     });
-    return tasks.map(this.mapTaskToDto);
+    return tasks.map(task => this.mapTaskToDto(task));
   }
 
   async findOne(id: number): Promise<TaskDto> {
