@@ -1,3 +1,5 @@
+@import "tailwindcss";
+
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -64,10 +66,10 @@
 
 @layer base {
   * {
-    @apply border-2 border-red-500; /* Test with a standard Tailwind class */
+    /* Test with a standard Tailwind class was here, removed offending @apply */
   }
   body {
-    @apply bg-background text-foreground;
+    /* @apply bg-background text-foreground; */ /* Replaced with direct application below */
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
     font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;

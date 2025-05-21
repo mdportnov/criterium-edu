@@ -18,7 +18,11 @@ export interface CheckerResult {
 }
 
 export const CheckerService = {
-  async runChecker(code: string, language: string, taskId?: number): Promise<CheckerResult> {
+  async runChecker(
+    code: string,
+    language: string,
+    taskId?: number,
+  ): Promise<CheckerResult> {
     return apiRequest<CheckerResult>({
       method: 'POST',
       url: '/checker/run',

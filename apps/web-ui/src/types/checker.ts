@@ -21,11 +21,11 @@ export interface CheckResult {
   totalTests: number;
   passedTests: number;
   testResults: TestResultItem[];
-  output?: string; 
+  output?: string;
 }
 
 export interface RunCodeCheckRequest {
   code: string;
   languageId: string;
-  templateId?: string; 
+  templateId?: string;
 }
