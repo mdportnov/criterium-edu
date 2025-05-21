@@ -12,6 +12,7 @@ import {
   TaskSolutionStatus,
   UpdateTaskSolutionDto,
   UserRole,
+  TaskSolutionDto,
 } from '@app/shared';
 
 @Injectable()
@@ -20,6 +21,22 @@ export class TaskSolutionsService {
     @InjectRepository(TaskSolution)
     private readonly taskSolutionsRepository: Repository<TaskSolution>,
   ) {}
+
+  // Helper to map TaskSolution entity to TaskSolutionDto
+  private mapTaskSolutionToDto(solution: TaskSolution): TaskSolutionDto {
+    if (!solution) return null;
+    return {
+      id: solution.id,
+      taskId: solution.task?.id, // Safely access task id
+      studentId: solution.user?.id, // Safely access user id
+      solutionText: solution.content, // Map entity's content to DTO's solutionText
+      status: solution.status,
+      submittedAt: solution.createdAt, // Add submittedAt mapping
+      createdAt: solution.createdAt,
+      updatedAt: solution.updatedAt,
+      // Add other fields if present in your DTO and entity
+    };
+  }
 
   async findAll(): Promise<TaskSolution[]> {
     return this.taskSolutionsRepository.find({
@@ -44,7 +61,7 @@ export class TaskSolutionsService {
   async findOne(id: number, user?: User): Promise<TaskSolution> {
     const taskSolution = await this.taskSolutionsRepository.findOne({
       where: { id },
-      relations: ['task', 'user'],
+      relations: ['task', 'user'], // Ensure task and user are loaded for the DTO
     });
 
     if (!taskSolution) {
@@ -60,6 +77,14 @@ export class TaskSolutionsService {
     }
 
     return taskSolution;
+  }
+
+  // New method to find one TaskSolution and return as DTO
+  async findOneAsDto(id: number): Promise<TaskSolutionDto> {
+    // We call the existing findOne but without the user, as CheckerService acts with system privileges
+    const taskSolutionEntity = await this.findOne(id);
+    // findOne already throws NotFoundException if not found
+    return this.mapTaskSolutionToDto(taskSolutionEntity);
   }
 
   async create(

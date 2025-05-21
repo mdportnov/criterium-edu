@@ -1,12 +1,12 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Post,
-  Res,
-} from '@nestjs/common';
+import { Body, Controller, Get, Post, Res } from '@nestjs/common';
 import { BulkOperationsService } from './bulk-operations.service';
-import { ApiTags, ApiOperation, ApiConsumes, ApiBody, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiConsumes,
+  ApiBody,
+  ApiResponse,
+} from '@nestjs/swagger';
 import { Response } from 'express';
 import { BulkImportTaskDto } from '@app/shared/dto';
 
@@ -19,16 +19,19 @@ export class BulkOperationsController {
   @Post('tasks/import/json')
   @ApiOperation({ summary: 'Import tasks from a JSON file' })
   @ApiConsumes('application/json')
-  @ApiBody({ 
+  @ApiBody({
     description: 'JSON array of tasks to import',
-    type: [BulkImportTaskDto], 
+    type: [BulkImportTaskDto],
   })
   @ApiResponse({ status: 201, description: 'Tasks imported successfully' })
   @ApiResponse({ status: 400, description: 'Invalid JSON data' })
   async importTasksJson(@Body() tasksData: BulkImportTaskDto[]) {
     // TODO: Replace placeholder userId with actual user ID from auth context
     const placeholderUserId = 1;
-    return this.bulkOperationsService.importTasksJson(tasksData, placeholderUserId);
+    return this.bulkOperationsService.importTasksJson(
+      tasksData,
+      placeholderUserId,
+    );
   }
 
   // Endpoint for JSON Task Export
