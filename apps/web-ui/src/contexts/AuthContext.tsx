@@ -18,71 +18,50 @@ interface AuthContextType {
   hasRole: (roles: UserRole | UserRole[]) => boolean;
 }
 
-// Mock user for development
-const mockUser: User = {
-  id: 1,
-  email: 'admin@example.com',
-  firstName: 'Admin',
-  lastName: 'User',
-  role: UserRole.ADMIN,
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
-};
-
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [user, setUser] = useState<User | null>(null); // Start with no user
-  const [isLoading, setIsLoading] = useState<boolean>(true); // Start loading
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false); // Start not authenticated
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
 
   useEffect(() => {
     const checkAuthStatus = async () => {
-      // setIsLoading(true); // Already true from initial state
-
-      if (import.meta.env.PROD && AuthService.isAuthenticated()) {
+      // setIsLoading(true); // Already true
+      // Always check token, regardless of environment
+      if (AuthService.isAuthenticated()) { // Simplified condition
         try {
           const userData = await UserService.getProfile();
           setUser(userData);
           setIsAuthenticated(true);
         } catch (error) {
           console.error('Error fetching user profile:', error);
-          AuthService.logout(); // Clear token if profile fetch fails
+          AuthService.logout();
           setUser(null);
           setIsAuthenticated(false);
         }
-      } else if (!import.meta.env.PROD) {
-        // For development, set mock user but DON'T auto-authenticate
-        // This allows visiting /login page.
-        // The mockUser can be used by other parts of the app that might expect a user object.
-        setUser(mockUser); 
-        // setIsAuthenticated(true); // DO NOT set this to true here for dev
-      }
-      // If it's PROD and no token, user remains null, isAuthenticated remains false.
-      
-      setIsLoading(false); // Finished initial auth check
+      } // If no token, user remains null, isAuthenticated remains false.
+      setIsLoading(false);
     };
 
     checkAuthStatus();
-  }, []); // Empty dependency array, runs once on mount
+  }, []);
 
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      if (import.meta.env.PROD) {
-        const response = await AuthService.login({ email, password });
-        localStorage.setItem('token', response.access_token);
-        const userData = await UserService.getProfile();
-        setUser(userData);
-      } else {
-        // Mock login for development
-        setUser(mockUser);
-      }
+      // Always use AuthService
+      const response = await AuthService.login({ email, password });
+      localStorage.setItem('token', response.access_token);
+      const userData = await UserService.getProfile();
+      setUser(userData);
       setIsAuthenticated(true);
     } catch (error) {
       console.error('Login error:', error);
+      setIsAuthenticated(false); // Ensure not authenticated on error
+      setUser(null);
       throw error;
     } finally {
       setIsLoading(false);
@@ -97,28 +76,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   ) => {
     setIsLoading(true);
     try {
-      if (import.meta.env.PROD) {
-        const response = await AuthService.register({
-          email,
-          firstName,
-          lastName,
-          password,
-        });
-        localStorage.setItem('token', response.access_token);
-        const userData = await UserService.getProfile();
-        setUser(userData);
-      } else {
-        // Mock register for development
-        setUser({
-          ...mockUser,
-          email,
-          firstName,
-          lastName,
-        });
-      }
+      // Always use AuthService
+      const response = await AuthService.register({
+        email,
+        firstName,
+        lastName,
+        password,
+      });
+      localStorage.setItem('token', response.access_token);
+      const userData = await UserService.getProfile();
+      setUser(userData);
       setIsAuthenticated(true);
     } catch (error) {
       console.error('Registration error:', error);
+      setIsAuthenticated(false); // Ensure not authenticated on error
+      setUser(null);
       throw error;
     } finally {
       setIsLoading(false);

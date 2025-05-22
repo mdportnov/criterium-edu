@@ -5,7 +5,7 @@ export const UserService = {
   async getProfile(): Promise<User> {
     return apiRequest<User>({
       method: 'GET',
-      url: '/users/profile',
+      url: '/auth/profile',
     });
   },
 
