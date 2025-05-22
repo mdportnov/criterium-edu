@@ -1,6 +1,6 @@
 import React from 'react';
 import { createBrowserRouter, RouterProvider, type RouteObject } from 'react-router-dom';
-import { ProtectedRoute } from './ProtectedRoute';
+import ProtectedRoute from '@/components/router/ProtectedRoute';
 import { UserRole } from '@/types';
 
 // Layouts
