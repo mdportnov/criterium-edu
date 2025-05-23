@@ -23,15 +23,14 @@ const AuthLayout: React.FC = () => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-primary/10">
       <div className="w-full max-w-md px-4">
         <div className="text-center mb-8 fade-in">
-          <div className="inline-flex items-center gap-3 mb-4">
-            <div className="w-12 h-12 bg-primary text-primary-foreground rounded-xl flex items-center justify-center shadow-lg">
-              <span className="text-xl font-bold">C</span>
-            </div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-              Criterium EDU
-            </h1>
+          <div className="inline-flex items-center justify-center gap-4 mb-4">
+            <img 
+              src="/logo.svg"
+              alt="Criterium EDU Logo" 
+              className="h-12 w-auto"
+            />
           </div>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground text-lg">
             Educational Assessment Platform
           </p>
         </div>
