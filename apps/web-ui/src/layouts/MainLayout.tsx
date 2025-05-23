@@ -84,7 +84,7 @@ const MainLayout: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       {/* Header */}
-      <header className="bg-primary text-primary-foreground shadow-lg sticky top-0 z-40 transition-all duration-300">
+      <header className="bg-blue-600 text-white shadow-lg sticky top-0 z-40 transition-all duration-300 backdrop-blur-none">
         <div className="container-responsive max-w-7xl mx-auto">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
@@ -106,10 +106,10 @@ const MainLayout: React.FC = () => {
                   <Link
                     key={item.path}
                     to={item.path}
-                    className={`nav-link flex items-center gap-2 px-3 py-2 text-sm font-medium transition-all duration-200 ${
+                    className={`nav-link flex items-center gap-2 px-3 py-2 text-sm font-medium transition-all duration-200 rounded-md ${
                       isActiveRoute(item.path)
-                        ? 'bg-primary-foreground/20 text-primary-foreground'
-                        : 'text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/10'
+                        ? 'bg-white/20 text-white'
+                        : 'text-white/80 hover:text-white hover:bg-white/10'
                     }`}
                   >
                     <Icon className="w-4 h-4" />
@@ -122,9 +122,9 @@ const MainLayout: React.FC = () => {
               <div className="relative ml-4" ref={dropdownRef}>
                 <button
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/10 rounded-md transition-all duration-200"
+                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-white/80 hover:text-white hover:bg-white/10 rounded-md transition-all duration-200"
                 >
-                  <div className="w-8 h-8 bg-primary-foreground/20 rounded-full flex items-center justify-center">
+                  <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
                     <User className="w-4 h-4" />
                   </div>
                   <span className="hidden xl:inline">
@@ -172,7 +172,7 @@ const MainLayout: React.FC = () => {
                   <Button 
                     variant="ghost" 
                     size="icon" 
-                    className="text-primary-foreground hover:bg-primary-foreground/10"
+                    className="text-white hover:bg-white/10"
                   >
                     <Menu className="w-6 h-6" />
                     <span className="sr-only">Menu</span>
