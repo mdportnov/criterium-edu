@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Res } from '@nestjs/common';
+import { Body, Controller, Get, Post, Res, Param } from '@nestjs/common';
 import { BulkOperationsService } from './bulk-operations.service';
 import {
   ApiTags,
@@ -8,7 +8,7 @@ import {
   ApiResponse,
 } from '@nestjs/swagger';
 import { Response } from 'express';
-import { BulkImportTaskDto } from '@app/shared/dto';
+import { BulkImportTaskDto, BulkImportSolutionDto } from '@app/shared/dto';
 
 @ApiTags('Bulk Operations')
 @Controller('bulk-operations')
@@ -54,5 +54,53 @@ export class BulkOperationsController {
     res.header('Content-Type', 'application/json');
     res.header('Content-Disposition', 'attachment; filename=tasks.json');
     res.send(tasksJson);
+  }
+
+  @Post('solutions/import/json')
+  @ApiOperation({ summary: 'Import solutions from a JSON file' })
+  @ApiConsumes('application/json')
+  @ApiBody({
+    description: 'JSON array of solutions to import',
+    type: [BulkImportSolutionDto],
+  })
+  @ApiResponse({ status: 201, description: 'Solutions import started' })
+  @ApiResponse({ status: 400, description: 'Invalid JSON data' })
+  async importSolutionsJson(@Body() solutionsData: BulkImportSolutionDto[]) {
+    return this.bulkOperationsService.importSolutionsJson(solutionsData);
+  }
+
+  @Get('operations/:operationId/status')
+  @ApiOperation({ summary: 'Get processing operation status' })
+  @ApiResponse({ status: 200, description: 'Operation status retrieved' })
+  @ApiResponse({ status: 404, description: 'Operation not found' })
+  async getOperationStatus(@Param('operationId') operationId: string) {
+    return this.bulkOperationsService.getOperationStatus(operationId);
+  }
+
+  @Post('solutions/assess-llm')
+  @ApiOperation({ summary: 'Start LLM assessment for solutions' })
+  @ApiConsumes('application/json')
+  @ApiBody({
+    description: 'LLM assessment request',
+    schema: {
+      type: 'object',
+      properties: {
+        solutionIds: { type: 'array', items: { type: 'string' } },
+        llmModel: { type: 'string' },
+        taskId: { type: 'string' },
+        systemPrompt: { type: 'string' },
+      },
+      required: ['solutionIds'],
+    },
+  })
+  @ApiResponse({ status: 201, description: 'LLM assessment started' })
+  @ApiResponse({ status: 400, description: 'Invalid request data' })
+  async startLLMAssessment(@Body() requestData: {
+    solutionIds: string[];
+    llmModel?: string;
+    taskId?: string;
+    systemPrompt?: string;
+  }) {
+    return this.bulkOperationsService.startLLMAssessment(requestData);
   }
 }

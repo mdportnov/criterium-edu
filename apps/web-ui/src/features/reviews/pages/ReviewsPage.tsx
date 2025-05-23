@@ -1,19 +1,40 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { TaskSolutionReviewService } from '@/services';
 import { useAuth } from '@/contexts/AuthContext';
-import type { TaskSolutionReview, ReviewSource } from '@/types';
-import { Search, Plus, FileText, Calendar, User, Star, AlertCircle } from 'lucide-react';
+import type { ReviewSource, TaskSolutionReview } from '@/types';
+import {
+  Activity,
+  AlertCircle,
+  Brain,
+  Calendar,
+  CheckCircle,
+  FileText,
+  Plus,
+  Search,
+  Settings,
+  Star,
+  Upload,
+  User,
+} from 'lucide-react';
 
 const ReviewsPage: React.FC = () => {
   const [reviews, setReviews] = useState<TaskSolutionReview[]>([]);
-  const [filteredReviews, setFilteredReviews] = useState<TaskSolutionReview[]>([]);
+  const [filteredReviews, setFilteredReviews] = useState<TaskSolutionReview[]>(
+    [],
+  );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
@@ -38,9 +59,13 @@ const ReviewsPage: React.FC = () => {
 
       let data: TaskSolutionReview[];
       if (taskId) {
-        data = await TaskSolutionReviewService.getReviewsByTaskId(Number(taskId));
+        data = await TaskSolutionReviewService.getReviewsByTaskId(
+          Number(taskId),
+        );
       } else if (taskSolutionId) {
-        data = await TaskSolutionReviewService.getReviewsByTaskSolutionId(Number(taskSolutionId));
+        data = await TaskSolutionReviewService.getReviewsByTaskSolutionId(
+          Number(taskSolutionId),
+        );
       } else {
         data = await TaskSolutionReviewService.getReviews();
       }
@@ -57,22 +82,31 @@ const ReviewsPage: React.FC = () => {
     let filtered = [...reviews];
 
     if (searchTerm) {
-      filtered = filtered.filter(review =>
-        review.feedbackToStudent.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        review.reviewerComment?.toLowerCase().includes(searchTerm.toLowerCase())
+      filtered = filtered.filter(
+        (review) =>
+          review.feedbackToStudent
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          review.reviewerComment
+            ?.toLowerCase()
+            .includes(searchTerm.toLowerCase()),
       );
     }
 
     if (sourceFilter !== 'all') {
-      filtered = filtered.filter(review => review.source === sourceFilter);
+      filtered = filtered.filter((review) => review.source === sourceFilter);
     }
 
     filtered.sort((a, b) => {
       switch (sortBy) {
         case 'newest':
-          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+          return (
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          );
         case 'oldest':
-          return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+          return (
+            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+          );
         case 'score-high':
           return b.totalScore - a.totalScore;
         case 'score-low':
@@ -100,11 +134,7 @@ const ReviewsPage: React.FC = () => {
       auto_modified: 'Auto Modified',
     };
 
-    return (
-      <Badge className={variants[source]}>
-        {labels[source]}
-      </Badge>
-    );
+    return <Badge className={variants[source]}>{labels[source]}</Badge>;
   };
 
   const getScoreColor = (score: number, maxScore: number = 100) => {
@@ -114,7 +144,7 @@ const ReviewsPage: React.FC = () => {
     return 'text-red-600';
   };
 
-  const canCreateReview = user?.role === 'ADMIN' || user?.role === 'REVIEWER';
+  const canCreateReview = user?.role === 'admin' || user?.role === 'reviewer';
 
   if (loading) {
     return (
@@ -131,17 +161,114 @@ const ReviewsPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold">Reviews</h1>
-          <p className="text-muted-foreground">Manage task solution reviews and assessments</p>
+          <p className="text-muted-foreground">
+            Manage task solution reviews and assessments
+          </p>
         </div>
         {canCreateReview && (
-          <Button asChild>
-            <Link to="/dashboard/reviews/create">
-              <Plus className="w-4 h-4 mr-2" />
-              Create Review
-            </Link>
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button asChild>
+              <Link to="/dashboard/reviews/bulk-upload">
+                <Upload className="w-4 h-4 mr-2" />
+                Bulk Upload
+              </Link>
+            </Button>
+            <Button variant="outline" asChild>
+              <Link to="/dashboard/reviews/llm-processing">
+                <Brain className="w-4 h-4 mr-2" />
+                LLM Assessment
+              </Link>
+            </Button>
+            <Button variant="outline" asChild>
+              <Link to="/dashboard/reviews/approval-dashboard">
+                <CheckCircle className="w-4 h-4 mr-2" />
+                Approvals
+              </Link>
+            </Button>
+            <Button variant="secondary" asChild>
+              <Link to="/dashboard/reviews/create">
+                <Plus className="w-4 h-4 mr-2" />
+                Manual Review
+              </Link>
+            </Button>
+          </div>
         )}
       </div>
+
+      {canCreateReview && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Settings className="w-5 h-5" />
+              System Operations
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <Button
+                variant="ghost"
+                className="h-auto p-4 flex flex-col items-center gap-2"
+                asChild
+              >
+                <Link to="/dashboard/bulk-import">
+                  <Activity className="w-6 h-6" />
+                  <div className="text-center">
+                    <div className="font-medium">Processing Status</div>
+                    <div className="text-xs text-muted-foreground">
+                      View active operations
+                    </div>
+                  </div>
+                </Link>
+              </Button>
+              <Button
+                variant="ghost"
+                className="h-auto p-4 flex flex-col items-center gap-2"
+                asChild
+              >
+                <Link to="/dashboard/reviews/approval-dashboard">
+                  <CheckCircle className="w-6 h-6" />
+                  <div className="text-center">
+                    <div className="font-medium">Pending Approvals</div>
+                    <div className="text-xs text-muted-foreground">
+                      Review AI feedback
+                    </div>
+                  </div>
+                </Link>
+              </Button>
+              <Button
+                variant="ghost"
+                className="h-auto p-4 flex flex-col items-center gap-2"
+                asChild
+              >
+                <Link to="/dashboard/reviews/bulk-upload">
+                  <Upload className="w-6 h-6" />
+                  <div className="text-center">
+                    <div className="font-medium">Import Solutions</div>
+                    <div className="text-xs text-muted-foreground">
+                      Bulk solution upload
+                    </div>
+                  </div>
+                </Link>
+              </Button>
+              <Button
+                variant="ghost"
+                className="h-auto p-4 flex flex-col items-center gap-2"
+                asChild
+              >
+                <Link to="/dashboard/reviews/llm-processing">
+                  <Brain className="w-6 h-6" />
+                  <div className="text-center">
+                    <div className="font-medium">AI Assessment</div>
+                    <div className="text-xs text-muted-foreground">
+                      Configure LLM reviews
+                    </div>
+                  </div>
+                </Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {error && (
         <Alert variant="destructive">
@@ -193,9 +320,9 @@ const ReviewsPage: React.FC = () => {
             <FileText className="h-12 w-12 text-muted-foreground mb-4" />
             <h3 className="text-lg font-semibold mb-2">No reviews found</h3>
             <p className="text-muted-foreground text-center mb-4">
-              {reviews.length === 0 
-                ? "There are no reviews yet." 
-                : "No reviews match your current filters."}
+              {reviews.length === 0
+                ? 'There are no reviews yet.'
+                : 'No reviews match your current filters.'}
             </p>
             {canCreateReview && reviews.length === 0 && (
               <Button asChild>
@@ -230,7 +357,9 @@ const ReviewsPage: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Star className="h-4 w-4 text-yellow-500" />
-                    <span className={`font-semibold ${getScoreColor(review.totalScore)}`}>
+                    <span
+                      className={`font-semibold ${getScoreColor(review.totalScore)}`}
+                    >
                       {review.totalScore} points
                     </span>
                   </div>

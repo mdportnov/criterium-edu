@@ -15,6 +15,10 @@ export class CreateTaskSolutionDto {
   @IsString()
   @IsNotEmpty()
   solutionText: string;
+
+  @IsString()
+  @IsOptional()
+  notes?: string;
 }
 
 export class UpdateTaskSolutionDto {

@@ -47,6 +47,15 @@ export class TaskSolutionReviewsController {
     return this.reviewsService.findAll();
   }
 
+  @Get('pending-auto')
+  @Roles(UserRole.ADMIN, UserRole.REVIEWER)
+  @ApiQuery({ name: 'taskId', required: false })
+  async findPendingAutoReviews(
+    @Query('taskId') taskId?: number,
+  ): Promise<TaskSolutionReviewDto[]> {
+    return this.reviewsService.findPendingAutoReviews(taskId);
+  }
+
   @Get(':id')
   async findOne(
     @Param('id') id: number,
@@ -123,6 +132,7 @@ export class TaskSolutionReviewsController {
   @Roles(UserRole.ADMIN, UserRole.REVIEWER)
   async approveAutoReview(
     @Param('id') id: number,
+    @Request() req,
   ): Promise<TaskSolutionReviewDto> {
     const review = await this.reviewsService.findOne(id);
 
@@ -133,7 +143,39 @@ export class TaskSolutionReviewsController {
 
     return this.reviewsService.update(id, {
       source: ReviewSource.AUTO_APPROVED,
+      reviewerId: req.user.id,
     });
+  }
+
+  @Post(':id/reject')
+  @Roles(UserRole.ADMIN, UserRole.REVIEWER)
+  async rejectAutoReview(@Param('id') id: number): Promise<void> {
+    const review = await this.reviewsService.findOne(id);
+
+    // Only auto reviews can be rejected
+    if (review.source !== ReviewSource.AUTO) {
+      throw new Error('Only automated reviews can be rejected');
+    }
+
+    // Delete the rejected auto review
+    await this.reviewsService.remove(id);
+  }
+
+  @Post('batch-approve')
+  @Roles(UserRole.ADMIN, UserRole.REVIEWER)
+  async batchApproveAutoReviews(
+    @Body() data: { reviewIds: number[] },
+    @Request() req,
+  ): Promise<{ approvedCount: number; errors: any[] }> {
+    return this.reviewsService.batchApproveReviews(data.reviewIds, req.user.id);
+  }
+
+  @Post('batch-reject')
+  @Roles(UserRole.ADMIN, UserRole.REVIEWER)
+  async batchRejectAutoReviews(
+    @Body() data: { reviewIds: number[] },
+  ): Promise<{ rejectedCount: number; errors: any[] }> {
+    return this.reviewsService.batchRejectReviews(data.reviewIds);
   }
 
   @Delete(':id')

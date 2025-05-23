@@ -73,9 +73,6 @@ const MainLayout: React.FC = () => {
     ? [
         { path: '/dashboard/reviews', label: 'Reviews', icon: Users },
         { path: '/dashboard/bulk-import', label: 'Bulk Import', icon: Upload },
-        ...(hasRole(UserRole.ADMIN) 
-          ? [{ path: '/dashboard/tasks/create', label: 'Create Task', icon: Plus }]
-          : []),
       ]
     : [];
 
