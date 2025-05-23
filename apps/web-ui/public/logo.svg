@@ -1,33 +1,45 @@
-<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- Background circle with gradient -->
-  <defs>
-    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#3B82F6;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#1E40AF;stop-opacity:1" />
-    </linearGradient>
-    <linearGradient id="letterGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#FFFFFF;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#E2E8F0;stop-opacity:1" />
-    </linearGradient>
-  </defs>
-  
-  <!-- Main circle -->
-  <circle cx="32" cy="32" r="30" fill="url(#bgGrad)" stroke="#1E40AF" stroke-width="2"/>
-  
-  <!-- Inner decorative elements representing criteria/standards -->
-  <circle cx="32" cy="32" r="24" fill="none" stroke="#FFFFFF" stroke-width="1" opacity="0.3"/>
-  <circle cx="32" cy="32" r="18" fill="none" stroke="#FFFFFF" stroke-width="1" opacity="0.2"/>
-  
-  <!-- Letter C -->
-  <path d="M42 22 C46 22 48 26 48 32 C48 38 46 42 42 42 M26 22 C22 22 20 26 20 32 C20 38 22 42 26 42" 
-        fill="none" stroke="url(#letterGrad)" stroke-width="3" stroke-linecap="round"/>
-  
-  <!-- Small accent dots representing evaluation points -->
-  <circle cx="16" cy="20" r="1.5" fill="#FFFFFF" opacity="0.6"/>
-  <circle cx="48" cy="20" r="1.5" fill="#FFFFFF" opacity="0.6"/>
-  <circle cx="16" cy="44" r="1.5" fill="#FFFFFF" opacity="0.6"/>
-  <circle cx="48" cy="44" r="1.5" fill="#FFFFFF" opacity="0.6"/>
-  
-  <!-- Academic excellence symbol - stylized checkmark -->
-  <path d="M38 28 L40 30 L44 26" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.8"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+    <defs>
+        <!-- Градиент для кольца -->
+        <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#00C6FF"/>
+            <stop offset="100%" stop-color="#0072FF"/>
+        </linearGradient>
+        <!-- Градиент для галочки -->
+        <linearGradient id="checkGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#7AFFA1"/>
+            <stop offset="100%" stop-color="#00C6FF"/>
+        </linearGradient>
+        <!-- Мягкая тень -->
+        <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+            <feOffset in="SourceAlpha" dx="0" dy="4" result="off"/>
+            <feGaussianBlur in="off" stdDeviation="4" result="blur"/>
+            <feFlood flood-color="#000" flood-opacity="0.15" result="color"/>
+            <feComposite in="color" in2="blur" operator="in" result="shadow"/>
+            <feComposite in="shadow" in2="SourceGraphic" operator="over"/>
+        </filter>
+    </defs>
+
+    <!-- Прозрачный фон (удален белый rect) -->
+
+    <!-- Кольцо -->
+    <circle
+            cx="100" cy="100" r="72"
+            fill="none"
+            stroke="url(#ringGrad)"
+            stroke-width="16"
+            stroke-dasharray="40 20"
+            stroke-linecap="round"
+    />
+
+    <!-- Галочка с градиентом и тенью -->
+    <path
+            d="M70,105 L90,125 L135,80"
+            fill="none"
+            stroke="url(#checkGrad)"
+            stroke-width="14"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            filter="url(#shadow)"
+    />
 </svg>

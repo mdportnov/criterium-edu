@@ -3,8 +3,10 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { type BulkOperationStatus, UserRole } from '@/types';
 import { BulkOperationsService } from '@/services';
+import { AlertCircle } from 'lucide-react';
 
 const BulkImportPage: React.FC = () => {
   const { hasRole } = useAuth();
@@ -18,7 +20,7 @@ const BulkImportPage: React.FC = () => {
     null,
   );
 
-  const isAdmin = hasRole(UserRole.ADMIN);
+  const isAdminOrReviewer = hasRole([UserRole.ADMIN, UserRole.REVIEWER]);
 
   // Clean up polling interval on unmount
   useEffect(() => {
@@ -99,14 +101,17 @@ const BulkImportPage: React.FC = () => {
     }
   };
 
-  if (!isAdmin) {
+  if (!isAdminOrReviewer) {
     return (
-      <div className="bg-destructive/15 text-destructive p-4 rounded-md">
-        <p>You don't have permission to access this page.</p>
-        <Button asChild variant="outline" className="mt-4">
-          <Link to="/dashboard">Back to Dashboard</Link>
-        </Button>
-      </div>
+      <Alert variant="destructive">
+        <AlertCircle className="h-4 w-4" />
+        <AlertDescription>
+          You don't have permission to access this page.
+          <Button asChild variant="outline" className="mt-4 ml-4">
+            <Link to="/dashboard">Back to Dashboard</Link>
+          </Button>
+        </AlertDescription>
+      </Alert>
     );
   }
 
@@ -115,9 +120,10 @@ const BulkImportPage: React.FC = () => {
       <h1 className="text-3xl font-bold mb-6">Bulk Import Tasks</h1>
 
       {error && (
-        <div className="bg-destructive/15 text-destructive p-4 rounded-md mb-6">
-          {error}
-        </div>
+        <Alert variant="destructive" className="mb-6">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -181,7 +187,7 @@ const BulkImportPage: React.FC = () => {
 
                 <div className="flex justify-between pt-4">
                   <Button asChild variant="outline">
-                    <Link to="/tasks">View Tasks</Link>
+                    <Link to="/dashboard/tasks">View Tasks</Link>
                   </Button>
 
                   <Button onClick={resetForm}>Import Another File</Button>

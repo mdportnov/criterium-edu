@@ -2,8 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { TaskService, TaskSolutionService } from '@/services';
 import type { CreateTaskSolutionRequest, Task } from '@/types';
+import { AlertCircle, CheckCircle2 } from 'lucide-react';
 
 const SubmitSolutionPage: React.FC = () => {
   const { taskId } = useParams<{ taskId: string }>();
@@ -12,6 +14,7 @@ const SubmitSolutionPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
   const [formData, setFormData] = useState<CreateTaskSolutionRequest>({
     taskId: 0,
@@ -53,6 +56,7 @@ const SubmitSolutionPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setSuccess('');
 
     if (!formData.solution.trim()) {
       setError('Solution is required');
@@ -63,7 +67,10 @@ const SubmitSolutionPage: React.FC = () => {
 
     try {
       const solution = await TaskSolutionService.createTaskSolution(formData);
-      navigate(`/solutions/${solution.id}`);
+      setSuccess('Solution submitted successfully! Redirecting...');
+      setTimeout(() => {
+        navigate(`/dashboard/solutions/${solution.id}`);
+      }, 1500);
     } catch (err: any) {
       console.error('Error submitting solution:', err);
       setError(
@@ -88,7 +95,7 @@ const SubmitSolutionPage: React.FC = () => {
       <div className="bg-destructive/15 text-destructive p-4 rounded-md">
         <p>{error}</p>
         <Button asChild variant="outline" className="mt-4">
-          <Link to="/tasks">Back to Tasks</Link>
+          <Link to="/dashboard/tasks">Back to Tasks</Link>
         </Button>
       </div>
     );
@@ -97,11 +104,11 @@ const SubmitSolutionPage: React.FC = () => {
   return (
     <div>
       <div className="flex items-center gap-2 text-muted-foreground mb-2">
-        <Link to="/tasks" className="hover:text-primary">
+        <Link to="/dashboard/tasks" className="hover:text-primary">
           Tasks
         </Link>
         <span>/</span>
-        <Link to={`/tasks/${taskId}`} className="hover:text-primary">
+        <Link to={`/dashboard/tasks/${taskId}`} className="hover:text-primary">
           Task #{taskId}
         </Link>
         <span>/</span>
@@ -111,9 +118,17 @@ const SubmitSolutionPage: React.FC = () => {
       <h1 className="text-3xl font-bold mb-6">Submit Solution</h1>
 
       {error && (
-        <div className="bg-destructive/15 text-destructive p-4 rounded-md mb-6">
-          {error}
-        </div>
+        <Alert variant="destructive" className="mb-6">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
+      {success && (
+        <Alert className="mb-6 border-green-200 bg-green-50 text-green-800">
+          <CheckCircle2 className="h-4 w-4" />
+          <AlertDescription>{success}</AlertDescription>
+        </Alert>
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -154,7 +169,7 @@ const SubmitSolutionPage: React.FC = () => {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => navigate(`/tasks/${taskId}`)}
+                onClick={() => navigate(`/dashboard/tasks/${taskId}`)}
                 disabled={isSubmitting}
               >
                 Cancel
@@ -184,7 +199,7 @@ const SubmitSolutionPage: React.FC = () => {
                 </h3>
                 <p className="mt-1 text-sm line-clamp-4">{task?.description}</p>
                 <Button asChild variant="link" className="px-0 text-sm h-auto">
-                  <Link to={`/tasks/${taskId}`}>View Full Task</Link>
+                  <Link to={`/dashboard/tasks/${taskId}`}>View Full Task</Link>
                 </Button>
               </div>
 
