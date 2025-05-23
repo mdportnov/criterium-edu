@@ -187,7 +187,7 @@ const ReviewSolutionPage: React.FC = () => {
         await TaskSolutionReviewService.createTaskSolutionReview(formData);
       }
 
-      navigate(`/solutions/${id}`);
+      navigate(`/dashboard/solutions/${id}`);
     } catch (err: any) {
       console.error('Error saving review:', err);
       setError(
@@ -372,7 +372,7 @@ const ReviewSolutionPage: React.FC = () => {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => navigate(`/solutions/${id}`)}
+                onClick={() => navigate(`/dashboard/solutions/${id}`)}
                 disabled={isSaving}
               >
                 Cancel

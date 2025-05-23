@@ -138,7 +138,7 @@ const MySubmissionsPage: React.FC = () => {
                   <div>
                     <h2 className="text-xl font-semibold">
                       <Link
-                        to={`/tasks/${solution.taskId}`}
+                        to={`/dashboard/tasks/${solution.taskId}`}
                         className="hover:text-primary transition-colors"
                       >
                         {solution.taskTitle}
