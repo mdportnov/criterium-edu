@@ -36,6 +36,18 @@ export class AutoAssessment {
   @Column({ type: 'json', nullable: true })
   rawResponse: object;
 
+  @Column({ type: 'int', nullable: true })
+  tokenUsage: number;
+
+  @Column({ type: 'decimal', precision: 10, scale: 6, nullable: true })
+  cost: number;
+
+  @Column({ type: 'int', nullable: true })
+  processingTime: number;
+
+  @Column({ type: 'int', nullable: true })
+  sessionId: number;
+
   @CreateDateColumn()
   createdAt: Date;
 
