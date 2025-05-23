@@ -24,7 +24,7 @@ import {
   Zap,
   Timer,
   Award,
-  Database,
+  Database
 } from 'lucide-react';
 
 const DashboardPage: React.FC = () => {
@@ -185,13 +185,13 @@ const DashboardPage: React.FC = () => {
             {isAdmin && (
               <>
                 <Button asChild variant="outline" size="sm">
-                  <Link to="/admin/bulk-import">
+                  <Link to="/dashboard/bulk-import">
                     <Upload className="w-4 h-4 mr-2" />
                     Bulk Import
                   </Link>
                 </Button>
                 <Button asChild size="sm">
-                  <Link to="/admin/tasks/create">
+                  <Link to="/dashboard/tasks/create">
                     <Plus className="w-4 h-4 mr-2" />
                     Create Task
                   </Link>
@@ -407,7 +407,7 @@ const DashboardPage: React.FC = () => {
                 Recent Activity
               </h2>
               <Button asChild variant="ghost" size="sm">
-                <Link to="/admin/reviews">
+                <Link to="/dashboard/reviews">
                   View All
                   <ArrowRight className="w-4 h-4 ml-1" />
                 </Link>
@@ -443,20 +443,20 @@ const DashboardPage: React.FC = () => {
             <h2 className="text-lg font-semibold mb-4">Quick Actions</h2>
             <div className="space-y-3">
               <Button asChild className="w-full" variant="outline">
-                <Link to="/tasks">
+                <Link to="/dashboard/tasks">
                   <BookOpen className="w-4 h-4 mr-2" />
                   View All Tasks
                 </Link>
               </Button>
               <Button asChild className="w-full" variant="outline">
-                <Link to="/admin/reviews">
+                <Link to="/dashboard/reviews">
                   <Users className="w-4 h-4 mr-2" />
                   Review Solutions
                 </Link>
               </Button>
               {isAdmin && (
                 <Button asChild className="w-full" variant="outline">
-                  <Link to="/admin/bulk-import">
+                  <Link to="/dashboard/bulk-import">
                     <Upload className="w-4 h-4 mr-2" />
                     Bulk Import
                   </Link>

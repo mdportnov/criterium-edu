@@ -60,21 +60,21 @@ const MainLayout: React.FC = () => {
   };
 
   const navItems = [
-    { path: '/', label: 'Dashboard', icon: Home },
-    { path: '/tasks', label: 'Tasks', icon: ListTodo },
-    { path: '/checker', label: 'Code Checker', icon: Code2 },
+    { path: '/dashboard', label: 'Dashboard', icon: Home },
+    { path: '/dashboard/tasks', label: 'Tasks', icon: ListTodo },
+    { path: '/dashboard/checker', label: 'Code Checker', icon: Code2 },
   ];
 
   const studentItems = user?.role === UserRole.STUDENT 
-    ? [{ path: '/my-solutions', label: 'My Submissions', icon: FileText }]
+    ? [{ path: '/dashboard/my-solutions', label: 'My Submissions', icon: FileText }]
     : [];
 
   const adminItems = isAdminOrReviewer
     ? [
-        { path: '/admin/reviews', label: 'Reviews', icon: Users },
-        { path: '/admin/bulk-import', label: 'Bulk Import', icon: Upload },
+        { path: '/dashboard/reviews', label: 'Reviews', icon: Users },
+        { path: '/dashboard/bulk-import', label: 'Bulk Import', icon: Upload },
         ...(hasRole(UserRole.ADMIN) 
-          ? [{ path: '/admin/tasks/create', label: 'Create Task', icon: Plus }]
+          ? [{ path: '/dashboard/tasks/create', label: 'Create Task', icon: Plus }]
           : []),
       ]
     : [];
