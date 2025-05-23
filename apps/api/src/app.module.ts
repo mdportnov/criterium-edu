@@ -15,6 +15,7 @@ import { TaskSolutionReviewsModule } from './modules/task-solution-reviews/task-
 import { CheckerModule } from './modules/checker/checker.module';
 import { BulkOperationsModule } from './modules/bulk-operations/bulk-operations.module';
 import { OpenaiModule } from './modules/openai/openai.module';
+import { DashboardModule } from './modules/dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -75,6 +76,7 @@ import { OpenaiModule } from './modules/openai/openai.module';
     CheckerModule,
     BulkOperationsModule,
     OpenaiModule,
+    DashboardModule,
   ],
 })
 export class AppModule {}

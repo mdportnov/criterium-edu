@@ -14,7 +14,7 @@ export class CheckerController {
   constructor(private readonly checkerService: CheckerService) {}
 
   @Post('process/:taskSolutionId')
-  @Roles(UserRole.ADMIN, UserRole.MENTOR)
+  @Roles(UserRole.ADMIN, UserRole.REVIEWER)
   async processTaskSolution(
     @Param('taskSolutionId') taskSolutionId: number,
   ): Promise<any> {

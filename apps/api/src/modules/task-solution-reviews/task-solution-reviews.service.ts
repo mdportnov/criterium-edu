@@ -39,13 +39,13 @@ export class TaskSolutionReviewsService {
     return {
       id: review.id,
       taskSolutionId: review.taskSolutionId,
-      mentorId: review.mentorId,
+      reviewerId: review.reviewerId,
       criteriaScores: review.criteriaScores
         ? review.criteriaScores.map(this.mapCriterionScoreToDto)
         : [],
       totalScore: review.totalScore,
       feedbackToStudent: review.feedbackToStudent,
-      mentorComment: review.mentorComment,
+      reviewerComment: review.reviewerComment,
       source: review.source,
       createdAt: review.createdAt,
       updatedAt: review.updatedAt,
@@ -56,7 +56,7 @@ export class TaskSolutionReviewsService {
     const reviews = await this.reviewsRepository.find({
       relations: [
         'taskSolution',
-        'mentor',
+        'reviewer',
         'criteriaScores',
         'criteriaScores.criterion',
       ],
@@ -72,7 +72,7 @@ export class TaskSolutionReviewsService {
       relations: [
         'taskSolution',
         'taskSolution.task',
-        'mentor',
+        'reviewer',
         'criteriaScores',
       ],
     });
@@ -84,7 +84,7 @@ export class TaskSolutionReviewsService {
   ): Promise<TaskSolutionReviewDto[]> {
     const reviews = await this.reviewsRepository.find({
       where: { taskSolutionId },
-      relations: ['mentor', 'criteriaScores', 'criteriaScores.criterion'],
+      relations: ['reviewer', 'criteriaScores', 'criteriaScores.criterion'],
     });
     return reviews.map((review) => this.mapReviewToDto(review));
   }
@@ -98,7 +98,7 @@ export class TaskSolutionReviewsService {
       relations: [
         'taskSolution',
         'taskSolution.user',
-        'mentor',
+        'reviewer',
         'criteriaScores',
         'criteriaScores.criterion',
       ],
@@ -115,7 +115,7 @@ export class TaskSolutionReviewsService {
 
   async create(
     createReviewDto: CreateTaskSolutionReviewDto,
-    mentorId?: number,
+    reviewerId?: number,
   ): Promise<TaskSolutionReviewDto> {
     const taskSolution = await this.taskSolutionsRepository.findOne({
       where: { id: createReviewDto.taskSolutionId },
@@ -135,10 +135,10 @@ export class TaskSolutionReviewsService {
 
     const review = this.reviewsRepository.create({
       taskSolutionId: createReviewDto.taskSolutionId,
-      mentorId,
+      reviewerId: reviewerId,
       totalScore,
       feedbackToStudent: createReviewDto.feedbackToStudent,
-      mentorComment: createReviewDto.mentorComment,
+      reviewerComment: createReviewDto.reviewerComment,
       source: createReviewDto.source,
     });
 
@@ -171,8 +171,8 @@ export class TaskSolutionReviewsService {
 
     if (updateReviewDto.feedbackToStudent)
       review.feedbackToStudent = updateReviewDto.feedbackToStudent;
-    if (updateReviewDto.mentorComment !== undefined)
-      review.mentorComment = updateReviewDto.mentorComment;
+    if (updateReviewDto.reviewerComment !== undefined)
+      review.reviewerComment = updateReviewDto.reviewerComment;
     if (updateReviewDto.source) review.source = updateReviewDto.source;
 
     if (

@@ -2,17 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import {
-  type Task,
-  type TaskSolution,
-  type TaskSolutionReview,
-  UserRole,
-} from '@/types';
-import {
-  TaskService,
-  TaskSolutionReviewService,
-  TaskSolutionService,
-} from '@/services';
+import { Card } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { UserRole } from '@/types';
+import { dashboardService, type DashboardOverview, type TaskStatistics, type SolutionStatistics, type RecentActivity } from '@/services/dashboard.service';
 import {
   FileText,
   CheckCircle2,
@@ -20,48 +13,56 @@ import {
   AlertCircle,
   TrendingUp,
   Users,
-  Code2,
   Upload,
   Plus,
   ArrowRight,
   BookOpen,
   Target,
   Activity,
+  BarChart3,
+  Calendar,
+  Zap,
+  Timer,
+  Award,
+  Database,
 } from 'lucide-react';
 
 const DashboardPage: React.FC = () => {
   const { user, hasRole } = useAuth();
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [solutions, setSolutions] = useState<TaskSolution[]>([]);
-  const [reviews, setReviews] = useState<TaskSolutionReview[]>([]);
+  const [overview, setOverview] = useState<DashboardOverview | null>(null);
+  const [taskStats, setTaskStats] = useState<TaskStatistics | null>(null);
+  const [solutionStats, setSolutionStats] = useState<SolutionStatistics | null>(null);
+  const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const [period, setPeriod] = useState('7d');
 
-  const isStudent = hasRole(UserRole.STUDENT);
-  const isMentor = hasRole(UserRole.MENTOR);
+  const isReviewer = hasRole(UserRole.REVIEWER);
   const isAdmin = hasRole(UserRole.ADMIN);
+  const isTeacherOrAdmin = isReviewer || isAdmin;
 
   useEffect(() => {
     const fetchDashboardData = async () => {
+      if (!isTeacherOrAdmin) {
+        setIsLoading(false);
+        return;
+      }
+
       setIsLoading(true);
       setError('');
 
       try {
-        // Fetch tasks for all users
-        const tasksData = await TaskService.getTasks();
-        setTasks(tasksData);
+        const [overviewData, taskStatsData, solutionStatsData, activityData] = await Promise.all([
+          dashboardService.getOverview(),
+          dashboardService.getTaskStatistics(period),
+          dashboardService.getSolutionStatistics(period),
+          dashboardService.getRecentActivity(8),
+        ]);
 
-        // Fetch solutions if student
-        if (isStudent) {
-          const solutionsData = await TaskSolutionService.getMyTaskSolutions();
-          setSolutions(solutionsData);
-        }
-
-        // Fetch reviews if mentor or admin
-        if (isMentor || isAdmin) {
-          const reviewsData = await TaskSolutionReviewService.getReviews();
-          setReviews(reviewsData);
-        }
+        setOverview(overviewData);
+        setTaskStats(taskStatsData);
+        setSolutionStats(solutionStatsData);
+        setRecentActivity(activityData);
       } catch (err) {
         console.error('Error fetching dashboard data:', err);
         setError('Failed to load dashboard data. Please try again later.');
@@ -71,12 +72,29 @@ const DashboardPage: React.FC = () => {
     };
 
     fetchDashboardData();
-  }, [isStudent, isMentor, isAdmin]);
+  }, [isTeacherOrAdmin, period]);
+
+  if (!isTeacherOrAdmin) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <AlertCircle className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+          <h2 className="text-xl font-semibold mb-2">Access Denied</h2>
+          <p className="text-muted-foreground">
+            This dashboard is only available for teachers and administrators.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <div className="loading-spinner"></div>
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <div className="w-6 h-6 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
+          <span>Loading dashboard analytics...</span>
+        </div>
       </div>
     );
   }
@@ -100,25 +118,47 @@ const DashboardPage: React.FC = () => {
     );
   }
 
-  // Calculate statistics
-  const pendingSolutions = solutions.filter(
-    (s) => s.status === 'pending',
-  ).length;
-  const reviewedSolutions = solutions.filter(
-    (s) => s.status === 'reviewed',
-  ).length;
-  const pendingReviews = reviews.filter((r) => r.source === 'manual').length;
+  const formatDate = (dateStr: string) => {
+    return new Date(dateStr).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
+  const getActivityIcon = (type: string) => {
+    switch (type) {
+      case 'solution_submitted':
+        return <FileText className="w-4 h-4" />;
+      case 'solution_reviewed':
+        return <CheckCircle2 className="w-4 h-4" />;
+      default:
+        return <Activity className="w-4 h-4" />;
+    }
+  };
+
+  const getActivityText = (activity: RecentActivity) => {
+    switch (activity.type) {
+      case 'solution_submitted':
+        return `Solution submitted for "${activity.taskTitle}"`;
+      case 'solution_reviewed':
+        return `Solution reviewed for "${activity.taskTitle}" (Score: ${activity.score})`;
+      default:
+        return 'Unknown activity';
+    }
+  };
 
   return (
     <div className="space-y-8">
       {/* Header Section */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-            Welcome back, {user?.firstName}!
+          <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent">
+            Analytics Dashboard
           </h1>
           <p className="text-muted-foreground mt-2">
-            {new Date().toLocaleDateString('en-US', {
+            System overview and performance metrics for {new Date().toLocaleDateString('en-US', {
               weekday: 'long',
               year: 'numeric',
               month: 'long',
@@ -126,254 +166,304 @@ const DashboardPage: React.FC = () => {
             })}
           </p>
         </div>
-        <div className="flex gap-2 flex-wrap">
-          {(isAdmin || isMentor) && (
-            <Button
-              asChild
-              className="transition-all duration-200 hover:shadow-lg"
-            >
-              <Link to="/admin/tasks/create">
-                <Plus className="w-4 h-4 mr-2" />
-                Create Task
-              </Link>
-            </Button>
-          )}
-          {isAdmin && (
-            <Button
-              asChild
-              variant="outline"
-              className="transition-all duration-200 hover:shadow-md"
-            >
-              <Link to="/admin/bulk-import">
-                <Upload className="w-4 h-4 mr-2" />
-                Bulk Import
-              </Link>
-            </Button>
-          )}
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <Calendar className="w-4 h-4 text-muted-foreground" />
+            <Select value={period} onValueChange={setPeriod}>
+              <SelectTrigger className="w-32">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="1d">Last Day</SelectItem>
+                <SelectItem value="7d">Last Week</SelectItem>
+                <SelectItem value="30d">Last Month</SelectItem>
+                <SelectItem value="90d">Last Quarter</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex gap-2">
+            {isAdmin && (
+              <>
+                <Button asChild variant="outline" size="sm">
+                  <Link to="/admin/bulk-import">
+                    <Upload className="w-4 h-4 mr-2" />
+                    Bulk Import
+                  </Link>
+                </Button>
+                <Button asChild size="sm">
+                  <Link to="/admin/tasks/create">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Create Task
+                  </Link>
+                </Button>
+              </>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Statistics Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Total Tasks */}
-        <div className="dashboard-card bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-800">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-blue-700 dark:text-blue-300">
-                Total Tasks
-              </p>
-              <p className="text-2xl font-bold text-blue-900 dark:text-blue-100 mt-1">
-                {tasks.length}
-              </p>
-            </div>
-            <div className="w-12 h-12 bg-blue-600/20 rounded-lg flex items-center justify-center">
-              <BookOpen className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-            </div>
-          </div>
-          <div className="mt-4 flex items-center text-sm text-blue-700 dark:text-blue-300">
-            <TrendingUp className="w-4 h-4 mr-1" />
-            <span>Available for practice</span>
-          </div>
-        </div>
-
-        {/* Student Stats */}
-        {isStudent && (
-          <>
-            <div className="dashboard-card bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-200 dark:border-green-800">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-green-700 dark:text-green-300">
-                    Completed
-                  </p>
-                  <p className="text-2xl font-bold text-green-900 dark:text-green-100 mt-1">
-                    {reviewedSolutions}
-                  </p>
-                </div>
-                <div className="w-12 h-12 bg-green-600/20 rounded-lg flex items-center justify-center">
-                  <CheckCircle2 className="w-6 h-6 text-green-600 dark:text-green-400" />
-                </div>
-              </div>
-              <div className="mt-4 flex items-center text-sm text-green-700 dark:text-green-300">
-                <Activity className="w-4 h-4 mr-1" />
-                <span>Successfully reviewed</span>
-              </div>
-            </div>
-
-            <div className="dashboard-card bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-900/20 dark:to-amber-800/20 border-amber-200 dark:border-amber-800">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-amber-700 dark:text-amber-300">
-                    Pending
-                  </p>
-                  <p className="text-2xl font-bold text-amber-900 dark:text-amber-100 mt-1">
-                    {pendingSolutions}
-                  </p>
-                </div>
-                <div className="w-12 h-12 bg-amber-600/20 rounded-lg flex items-center justify-center">
-                  <Clock className="w-6 h-6 text-amber-600 dark:text-amber-400" />
-                </div>
-              </div>
-              <div className="mt-4 flex items-center text-sm text-amber-700 dark:text-amber-300">
-                <Target className="w-4 h-4 mr-1" />
-                <span>Awaiting review</span>
-              </div>
-            </div>
-          </>
-        )}
-
-        {/* Mentor/Admin Stats */}
-        {(isMentor || isAdmin) && (
-          <div className="dashboard-card bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 border-purple-200 dark:border-purple-800">
+      {/* Overview Statistics */}
+      {overview && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <Card className="p-6 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-800">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-purple-700 dark:text-purple-300">
-                  To Review
+                <p className="text-sm font-medium text-blue-700 dark:text-blue-300">Total Tasks</p>
+                <p className="text-3xl font-bold text-blue-900 dark:text-blue-100 mt-1">
+                  {overview.totalTasks}
                 </p>
-                <p className="text-2xl font-bold text-purple-900 dark:text-purple-100 mt-1">
-                  {pendingReviews}
+              </div>
+              <div className="w-12 h-12 bg-blue-600/20 rounded-lg flex items-center justify-center">
+                <BookOpen className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+              </div>
+            </div>
+            <div className="mt-4 flex items-center text-sm text-blue-700 dark:text-blue-300">
+              <Database className="w-4 h-4 mr-1" />
+              <span>Available in system</span>
+            </div>
+          </Card>
+
+          <Card className="p-6 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-200 dark:border-green-800">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-green-700 dark:text-green-300">Total Solutions</p>
+                <p className="text-3xl font-bold text-green-900 dark:text-green-100 mt-1">
+                  {overview.totalSolutions}
+                </p>
+              </div>
+              <div className="w-12 h-12 bg-green-600/20 rounded-lg flex items-center justify-center">
+                <FileText className="w-6 h-6 text-green-600 dark:text-green-400" />
+              </div>
+            </div>
+            <div className="mt-4 flex items-center text-sm text-green-700 dark:text-green-300">
+              <TrendingUp className="w-4 h-4 mr-1" />
+              <span>Submitted by students</span>
+            </div>
+          </Card>
+
+          <Card className="p-6 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 border-purple-200 dark:border-purple-800">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-purple-700 dark:text-purple-300">Total Reviews</p>
+                <p className="text-3xl font-bold text-purple-900 dark:text-purple-100 mt-1">
+                  {overview.totalReviews}
                 </p>
               </div>
               <div className="w-12 h-12 bg-purple-600/20 rounded-lg flex items-center justify-center">
-                <Users className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                <CheckCircle2 className="w-6 h-6 text-purple-600 dark:text-purple-400" />
               </div>
             </div>
             <div className="mt-4 flex items-center text-sm text-purple-700 dark:text-purple-300">
-              <FileText className="w-4 h-4 mr-1" />
-              <span>Manual reviews needed</span>
+              <Award className="w-4 h-4 mr-1" />
+              <span>Completed assessments</span>
+            </div>
+          </Card>
+
+          <Card className="p-6 bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 border-orange-200 dark:border-orange-800">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-orange-700 dark:text-orange-300">Processing Rate</p>
+                <p className="text-3xl font-bold text-orange-900 dark:text-orange-100 mt-1">
+                  {overview.processingRate}%
+                </p>
+              </div>
+              <div className="w-12 h-12 bg-orange-600/20 rounded-lg flex items-center justify-center">
+                <Zap className="w-6 h-6 text-orange-600 dark:text-orange-400" />
+              </div>
+            </div>
+            <div className="mt-4 flex items-center text-sm text-orange-700 dark:text-orange-300">
+              <Target className="w-4 h-4 mr-1" />
+              <span>Solutions reviewed</span>
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {/* Solution Status Breakdown */}
+      {overview && (
+        <Card className="p-6">
+          <h2 className="text-xl font-semibold mb-6 flex items-center">
+            <BarChart3 className="w-5 h-5 mr-2" />
+            Solution Status Overview
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="flex items-center justify-between p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+              <div>
+                <p className="text-sm text-yellow-700 dark:text-yellow-300">Pending</p>
+                <p className="text-2xl font-bold text-yellow-900 dark:text-yellow-100">
+                  {overview.solutionStatusBreakdown.pending}
+                </p>
+              </div>
+              <Clock className="w-8 h-8 text-yellow-600 dark:text-yellow-400" />
+            </div>
+            <div className="flex items-center justify-between p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+              <div>
+                <p className="text-sm text-blue-700 dark:text-blue-300">Submitted</p>
+                <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">
+                  {overview.solutionStatusBreakdown.submitted}
+                </p>
+              </div>
+              <FileText className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+            </div>
+            <div className="flex items-center justify-between p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+              <div>
+                <p className="text-sm text-orange-700 dark:text-orange-300">In Review</p>
+                <p className="text-2xl font-bold text-orange-900 dark:text-orange-100">
+                  {overview.solutionStatusBreakdown.inReview}
+                </p>
+              </div>
+              <Timer className="w-8 h-8 text-orange-600 dark:text-orange-400" />
+            </div>
+            <div className="flex items-center justify-between p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+              <div>
+                <p className="text-sm text-green-700 dark:text-green-300">Reviewed</p>
+                <p className="text-2xl font-bold text-green-900 dark:text-green-100">
+                  {overview.solutionStatusBreakdown.reviewed}
+                </p>
+              </div>
+              <CheckCircle2 className="w-8 h-8 text-green-600 dark:text-green-400" />
             </div>
           </div>
-        )}
-      </div>
+        </Card>
+      )}
 
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Tasks Card */}
-        <div className="lg:col-span-2 bg-card rounded-lg shadow-sm border p-6 card-hover">
-          <div className="flex justify-between items-center mb-6">
-            <div>
-              <h2 className="text-xl font-semibold">Recent Tasks</h2>
-              <p className="text-sm text-muted-foreground mt-1">
-                Practice and improve your skills
-              </p>
-            </div>
-            <Button asChild variant="ghost" size="sm">
-              <Link to="/tasks">
-                View All
-                <ArrowRight className="w-4 h-4 ml-1" />
-              </Link>
-            </Button>
-          </div>
-
-          <div className="space-y-4">
-            {tasks.slice(0, 5).map((task) => (
-              <Link
-                key={task.id}
-                to={`/tasks/${task.id}`}
-                className="block p-4 rounded-lg border hover:border-primary hover:shadow-md transition-all duration-200 group"
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <h3 className="font-medium group-hover:text-primary transition-colors">
-                      {task.title}
-                    </h3>
-                    <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
-                      {task.description}
-                    </p>
-                  </div>
-                  <ArrowRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-all duration-200 group-hover:translate-x-1" />
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-
-        {/* Side Cards */}
-        <div className="space-y-6">
-          {/* Student Submissions */}
-          {isStudent && solutions.length > 0 && (
-            <div className="bg-card rounded-lg shadow-sm border p-6 card-hover">
+        {/* Period Statistics */}
+        <div className="lg:col-span-2 space-y-6">
+          {taskStats && (
+            <Card className="p-6">
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-semibold">Recent Submissions</h2>
-                <Button asChild variant="ghost" size="sm">
-                  <Link to="/my-solutions">
-                    View All
-                    <ArrowRight className="w-4 h-4 ml-1" />
-                  </Link>
-                </Button>
+                <h2 className="text-xl font-semibold flex items-center">
+                  <BookOpen className="w-5 h-5 mr-2" />
+                  Task Statistics ({taskStats.period})
+                </h2>
               </div>
-
-              <div className="space-y-3">
-                {solutions.slice(0, 3).map((solution) => (
-                  <Link
-                    key={solution.id}
-                    to={`/solutions/${solution.id}`}
-                    className="block p-3 rounded-md hover:bg-muted transition-colors"
-                  >
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <p className="font-medium text-sm">
-                          Solution #{solution.id}
-                        </p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Task #{solution.taskId}
-                        </p>
-                      </div>
-                      <span
-                        className={`status-badge ${
-                          solution.status === 'reviewed'
-                            ? 'success'
-                            : solution.status === 'in_review'
-                              ? 'warning'
-                              : 'info'
-                        }`}
-                      >
-                        {solution.status.replace('_', ' ')}
-                      </span>
-                    </div>
-                  </Link>
-                ))}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                  <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">
+                    {taskStats.tasksCreated}
+                  </p>
+                  <p className="text-sm text-blue-700 dark:text-blue-300">Tasks Created</p>
+                </div>
+                <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                  <p className="text-2xl font-bold text-green-900 dark:text-green-100">
+                    {taskStats.tasksWithSolutions}
+                  </p>
+                  <p className="text-sm text-green-700 dark:text-green-300">With Solutions</p>
+                </div>
+                <div className="text-center p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+                  <p className="text-2xl font-bold text-orange-900 dark:text-orange-100">
+                    {taskStats.utilizationRate}%
+                  </p>
+                  <p className="text-sm text-orange-700 dark:text-orange-300">Utilization Rate</p>
+                </div>
               </div>
-            </div>
+            </Card>
           )}
 
-          {/* Code Checker */}
-          <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 dark:from-indigo-900/20 dark:to-indigo-800/20 border border-indigo-200 dark:border-indigo-800 rounded-lg p-6 card-hover">
-            <div className="flex items-center justify-between mb-4">
-              <Code2 className="w-8 h-8 text-indigo-600 dark:text-indigo-400" />
-              <span className="status-badge info">Quick Test</span>
-            </div>
-            <h3 className="text-lg font-semibold mb-2">Code Checker</h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              Test your code against predefined test cases and get instant
-              feedback.
-            </p>
-            <Button asChild className="w-full">
-              <Link to="/checker">
-                Open Checker
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Link>
-            </Button>
-          </div>
-
-          {/* Admin Tools */}
-          {isAdmin && (
-            <div className="bg-gradient-to-br from-rose-50 to-rose-100 dark:from-rose-900/20 dark:to-rose-800/20 border border-rose-200 dark:border-rose-800 rounded-lg p-6 card-hover">
-              <div className="flex items-center justify-between mb-4">
-                <Upload className="w-8 h-8 text-rose-600 dark:text-rose-400" />
-                <span className="status-badge error">Admin</span>
+          {solutionStats && (
+            <Card className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold flex items-center">
+                  <FileText className="w-5 h-5 mr-2" />
+                  Solution Statistics ({solutionStats.period})
+                </h2>
               </div>
-              <h3 className="text-lg font-semibold mb-2">Bulk Import</h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                Import multiple tasks at once using CSV or JSON files.
-              </p>
-              <Button asChild variant="outline" className="w-full">
-                <Link to="/admin/bulk-import">
-                  Import Tasks
-                  <ArrowRight className="w-4 h-4 ml-2" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="text-center p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                  <p className="text-2xl font-bold">{solutionStats.totalSolutions}</p>
+                  <p className="text-sm text-muted-foreground">Total Solutions</p>
+                </div>
+                <div className="text-center p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+                  <p className="text-2xl font-bold text-yellow-900 dark:text-yellow-100">
+                    {solutionStats.statusBreakdown.pending}
+                  </p>
+                  <p className="text-sm text-yellow-700 dark:text-yellow-300">Pending</p>
+                </div>
+                <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                  <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">
+                    {solutionStats.statusBreakdown.submitted}
+                  </p>
+                  <p className="text-sm text-blue-700 dark:text-blue-300">Submitted</p>
+                </div>
+                <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                  <p className="text-2xl font-bold text-green-900 dark:text-green-100">
+                    {solutionStats.statusBreakdown.reviewed}
+                  </p>
+                  <p className="text-sm text-green-700 dark:text-green-300">Reviewed</p>
+                </div>
+              </div>
+            </Card>
+          )}
+        </div>
+
+        {/* Recent Activity */}
+        <div className="space-y-6">
+          <Card className="p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-semibold flex items-center">
+                <Activity className="w-5 h-5 mr-2" />
+                Recent Activity
+              </h2>
+              <Button asChild variant="ghost" size="sm">
+                <Link to="/admin/reviews">
+                  View All
+                  <ArrowRight className="w-4 h-4 ml-1" />
                 </Link>
               </Button>
             </div>
-          )}
+            <div className="space-y-3">
+              {recentActivity.map((activity, index) => (
+                <div key={index} className="flex items-start gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors">
+                  <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    {getActivityIcon(activity.type)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium">
+                      {getActivityText(activity)}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {activity.userEmail || activity.reviewerEmail} • {formatDate(activity.timestamp)}
+                    </p>
+                  </div>
+                </div>
+              ))}
+              {recentActivity.length === 0 && (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Activity className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                  <p>No recent activity</p>
+                </div>
+              )}
+            </div>
+          </Card>
+
+          {/* Quick Actions */}
+          <Card className="p-6">
+            <h2 className="text-lg font-semibold mb-4">Quick Actions</h2>
+            <div className="space-y-3">
+              <Button asChild className="w-full" variant="outline">
+                <Link to="/tasks">
+                  <BookOpen className="w-4 h-4 mr-2" />
+                  View All Tasks
+                </Link>
+              </Button>
+              <Button asChild className="w-full" variant="outline">
+                <Link to="/admin/reviews">
+                  <Users className="w-4 h-4 mr-2" />
+                  Review Solutions
+                </Link>
+              </Button>
+              {isAdmin && (
+                <Button asChild className="w-full" variant="outline">
+                  <Link to="/admin/bulk-import">
+                    <Upload className="w-4 h-4 mr-2" />
+                    Bulk Import
+                  </Link>
+                </Button>
+              )}
+            </div>
+          </Card>
         </div>
       </div>
     </div>

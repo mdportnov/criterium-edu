@@ -30,7 +30,7 @@ export class UsersController {
   }
 
   @Get(':id')
-  @Roles(UserRole.ADMIN, UserRole.MENTOR)
+  @Roles(UserRole.ADMIN, UserRole.REVIEWER)
   async findOne(@Param('id') id: number): Promise<UserDto> {
     const user = await this.usersService.findOne(id);
     return this.mapToDto(user);

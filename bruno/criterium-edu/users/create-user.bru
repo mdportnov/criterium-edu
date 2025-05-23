@@ -20,11 +20,11 @@ auth:bearer {
 
 body:json {
   {
-    "email": "mentor@example.com",
-    "firstName": "Mentor",
+    "email": "reviewer@example.com",
+    "firstName": "reviewer",
     "lastName": "User",
-    "password": "mentor123",
-    "role": "mentor"
+    "password": "reviewer123",
+    "role": "reviewer"
   }
 }
 
@@ -43,7 +43,7 @@ docs {
   - `firstName`: User first name
   - `lastName`: User last name
   - `password`: User password
-  - `role`: User role (admin, mentor, student)
+  - `role`: User role (admin, reviewer, student)
   
   ## Response
   
@@ -58,7 +58,7 @@ tests {
   test("Response has user details", function() {
     expect(res.body).to.have.property('id');
     expect(res.body).to.have.property('email');
-    expect(res.body).to.have.property('role', 'mentor');
+    expect(res.body).to.have.property('role', 'reviewer');
   });
   
   test("Response does not include password", function() {

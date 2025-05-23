@@ -6,7 +6,7 @@ The primary goal is to reduce the assessment workload for teachers while maintai
 
 # Core Features  
 ## User Management
-- **What it does**: Provides role-based access control with Admin and Teacher (Mentor) roles, secure authentication, and profile management
+- **What it does**: Provides role-based access control with Admin and Teacher (reviewer) roles, secure authentication, and profile management
 - **Why it's important**: Ensures proper access permissions and security for educational assessment data
 - **How it works**: JWT-based authentication system with hashed passwords and role-specific access controls
 
@@ -37,7 +37,7 @@ The primary goal is to reduce the assessment workload for teachers while maintai
 - Configures assessment criteria and rubrics at an institutional level
 - Monitors assessment consistency and AI performance
 
-**Teacher (Mentor)**:
+**Teacher (reviewer)**:
 - Creates specific assessment tasks and criteria
 - Imports student solutions for evaluation
 - Reviews and approves AI-generated assessments
@@ -98,7 +98,7 @@ The primary goal is to reduce the assessment workload for teachers while maintai
 - **Tasks**: ID, title, description, authorSolution, createdBy, timestamps
 - **Task Criteria**: ID, name, description, maxPoints, checkerComments, taskId
 - **Task Solutions**: ID, taskId, externalStudentId, solutionText, status, importedAt, timestamps
-- **Task Solution Reviews**: ID, taskSolutionId, mentorId, totalScore, feedbackText, mentorComment, source, timestamps
+- **Task Solution Reviews**: ID, taskSolutionId, reviewerId, totalScore, feedbackText, reviewerComment, source, timestamps
 - **Criterion Scores**: ID, reviewId, criterionId, score, comment
 - **Import Configurations**: ID, taskId, source, configuration, schedule, lastRun, createdBy, timestamps
 
@@ -245,7 +245,7 @@ The primary goal is to reduce the assessment workload for teachers while maintai
 - **Authentication**: JWT, Passport
 
 ## Role Permissions Matrix
-| Feature | Admin | Teacher (Mentor) |
+| Feature | Admin | Teacher (reviewer) |
 |---------|-------|------------------|
 | User Management | Full access | Self-profile only |
 | Task Creation | Create/Edit | Create/Edit |

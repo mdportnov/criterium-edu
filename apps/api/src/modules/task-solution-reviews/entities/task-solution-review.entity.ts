@@ -26,11 +26,11 @@ export class TaskSolutionReview {
   taskSolution: TaskSolution;
 
   @Column({ type: 'int', nullable: true })
-  mentorId: number;
+  reviewerId: number;
 
   @ManyToOne(() => User, { nullable: true })
-  @JoinColumn({ name: 'mentorId' })
-  mentor: User;
+  @JoinColumn({ name: 'reviewerId' })
+  reviewer: User;
 
   @OneToMany(() => CriterionScore, (criterionScore) => criterionScore.review, {
     cascade: true,
@@ -45,7 +45,7 @@ export class TaskSolutionReview {
   feedbackToStudent: string;
 
   @Column({ type: 'text', nullable: true })
-  mentorComment: string;
+  reviewerComment: string;
 
   @Column({
     type: 'enum',
