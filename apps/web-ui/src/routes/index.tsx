@@ -42,6 +42,7 @@ import BulkSolutionUploadPage from '@/features/reviews/pages/BulkSolutionUploadP
 import ProcessingOperationPage from '@/features/reviews/pages/ProcessingOperationPage';
 import LLMProcessingPage from '@/features/reviews/pages/LLMProcessingPage';
 import ReviewApprovalDashboard from '@/features/reviews/pages/ReviewApprovalDashboard';
+import ProcessingStatusPage from '@/features/reviews/pages/ProcessingStatusPage';
 
 // Dashboard pages (protected routes under /dashboard)
 const dashboardPages: RouteObject[] = [
@@ -59,6 +60,7 @@ const dashboardPages: RouteObject[] = [
   { path: 'reviews/processing/:operationId', element: <ProcessingOperationPage /> }, // /dashboard/reviews/processing/:operationId
   { path: 'reviews/llm-processing', element: <LLMProcessingPage /> }, // /dashboard/reviews/llm-processing
   { path: 'reviews/approval-dashboard', element: <ReviewApprovalDashboard /> }, // /dashboard/reviews/approval-dashboard
+  { path: 'reviews/processing-status', element: <ProcessingStatusPage /> }, // /dashboard/reviews/processing-status
   { path: 'bulk-import', element: <BulkImportPage /> }, // /dashboard/bulk-import
   { path: 'tasks/create', element: <CreateTaskPage /> }, // /dashboard/tasks/create
   { path: 'tasks/:id/edit', element: <EditTaskPage /> }, // /dashboard/tasks/:id/edit

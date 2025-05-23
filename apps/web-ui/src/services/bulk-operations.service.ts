@@ -59,6 +59,13 @@ export const BulkOperationsService = {
     });
   },
 
+  async getAllProcessingOperations(): Promise<ProcessingOperation[]> {
+    return apiRequest<ProcessingOperation[]>({
+      method: 'GET',
+      url: '/bulk-operations/operations',
+    });
+  },
+
   async getProcessingOperationStatus(operationId: string): Promise<ProcessingOperation> {
     return apiRequest<ProcessingOperation>({
       method: 'GET',

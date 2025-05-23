@@ -16,6 +16,7 @@ import {
   Edit3,
   Play,
   AlertCircle,
+  Upload,
 } from 'lucide-react';
 
 const TasksPage: React.FC = () => {
@@ -30,7 +31,6 @@ const TasksPage: React.FC = () => {
 
   const isAdminOrReviewer = hasRole([UserRole.ADMIN, UserRole.REVIEWER]);
 
-  // Extract unique categories and tags from tasks
   const categories = [
     ...new Set(tasks.flatMap((task) => task.categories || [])),
   ];
@@ -123,12 +123,20 @@ const TasksPage: React.FC = () => {
         </div>
 
         {isAdminOrReviewer && (
-          <Button asChild className="transition-all duration-200 hover:shadow-lg">
-            <Link to="/dashboard/tasks/create">
-              <Plus className="w-4 h-4 mr-2" />
-              Create Task
-            </Link>
-          </Button>
+          <div className="flex gap-2">
+            <Button asChild variant="outline" className="transition-all duration-200 hover:shadow-lg">
+              <Link to="/dashboard/bulk-import">
+                <Upload className="w-4 h-4 mr-2" />
+                Bulk Import
+              </Link>
+            </Button>
+            <Button asChild className="transition-all duration-200 hover:shadow-lg">
+              <Link to="/dashboard/tasks/create">
+                <Plus className="w-4 h-4 mr-2" />
+                Create Task
+              </Link>
+            </Button>
+          </div>
         )}
       </div>
 

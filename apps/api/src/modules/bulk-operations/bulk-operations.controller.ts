@@ -69,6 +69,13 @@ export class BulkOperationsController {
     return this.bulkOperationsService.importSolutionsJson(solutionsData);
   }
 
+  @Get('operations')
+  @ApiOperation({ summary: 'Get all processing operations' })
+  @ApiResponse({ status: 200, description: 'Operations list retrieved' })
+  async getAllOperations() {
+    return this.bulkOperationsService.getAllOperations();
+  }
+
   @Get('operations/:operationId/status')
   @ApiOperation({ summary: 'Get processing operation status' })
   @ApiResponse({ status: 200, description: 'Operation status retrieved' })

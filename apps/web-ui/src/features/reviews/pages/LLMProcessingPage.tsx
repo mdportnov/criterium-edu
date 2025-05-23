@@ -31,7 +31,7 @@ const LLMProcessingPage = () => {
   const [selectedTaskId, setSelectedTaskId] = useState<string>(
     location.state?.taskId || '',
   );
-  const [selectedSolutions, setSelectedSolutions] = useState<string[]>([]);
+  const [selectedSolutions, setSelectedSolutions] = useState<number[]>([]);
   const [llmModel, setLlmModel] = useState<string>('gpt-4o');
   const [systemPrompt, setSystemPrompt] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -46,14 +46,14 @@ const LLMProcessingPage = () => {
     queryKey: ['task-solutions', selectedTaskId],
     queryFn: () =>
       selectedTaskId
-        ? TaskSolutionService.getSolutionsByTaskId(selectedTaskId)
+        ? TaskSolutionService.getTaskSolutionsByTaskId(Number(selectedTaskId))
         : [],
     enabled: !!selectedTaskId,
   });
 
   const { data: selectedTask } = useQuery({
     queryKey: ['task', selectedTaskId],
-    queryFn: () => TaskService.getTaskById(selectedTaskId),
+    queryFn: () => TaskService.getTaskById(Number(selectedTaskId)),
     enabled: !!selectedTaskId,
   });
 
@@ -82,7 +82,7 @@ Be fair, objective, and educational in your assessment.`;
     }
   };
 
-  const handleSolutionToggle = (solutionId: string) => {
+  const handleSolutionToggle = (solutionId: number) => {
     setSelectedSolutions((prev) =>
       prev.includes(solutionId)
         ? prev.filter((id) => id !== solutionId)
@@ -106,7 +106,7 @@ Be fair, objective, and educational in your assessment.`;
       setError('');
 
       const request: LLMAssessmentRequest = {
-        solutionIds: selectedSolutions,
+        solutionIds: selectedSolutions.map(String),
         llmModel,
         taskId: selectedTaskId,
         systemPrompt,

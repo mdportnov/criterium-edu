@@ -210,7 +210,7 @@ const ReviewsPage: React.FC = () => {
                 className="h-auto p-4 flex flex-col items-center gap-2"
                 asChild
               >
-                <Link to="/dashboard/bulk-import">
+                <Link to="/dashboard/reviews/processing-status">
                   <Activity className="w-6 h-6" />
                   <div className="text-center">
                     <div className="font-medium">Processing Status</div>

@@ -13,7 +13,6 @@ import {
   AlertCircle,
   TrendingUp,
   Users,
-  Upload,
   Plus,
   ArrowRight,
   BookOpen,
@@ -28,7 +27,7 @@ import {
 } from 'lucide-react';
 
 const DashboardPage: React.FC = () => {
-  const { user, hasRole } = useAuth();
+  const { hasRole } = useAuth();
   const [overview, setOverview] = useState<DashboardOverview | null>(null);
   const [taskStats, setTaskStats] = useState<TaskStatistics | null>(null);
   const [solutionStats, setSolutionStats] = useState<SolutionStatistics | null>(null);
@@ -183,20 +182,12 @@ const DashboardPage: React.FC = () => {
           </div>
           <div className="flex gap-2">
             {isAdmin && (
-              <>
-                <Button asChild variant="outline" size="sm">
-                  <Link to="/dashboard/bulk-import">
-                    <Upload className="w-4 h-4 mr-2" />
-                    Bulk Import
-                  </Link>
-                </Button>
-                <Button asChild size="sm">
-                  <Link to="/dashboard/tasks/create">
-                    <Plus className="w-4 h-4 mr-2" />
-                    Create Task
-                  </Link>
-                </Button>
-              </>
+              <Button asChild size="sm">
+                <Link to="/dashboard/tasks/create">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create Task
+                </Link>
+              </Button>
             )}
           </div>
         </div>
@@ -454,14 +445,6 @@ const DashboardPage: React.FC = () => {
                   Review Solutions
                 </Link>
               </Button>
-              {isAdmin && (
-                <Button asChild className="w-full" variant="outline">
-                  <Link to="/dashboard/bulk-import">
-                    <Upload className="w-4 h-4 mr-2" />
-                    Bulk Import
-                  </Link>
-                </Button>
-              )}
             </div>
           </Card>
         </div>
