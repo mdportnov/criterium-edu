@@ -19,8 +19,6 @@ import {
 import { UserRole } from '@app/shared/interfaces';
 import { ProcessingOperation } from './entities/processing-operation.entity';
 import { User } from '../users/entities/user.entity';
-// We'll need a CSV parsing library like 'papaparse' later
-// import * as Papa from 'papaparse';
 
 @Injectable()
 export class BulkOperationsService {
@@ -51,7 +49,6 @@ export class BulkOperationsService {
 
     for (const bulkTask of tasksData) {
       try {
-        // Map BulkImportTaskDto and its criteria to CreateTaskDto and TaskCriterionDto
         const createTaskDto: CreateTaskDto = {
           title: bulkTask.title,
           description: bulkTask.description,
@@ -89,7 +86,7 @@ export class BulkOperationsService {
 
   async exportTasksJson(): Promise<string> {
     const tasks = await this.tasksService.findAll();
-    return JSON.stringify(tasks, null, 2); // Pretty print JSON
+    return JSON.stringify(tasks, null, 2);
   }
 
   async importSolutionsJson(
@@ -201,6 +198,15 @@ export class BulkOperationsService {
       processedItems,
       progress,
     });
+  }
+
+  async getAllOperations(): Promise<ProcessingOperationDto[]> {
+    const operations = await this.processingOperationRepository.find({
+      order: { createdAt: 'DESC' },
+      take: 50, // Limit to last 50 operations
+    });
+
+    return operations.map(operation => this.mapOperationToDto(operation));
   }
 
   async getOperationStatus(operationId: string): Promise<ProcessingOperationDto> {

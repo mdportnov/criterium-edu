@@ -87,7 +87,6 @@ const BulkSolutionUploadPage = () => {
       const operation =
         await BulkOperationsService.importSolutions(solutionsWithTask);
 
-      // Navigate to operation monitoring page
       navigate(`/dashboard/reviews/processing/${operation.id}`);
     } catch (err) {
       setError(
@@ -126,7 +125,7 @@ const BulkSolutionUploadPage = () => {
               </SelectTrigger>
               <SelectContent>
                 {tasks.map((task) => (
-                  <SelectItem key={task.id} value={task.id}>
+                  <SelectItem key={task.id} value={String(task.id)}>
                     {task.title}
                   </SelectItem>
                 ))}

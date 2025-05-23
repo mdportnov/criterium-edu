@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
+import React, { useEffect, useRef, useState } from 'react';
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { UserRole } from '@/types';
 import { Button } from '@/components/ui/button';
@@ -11,17 +11,15 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import {
-  Menu,
-  Home,
-  ListTodo,
+  ChevronDown,
   Code2,
   FileText,
-  Users,
-  Upload,
-  Plus,
-  User,
+  Home,
+  ListTodo,
   LogOut,
-  ChevronDown,
+  Menu,
+  User,
+  Users,
 } from 'lucide-react';
 
 const MainLayout: React.FC = () => {
@@ -43,7 +41,10 @@ const MainLayout: React.FC = () => {
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setIsUserMenuOpen(false);
       }
     };
@@ -56,23 +57,31 @@ const MainLayout: React.FC = () => {
 
   // Check if a route is active
   const isActiveRoute = (path: string) => {
-    return location.pathname === path || location.pathname.startsWith(path + '/');
+    return (
+      location.pathname === path || location.pathname.startsWith(path + '/')
+    );
   };
 
   const navItems = [
     { path: '/dashboard', label: 'Dashboard', icon: Home },
-    { path: '/dashboard/tasks', label: 'Tasks', icon: ListTodo },
-    { path: '/dashboard/checker', label: 'Code Checker', icon: Code2 },
+    { path: '/dashboard/tasks', label: 'Tasks', icon: ListTodo }
   ];
 
-  const studentItems = user?.role === UserRole.STUDENT 
-    ? [{ path: '/dashboard/my-solutions', label: 'My Submissions', icon: FileText }]
-    : [];
+  const studentItems =
+    user?.role === UserRole.STUDENT
+      ? [
+          {
+            path: '/dashboard/my-solutions',
+            label: 'My Submissions',
+            icon: FileText,
+          },
+        ]
+      : [];
 
   const adminItems = isAdminOrReviewer
     ? [
         { path: '/dashboard/reviews', label: 'Reviews', icon: Users },
-        { path: '/dashboard/bulk-import', label: 'Bulk Import', icon: Upload },
+        { path: '/dashboard/checker', label: 'Code Checker', icon: Code2 },
       ]
     : [];
 
@@ -85,8 +94,8 @@ const MainLayout: React.FC = () => {
         <div className="container-responsive max-w-7xl mx-auto">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
-            <Link 
-              to="/" 
+            <Link
+              to="/"
               className="text-xl font-bold hover:opacity-80 transition-opacity duration-200 flex items-center gap-2"
             >
               <div className="w-8 h-8 flex items-center justify-center">
@@ -114,7 +123,7 @@ const MainLayout: React.FC = () => {
                   </Link>
                 );
               })}
-              
+
               {/* User dropdown */}
               <div className="relative ml-4" ref={dropdownRef}>
                 <button
@@ -127,15 +136,21 @@ const MainLayout: React.FC = () => {
                   <span className="hidden xl:inline">
                     {user?.firstName} {user?.lastName}
                   </span>
-                  <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isUserMenuOpen ? 'rotate-180' : ''}`} />
+                  <ChevronDown
+                    className={`w-4 h-4 transition-transform duration-200 ${isUserMenuOpen ? 'rotate-180' : ''}`}
+                  />
                 </button>
-                
+
                 {/* Dropdown menu */}
                 {isUserMenuOpen && (
                   <div className="absolute right-0 top-full mt-2 w-56 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl overflow-hidden z-50">
                     <div className="p-3 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
-                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{user?.firstName} {user?.lastName}</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{user?.email}</p>
+                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                        {user?.firstName} {user?.lastName}
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                        {user?.email}
+                      </p>
                     </div>
                     <div className="p-1">
                       <Link
@@ -166,36 +181,41 @@ const MainLayout: React.FC = () => {
             <div className="lg:hidden">
               <Sheet open={isOpen} onOpenChange={setIsOpen}>
                 <SheetTrigger asChild>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
+                  <Button
+                    variant="ghost"
+                    size="icon"
                     className="text-white hover:bg-white/10"
                   >
                     <Menu className="w-6 h-6" />
                     <span className="sr-only">Menu</span>
                   </Button>
                 </SheetTrigger>
-                <SheetContent 
-                  side="right" 
+                <SheetContent
+                  side="right"
                   className="w-[300px] sm:w-[350px] p-0"
                 >
                   <SheetHeader className="p-6 pb-4 border-b">
                     <SheetTitle>Menu</SheetTitle>
                   </SheetHeader>
-                  
+
                   {/* User info in mobile menu */}
                   <div className="p-6 pt-4 pb-4 bg-muted/50 border-b">
                     <div className="flex items-center gap-3">
                       <div className="w-12 h-12 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-semibold text-lg">
-                        {user?.firstName?.[0]}{user?.lastName?.[0]}
+                        {user?.firstName?.[0]}
+                        {user?.lastName?.[0]}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium truncate">{user?.firstName} {user?.lastName}</p>
-                        <p className="text-sm text-muted-foreground truncate">{user?.email}</p>
+                        <p className="font-medium truncate">
+                          {user?.firstName} {user?.lastName}
+                        </p>
+                        <p className="text-sm text-muted-foreground truncate">
+                          {user?.email}
+                        </p>
                       </div>
                     </div>
                   </div>
-                  
+
                   {/* Navigation items */}
                   <div className="flex-1 overflow-y-auto py-4">
                     <nav className="px-4 space-y-1">
@@ -220,7 +240,7 @@ const MainLayout: React.FC = () => {
                       })}
                     </nav>
                   </div>
-                  
+
                   {/* Mobile menu footer */}
                   <div className="border-t p-4 space-y-1 mt-auto">
                     <Link
@@ -262,7 +282,8 @@ const MainLayout: React.FC = () => {
                 <img src="/logo.svg" alt="Criterium EDU" className="w-6 h-6" />
               </div>
               <p className="text-sm text-muted-foreground">
-                &copy; {new Date().getFullYear()} Criterium EDU. All rights reserved.
+                &copy; {new Date().getFullYear()} Criterium EDU. All rights
+                reserved.
               </p>
             </div>
             <div className="flex gap-4 text-sm text-muted-foreground">

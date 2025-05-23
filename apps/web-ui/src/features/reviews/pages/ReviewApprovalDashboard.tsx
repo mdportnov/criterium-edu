@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { RefreshCw } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -44,7 +45,7 @@ const ReviewApprovalDashboard = () => {
       TaskSolutionReviewService.getPendingAutoReviews(
         selectedTaskId === 'all' ? undefined : Number(selectedTaskId),
       ),
-    refetchInterval: 5000, // Refresh every 5 seconds
+    refetchInterval: 15000, // Refresh every 15 seconds
   });
 
   const handleSelectAll = () => {
@@ -168,11 +169,21 @@ const ReviewApprovalDashboard = () => {
 
   return (
     <div className="container mx-auto p-6 max-w-6xl">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold">Review Approval Dashboard</h1>
-        <p className="text-muted-foreground mt-2">
-          Review and approve AI-generated feedback for student solutions
-        </p>
+      <div className="mb-6 flex items-start justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Review Approval Dashboard</h1>
+          <p className="text-muted-foreground mt-2">
+            Review and approve AI-generated feedback for student solutions
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          onClick={() => refetch()}
+          className="gap-2"
+        >
+          <RefreshCw className="w-4 h-4" />
+          Refresh
+        </Button>
       </div>
 
       <div className="grid gap-6">

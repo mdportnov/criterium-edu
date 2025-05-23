@@ -45,7 +45,6 @@ export class CheckerService {
         criteriaScores,
       );
 
-      // Create review
       const review = await this.reviewsService.create({
         taskSolutionId: taskSolution.id,
         criteriaScores,
