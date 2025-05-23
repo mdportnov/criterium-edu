@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -7,18 +7,18 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { TaskSolutionReviewService, TaskSolutionService } from '@/services';
 import { useAuth } from '@/contexts/AuthContext';
-import type { TaskSolutionReview, TaskSolution, ReviewSource } from '@/types';
+import type { ReviewSource, TaskSolution, TaskSolutionReview } from '@/types';
 import {
+  AlertCircle,
   ArrowLeft,
   Calendar,
-  User,
-  Star,
-  FileText,
-  Edit,
-  Trash2,
   CheckCircle,
-  AlertCircle,
   Clock,
+  Edit,
+  FileText,
+  Star,
+  Trash2,
+  User,
 } from 'lucide-react';
 
 const ReviewDetailPage: React.FC = () => {
@@ -40,10 +40,13 @@ const ReviewDetailPage: React.FC = () => {
   const fetchReview = async (reviewId: number) => {
     try {
       setLoading(true);
-      const reviewData = await TaskSolutionReviewService.getReviewById(reviewId);
+      const reviewData =
+        await TaskSolutionReviewService.getReviewById(reviewId);
       setReview(reviewData);
 
-      const solutionData = await TaskSolutionService.getTaskSolutionById(reviewData.taskSolutionId);
+      const solutionData = await TaskSolutionService.getTaskSolutionById(
+        reviewData.taskSolutionId,
+      );
       setTaskSolution(solutionData);
     } catch (err) {
       setError('Failed to load review details');
@@ -57,7 +60,9 @@ const ReviewDetailPage: React.FC = () => {
 
     try {
       setActionLoading(true);
-      const updatedReview = await TaskSolutionReviewService.approveAutoReview(review.id);
+      const updatedReview = await TaskSolutionReviewService.approveAutoReview(
+        review.id,
+      );
       setReview(updatedReview);
     } catch (err) {
       setError('Failed to approve review');
@@ -67,7 +72,11 @@ const ReviewDetailPage: React.FC = () => {
   };
 
   const handleDeleteReview = async () => {
-    if (!review || !window.confirm('Are you sure you want to delete this review?')) return;
+    if (
+      !review ||
+      !window.confirm('Are you sure you want to delete this review?')
+    )
+      return;
 
     try {
       setActionLoading(true);
@@ -116,13 +125,15 @@ const ReviewDetailPage: React.FC = () => {
     return 'text-red-600';
   };
 
-  const canEditReview = user && (
-    user.role === 'ADMIN' || 
-    (user.role === 'REVIEWER' && review?.reviewerId === user.id)
-  );
+  const canEditReview =
+    user &&
+    (user.role === 'ADMIN' ||
+      (user.role === 'REVIEWER' && review?.reviewerId === user.id));
 
   const canDeleteReview = user?.role === 'ADMIN';
-  const canApproveReview = review?.source === 'auto' && (user?.role === 'ADMIN' || user?.role === 'REVIEWER');
+  const canApproveReview =
+    review?.source === 'auto' &&
+    (user?.role === 'ADMIN' || user?.role === 'REVIEWER');
 
   if (loading) {
     return (
@@ -169,7 +180,9 @@ const ReviewDetailPage: React.FC = () => {
             <CardHeader>
               <div className="flex items-start justify-between">
                 <div>
-                  <CardTitle className="text-2xl">Review #{review.id}</CardTitle>
+                  <CardTitle className="text-2xl">
+                    Review #{review.id}
+                  </CardTitle>
                   <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
                     <div className="flex items-center gap-1">
                       <Calendar className="h-4 w-4" />
@@ -188,7 +201,9 @@ const ReviewDetailPage: React.FC = () => {
               <div className="flex items-center gap-6">
                 <div className="flex items-center gap-2">
                   <Star className="h-5 w-5 text-yellow-500" />
-                  <span className={`text-2xl font-bold ${getScoreColor(review.totalScore)}`}>
+                  <span
+                    className={`text-2xl font-bold ${getScoreColor(review.totalScore)}`}
+                  >
                     {review.totalScore}
                   </span>
                   <span className="text-muted-foreground">total points</span>
@@ -206,7 +221,9 @@ const ReviewDetailPage: React.FC = () => {
               <div>
                 <h3 className="font-semibold mb-3">Feedback to Student</h3>
                 <div className="bg-muted/50 rounded-lg p-4">
-                  <p className="whitespace-pre-wrap">{review.feedbackToStudent}</p>
+                  <p className="whitespace-pre-wrap">
+                    {review.feedbackToStudent}
+                  </p>
                 </div>
               </div>
 
@@ -214,7 +231,9 @@ const ReviewDetailPage: React.FC = () => {
                 <div>
                   <h3 className="font-semibold mb-3">Reviewer Comment</h3>
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <p className="whitespace-pre-wrap">{review.reviewerComment}</p>
+                    <p className="whitespace-pre-wrap">
+                      {review.reviewerComment}
+                    </p>
                   </div>
                 </div>
               )}
@@ -225,8 +244,12 @@ const ReviewDetailPage: React.FC = () => {
                   {review.criteriaScores.map((criterionScore, index) => (
                     <div key={index} className="border rounded-lg p-4">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="font-medium">Criterion #{criterionScore.criterionId}</span>
-                        <span className={`font-bold ${getScoreColor(criterionScore.score)}`}>
+                        <span className="font-medium">
+                          Criterion #{criterionScore.criterionId}
+                        </span>
+                        <span
+                          className={`font-bold ${getScoreColor(criterionScore.score)}`}
+                        >
                           {criterionScore.score} points
                         </span>
                       </div>
@@ -252,20 +275,32 @@ const ReviewDetailPage: React.FC = () => {
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Solution ID:</span>
-                    <span className="text-sm font-medium">#{taskSolution.id}</span>
+                    <span className="text-sm text-muted-foreground">
+                      Solution ID:
+                    </span>
+                    <span className="text-sm font-medium">
+                      #{taskSolution.id}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-muted-foreground">Task:</span>
-                    <span className="text-sm font-medium">{taskSolution.task?.title || 'N/A'}</span>
+                    <span className="text-sm font-medium">
+                      {taskSolution.task?.title || 'N/A'}
+                    </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Status:</span>
+                    <span className="text-sm text-muted-foreground">
+                      Status:
+                    </span>
                     <Badge variant="outline">{taskSolution.status}</Badge>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Submitted:</span>
-                    <span className="text-sm">{new Date(taskSolution.submittedAt).toLocaleDateString()}</span>
+                    <span className="text-sm text-muted-foreground">
+                      Submitted:
+                    </span>
+                    <span className="text-sm">
+                      {new Date(taskSolution.submittedAt).toLocaleDateString()}
+                    </span>
                   </div>
                 </div>
                 <Button variant="outline" size="sm" className="w-full" asChild>
@@ -284,8 +319,8 @@ const ReviewDetailPage: React.FC = () => {
             </CardHeader>
             <CardContent className="space-y-3">
               {canApproveReview && (
-                <Button 
-                  onClick={handleApproveReview} 
+                <Button
+                  onClick={handleApproveReview}
                   disabled={actionLoading}
                   className="w-full"
                 >
@@ -293,7 +328,7 @@ const ReviewDetailPage: React.FC = () => {
                   Approve Auto Review
                 </Button>
               )}
-              
+
               {canEditReview && (
                 <Button variant="outline" className="w-full" asChild>
                   <Link to={`/dashboard/reviews/${review.id}/edit`}>
@@ -302,10 +337,10 @@ const ReviewDetailPage: React.FC = () => {
                   </Link>
                 </Button>
               )}
-              
+
               {canDeleteReview && (
-                <Button 
-                  variant="destructive" 
+                <Button
+                  variant="destructive"
                   onClick={handleDeleteReview}
                   disabled={actionLoading}
                   className="w-full"

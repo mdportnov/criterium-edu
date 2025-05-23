@@ -5,16 +5,16 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
-  type TaskSolution,
-  type TaskSolutionReview,
   type CreateTaskSolutionReviewRequest,
   type TaskCriterion,
+  type TaskSolution,
+  type TaskSolutionReview,
   UserRole,
 } from '@/types';
 import {
   TaskService,
-  TaskSolutionService,
   TaskSolutionReviewService,
+  TaskSolutionService,
 } from '@/services';
 
 const ReviewSolutionPage: React.FC = () => {

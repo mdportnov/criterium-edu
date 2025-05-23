@@ -70,4 +70,38 @@ export const TaskSolutionReviewService = {
       url: `/task-solution-reviews/${id}`,
     });
   },
+
+  async getPendingAutoReviews(taskId?: number): Promise<TaskSolutionReview[]> {
+    const url = taskId 
+      ? `/task-solution-reviews/pending-auto?taskId=${taskId}`
+      : '/task-solution-reviews/pending-auto';
+    
+    return apiRequest<TaskSolutionReview[]>({
+      method: 'GET',
+      url,
+    });
+  },
+
+  async rejectAutoReview(id: number): Promise<void> {
+    return apiRequest<void>({
+      method: 'POST',
+      url: `/task-solution-reviews/${id}/reject`,
+    });
+  },
+
+  async batchApproveReviews(reviewIds: number[]): Promise<{ approvedCount: number; errors: any[] }> {
+    return apiRequest<{ approvedCount: number; errors: any[] }>({
+      method: 'POST',
+      url: '/task-solution-reviews/batch-approve',
+      data: { reviewIds },
+    });
+  },
+
+  async batchRejectReviews(reviewIds: number[]): Promise<{ rejectedCount: number; errors: any[] }> {
+    return apiRequest<{ rejectedCount: number; errors: any[] }>({
+      method: 'POST',
+      url: '/task-solution-reviews/batch-reject',
+      data: { reviewIds },
+    });
+  },
 };

@@ -6,6 +6,7 @@ import { CriterionScore } from './entities/criterion-score.entity';
 import {
   CreateTaskSolutionReviewDto,
   CriterionScoreDto,
+  ReviewSource,
   TaskSolutionReviewDto,
   TaskSolutionStatus,
   UpdateTaskSolutionReviewDto,
@@ -174,6 +175,8 @@ export class TaskSolutionReviewsService {
     if (updateReviewDto.reviewerComment !== undefined)
       review.reviewerComment = updateReviewDto.reviewerComment;
     if (updateReviewDto.source) review.source = updateReviewDto.source;
+    if (updateReviewDto.reviewerId !== undefined)
+      review.reviewerId = updateReviewDto.reviewerId;
 
     if (
       updateReviewDto.criteriaScores &&
@@ -222,5 +225,95 @@ export class TaskSolutionReviewsService {
     }
 
     await this.reviewsRepository.remove(review);
+  }
+
+  async batchApproveReviews(
+    reviewIds: number[],
+    reviewerId: number,
+  ): Promise<{ approvedCount: number; errors: any[] }> {
+    const results = [];
+    const errors = [];
+
+    for (const reviewId of reviewIds) {
+      try {
+        const review = await this.findOne(reviewId);
+
+        if (review.source !== ReviewSource.AUTO) {
+          errors.push({
+            reviewId,
+            error: 'Only automated reviews can be approved',
+          });
+          continue;
+        }
+
+        await this.update(reviewId, {
+          source: ReviewSource.AUTO_APPROVED,
+          reviewerId,
+        });
+
+        results.push(reviewId);
+      } catch (error) {
+        errors.push({
+          reviewId,
+          error: error.message,
+        });
+      }
+    }
+
+    return {
+      approvedCount: results.length,
+      errors,
+    };
+  }
+
+  async batchRejectReviews(
+    reviewIds: number[],
+  ): Promise<{ rejectedCount: number; errors: any[] }> {
+    const results = [];
+    const errors = [];
+
+    for (const reviewId of reviewIds) {
+      try {
+        const review = await this.findOne(reviewId);
+
+        if (review.source !== ReviewSource.AUTO) {
+          errors.push({
+            reviewId,
+            error: 'Only automated reviews can be rejected',
+          });
+          continue;
+        }
+
+        await this.remove(reviewId);
+        results.push(reviewId);
+      } catch (error) {
+        errors.push({
+          reviewId,
+          error: error.message,
+        });
+      }
+    }
+
+    return {
+      rejectedCount: results.length,
+      errors,
+    };
+  }
+
+  async findPendingAutoReviews(
+    taskId?: number,
+  ): Promise<TaskSolutionReviewDto[]> {
+    const queryBuilder = this.reviewsRepository
+      .createQueryBuilder('review')
+      .leftJoinAndSelect('review.taskSolution', 'taskSolution')
+      .leftJoinAndSelect('review.criteriaScores', 'criteriaScores')
+      .where('review.source = :source', { source: ReviewSource.AUTO });
+
+    if (taskId) {
+      queryBuilder.andWhere('taskSolution.task = :taskId', { taskId });
+    }
+
+    const reviews = await queryBuilder.getMany();
+    return reviews.map((review) => this.mapReviewToDto(review));
   }
 }

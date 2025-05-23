@@ -1,5 +1,9 @@
 import React from 'react';
-import { createBrowserRouter, RouterProvider, type RouteObject } from 'react-router-dom';
+import {
+  createBrowserRouter,
+  type RouteObject,
+  RouterProvider,
+} from 'react-router-dom';
 import ProtectedRoute from '@/components/router/ProtectedRoute';
 import { UserRole } from '@/types';
 
@@ -21,10 +25,23 @@ import TasksPage from '@/features/tasks/pages/TasksPage';
 import TaskDetailPage from '@/features/tasks/pages/TaskDetailPage';
 import CreateTaskPage from '@/features/tasks/pages/CreateTaskPage';
 import EditTaskPage from '@/features/tasks/pages/EditTaskPage';
-import { MySubmissionsPage, SubmitSolutionPage, SolutionDetailPage, ReviewSolutionPage } from '@/features/solutions';
+import {
+  MySubmissionsPage,
+  ReviewSolutionPage,
+  SolutionDetailPage,
+  SubmitSolutionPage,
+} from '@/features/solutions';
 import { CheckerPage } from '@/features/checker';
 import { BulkImportPage } from '@/features/bulk-operations';
-import { ReviewsPage, ReviewDetailPage, CreateReviewPage } from '@/features/reviews';
+import {
+  CreateReviewPage,
+  ReviewDetailPage,
+  ReviewsPage,
+} from '@/features/reviews';
+import BulkSolutionUploadPage from '@/features/reviews/pages/BulkSolutionUploadPage';
+import ProcessingOperationPage from '@/features/reviews/pages/ProcessingOperationPage';
+import LLMProcessingPage from '@/features/reviews/pages/LLMProcessingPage';
+import ReviewApprovalDashboard from '@/features/reviews/pages/ReviewApprovalDashboard';
 
 // Dashboard pages (protected routes under /dashboard)
 const dashboardPages: RouteObject[] = [
@@ -38,6 +55,10 @@ const dashboardPages: RouteObject[] = [
   { path: 'reviews', element: <ReviewsPage /> }, // /dashboard/reviews
   { path: 'reviews/create', element: <CreateReviewPage /> }, // /dashboard/reviews/create
   { path: 'reviews/:id', element: <ReviewDetailPage /> }, // /dashboard/reviews/:id
+  { path: 'reviews/bulk-upload', element: <BulkSolutionUploadPage /> }, // /dashboard/reviews/bulk-upload
+  { path: 'reviews/processing/:operationId', element: <ProcessingOperationPage /> }, // /dashboard/reviews/processing/:operationId
+  { path: 'reviews/llm-processing', element: <LLMProcessingPage /> }, // /dashboard/reviews/llm-processing
+  { path: 'reviews/approval-dashboard', element: <ReviewApprovalDashboard /> }, // /dashboard/reviews/approval-dashboard
   { path: 'bulk-import', element: <BulkImportPage /> }, // /dashboard/bulk-import
   { path: 'tasks/create', element: <CreateTaskPage /> }, // /dashboard/tasks/create
   { path: 'tasks/:id/edit', element: <EditTaskPage /> }, // /dashboard/tasks/:id/edit
@@ -66,16 +87,16 @@ const router = createBrowserRouter([
     children: [
       {
         element: <MainLayout />,
-        children: [
-          { index: true, element: <ProfilePage /> },
-        ],
+        children: [{ index: true, element: <ProfilePage /> }],
       },
     ],
   },
   // Dashboard Protected Routes (all main functionality under /dashboard)
   {
     path: '/dashboard',
-    element: <ProtectedRoute allowedRoles={[UserRole.ADMIN, UserRole.REVIEWER]} />,
+    element: (
+      <ProtectedRoute allowedRoles={[UserRole.ADMIN, UserRole.REVIEWER]} />
+    ),
     children: [
       {
         element: <MainLayout />,

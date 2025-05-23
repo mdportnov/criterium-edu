@@ -65,6 +65,10 @@ export class UpdateTaskSolutionReviewDto {
   @IsEnum(ReviewSource)
   @IsOptional()
   source?: ReviewSource;
+
+  @IsNumber()
+  @IsOptional()
+  reviewerId?: number;
 }
 
 export class TaskSolutionReviewDto {

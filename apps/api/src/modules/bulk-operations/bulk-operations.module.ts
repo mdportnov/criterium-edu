@@ -1,11 +1,21 @@
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { BulkOperationsController } from './bulk-operations.controller';
 import { BulkOperationsService } from './bulk-operations.service';
-import { TasksModule } from '../tasks/tasks.module'; // Likely needed to interact with TasksService/Repository
+import { TasksModule } from '../tasks/tasks.module';
+import { TaskSolutionsModule } from '../task-solutions/task-solutions.module';
+import { UsersModule } from '../users/users.module';
+import { ProcessingOperation } from './entities/processing-operation.entity';
 
 @Module({
-  imports: [TasksModule], // Import TasksModule to use TasksService for CRUD operations
+  imports: [
+    TypeOrmModule.forFeature([ProcessingOperation]),
+    TasksModule,
+    TaskSolutionsModule,
+    UsersModule,
+  ],
   controllers: [BulkOperationsController],
   providers: [BulkOperationsService],
+  exports: [BulkOperationsService],
 })
 export class BulkOperationsModule {}
