@@ -96,6 +96,13 @@ export class TaskSolutionsController {
     return mapTaskSolutionsToDtos(solutions);
   }
 
+  @Get('by-task/:taskId')
+  @Roles(UserRole.ADMIN, UserRole.REVIEWER)
+  async findByTask(@Param('taskId') taskId: number): Promise<TaskSolutionDto[]> {
+    const solutions = await this.taskSolutionsService.findByTask(taskId);
+    return mapTaskSolutionsToDtos(solutions);
+  }
+
   @Get(':id')
   async findOne(
     @Param('id') id: number,
