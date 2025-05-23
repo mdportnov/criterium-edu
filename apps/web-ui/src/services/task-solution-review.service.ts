@@ -25,7 +25,21 @@ export const TaskSolutionReviewService = {
   ): Promise<TaskSolutionReview[]> {
     return apiRequest<TaskSolutionReview[]>({
       method: 'GET',
-      url: `/task-solution-reviews/by-task-solution/${taskSolutionId}`,
+      url: `/task-solution-reviews?taskSolutionId=${taskSolutionId}`,
+    });
+  },
+
+  async getReviewsByTaskId(taskId: number): Promise<TaskSolutionReview[]> {
+    return apiRequest<TaskSolutionReview[]>({
+      method: 'GET',
+      url: `/task-solution-reviews?taskId=${taskId}`,
+    });
+  },
+
+  async approveAutoReview(id: number): Promise<TaskSolutionReview> {
+    return apiRequest<TaskSolutionReview>({
+      method: 'POST',
+      url: `/task-solution-reviews/${id}/approve`,
     });
   },
 

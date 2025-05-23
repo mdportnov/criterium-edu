@@ -24,6 +24,7 @@ import EditTaskPage from '@/features/tasks/pages/EditTaskPage';
 import { MySubmissionsPage, SubmitSolutionPage, SolutionDetailPage, ReviewSolutionPage } from '@/features/solutions';
 import { CheckerPage } from '@/features/checker';
 import { BulkImportPage } from '@/features/bulk-operations';
+import { ReviewsPage, ReviewDetailPage, CreateReviewPage } from '@/features/reviews';
 
 // Dashboard pages (protected routes under /dashboard)
 const dashboardPages: RouteObject[] = [
@@ -34,7 +35,9 @@ const dashboardPages: RouteObject[] = [
   { path: 'checker', element: <CheckerPage /> }, // /dashboard/checker
   { path: 'my-solutions', element: <MySubmissionsPage /> }, // /dashboard/my-solutions
   { path: 'solutions/:id', element: <SolutionDetailPage /> }, // /dashboard/solutions/:id
-  { path: 'reviews', element: <div>Reviews Page (Coming Soon)</div> }, // /dashboard/reviews
+  { path: 'reviews', element: <ReviewsPage /> }, // /dashboard/reviews
+  { path: 'reviews/create', element: <CreateReviewPage /> }, // /dashboard/reviews/create
+  { path: 'reviews/:id', element: <ReviewDetailPage /> }, // /dashboard/reviews/:id
   { path: 'bulk-import', element: <BulkImportPage /> }, // /dashboard/bulk-import
   { path: 'tasks/create', element: <CreateTaskPage /> }, // /dashboard/tasks/create
   { path: 'tasks/:id/edit', element: <EditTaskPage /> }, // /dashboard/tasks/:id/edit

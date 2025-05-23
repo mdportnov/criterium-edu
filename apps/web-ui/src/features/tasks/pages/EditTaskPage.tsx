@@ -179,7 +179,7 @@ const EditTaskPage: React.FC = () => {
 
     try {
       await TaskService.updateTask(task.id, formData);
-      navigate(`/tasks/${task.id}`);
+      navigate(`/dashboard/tasks/${task.id}`);
     } catch (err: any) {
       console.error('Error updating task:', err);
       setError(
@@ -206,7 +206,7 @@ const EditTaskPage: React.FC = () => {
 
     try {
       await TaskService.deleteTask(task.id);
-      navigate('/tasks');
+      navigate('/dashboard/tasks');
     } catch (err: any) {
       console.error('Error deleting task:', err);
       setError(
@@ -230,7 +230,7 @@ const EditTaskPage: React.FC = () => {
       <div className="bg-destructive/15 text-destructive p-4 rounded-md">
         <p>{error}</p>
         <Button asChild variant="outline" className="mt-4">
-          <Link to="/tasks">Back to Tasks</Link>
+          <Link to="/dashboard/tasks">Back to Tasks</Link>
         </Button>
       </div>
     );
@@ -239,11 +239,11 @@ const EditTaskPage: React.FC = () => {
   return (
     <div>
       <div className="flex items-center gap-2 text-muted-foreground mb-2">
-        <Link to="/tasks" className="hover:text-primary">
+        <Link to="/dashboard/tasks" className="hover:text-primary">
           Tasks
         </Link>
         <span>/</span>
-        <Link to={`/tasks/${id}`} className="hover:text-primary">
+        <Link to={`/dashboard/tasks/${id}`} className="hover:text-primary">
           Task #{id}
         </Link>
         <span>/</span>
@@ -473,7 +473,7 @@ const EditTaskPage: React.FC = () => {
           <Button
             type="button"
             variant="outline"
-            onClick={() => navigate(`/tasks/${id}`)}
+            onClick={() => navigate(`/dashboard/tasks/${id}`)}
             disabled={isSaving}
           >
             Cancel

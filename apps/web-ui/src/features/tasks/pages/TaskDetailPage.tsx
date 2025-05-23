@@ -61,7 +61,7 @@ const TaskDetailPage: React.FC = () => {
       <div className="bg-destructive/15 text-destructive p-4 rounded-md">
         <p>{error || 'Task not found'}</p>
         <Button asChild variant="outline" className="mt-4">
-          <Link to="/tasks">Back to Tasks</Link>
+          <Link to="/dashboard/tasks">Back to Tasks</Link>
         </Button>
       </div>
     );
@@ -72,7 +72,7 @@ const TaskDetailPage: React.FC = () => {
       <div className="flex justify-between items-start mb-6">
         <div>
           <div className="flex items-center gap-2 text-muted-foreground mb-2">
-            <Link to="/tasks" className="hover:text-primary">
+            <Link to="/dashboard/tasks" className="hover:text-primary">
               Tasks
             </Link>
             <span>/</span>
@@ -84,7 +84,7 @@ const TaskDetailPage: React.FC = () => {
         <div className="flex gap-2">
           {isStudent && (
             <Button asChild>
-              <Link to={`/tasks/${task.id}/submit-solution`}>
+              <Link to={`/dashboard/tasks/${task.id}/submit-solution`}>
                 {mySolutions.length > 0 ? 'Submit New Solution' : 'Solve Task'}
               </Link>
             </Button>
@@ -92,7 +92,7 @@ const TaskDetailPage: React.FC = () => {
 
           {isAdminOrReviewer && (
             <Button asChild variant="outline">
-              <Link to={`/admin/edit-task/${task.id}`}>Edit Task</Link>
+              <Link to={`/dashboard/tasks/${task.id}/edit`}>Edit Task</Link>
             </Button>
           )}
         </div>
@@ -222,7 +222,7 @@ const TaskDetailPage: React.FC = () => {
                     You haven't submitted any solutions yet.
                   </p>
                   <Button asChild>
-                    <Link to={`/tasks/${task.id}/submit-solution`}>
+                    <Link to={`/dashboard/tasks/${task.id}/submit-solution`}>
                       Solve Task
                     </Link>
                   </Button>
