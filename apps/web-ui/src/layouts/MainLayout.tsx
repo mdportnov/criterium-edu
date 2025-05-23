@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Outlet, Link, useNavigate } from 'react-router-dom';
+import React, { useState, useRef, useEffect } from 'react';
+import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { UserRole } from '@/types';
 import { Button } from '@/components/ui/button';
@@ -9,50 +9,28 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-  SheetClose,
 } from '@/components/ui/sheet';
-
-// Hamburger menu icon
-const MenuIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <line x1="4" x2="20" y1="12" y2="12" />
-    <line x1="4" x2="20" y1="6" y2="6" />
-    <line x1="4" x2="20" y1="18" y2="18" />
-  </svg>
-);
-
-// X close icon
-const CloseIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <line x1="18" y1="6" x2="6" y2="18" />
-    <line x1="6" y1="6" x2="18" y2="18" />
-  </svg>
-);
+import {
+  Menu,
+  Home,
+  ListTodo,
+  Code2,
+  FileText,
+  Users,
+  Upload,
+  Plus,
+  User,
+  LogOut,
+  ChevronDown,
+} from 'lucide-react';
 
 const MainLayout: React.FC = () => {
   const { user, logout, hasRole } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const handleLogout = () => {
     logout();
@@ -62,191 +40,238 @@ const MainLayout: React.FC = () => {
 
   const isAdminOrMentor = hasRole([UserRole.ADMIN, UserRole.MENTOR]);
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsUserMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  // Check if a route is active
+  const isActiveRoute = (path: string) => {
+    return location.pathname === path || location.pathname.startsWith(path + '/');
+  };
+
+  const navItems = [
+    { path: '/', label: 'Dashboard', icon: Home },
+    { path: '/tasks', label: 'Tasks', icon: ListTodo },
+    { path: '/checker', label: 'Code Checker', icon: Code2 },
+  ];
+
+  const studentItems = user?.role === UserRole.STUDENT 
+    ? [{ path: '/my-solutions', label: 'My Submissions', icon: FileText }]
+    : [];
+
+  const adminItems = isAdminOrMentor
+    ? [
+        { path: '/admin/reviews', label: 'Reviews', icon: Users },
+        { path: '/admin/bulk-import', label: 'Bulk Import', icon: Upload },
+        ...(hasRole(UserRole.ADMIN) 
+          ? [{ path: '/admin/tasks/create', label: 'Create Task', icon: Plus }]
+          : []),
+      ]
+    : [];
+
+  const allNavItems = [...navItems, ...studentItems, ...adminItems];
+
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-background">
       {/* Header */}
-      <header className="bg-primary text-primary-foreground shadow-md sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-          <Link to="/" className="text-xl font-bold">
-            Criterium EDU
-          </Link>
-
-          {/* Desktop Navigation - Hidden on mobile */}
-          <nav className="hidden md:flex items-center space-x-6">
-            <Link to="/" className="hover:underline">Dashboard</Link>
-            <Link to="/tasks" className="hover:underline">Tasks</Link>
-            <Link to="/checker" className="hover:underline">Code Checker</Link>
-            
-            {user?.role === UserRole.STUDENT && (
-              <Link to="/my-solutions" className="hover:underline">My Submissions</Link>
-            )}
-            
-            {isAdminOrMentor && (
-              <>
-                <Link to="/admin/reviews" className="hover:underline">Reviews</Link>
-                <Link to="/admin/bulk-import" className="hover:underline">Bulk Import</Link>
-                {hasRole(UserRole.ADMIN) && (
-                  <Link to="/admin/tasks/create" className="hover:underline">Create Task</Link>
-                )}
-              </>
-            )}
-            
-            {/* User dropdown */}
-            <div className="relative group">
-              <button className="flex items-center gap-2 hover:underline">
-                {user?.firstName} {user?.lastName}
-                <svg 
-                  xmlns="http://www.w3.org/2000/svg" 
-                  width="16" 
-                  height="16" 
-                  viewBox="0 0 24 24" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  strokeWidth="2" 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round"
-                >
-                  <path d="m6 9 6 6 6-6" />
-                </svg>
-              </button>
-              <div className="absolute right-0 top-full mt-1 w-48 bg-background border border-border rounded-md shadow-lg hidden group-hover:block z-10">
-                <div className="py-1">
-                  <Link to="/profile" className="block px-4 py-2 hover:bg-muted">
-                    Profile
-                  </Link>
-                  <button
-                    onClick={handleLogout}
-                    className="block w-full text-left px-4 py-2 hover:bg-muted text-destructive"
-                  >
-                    Logout
-                  </button>
-                </div>
+      <header className="bg-primary text-primary-foreground shadow-lg sticky top-0 z-40 transition-all duration-300">
+        <div className="container-responsive max-w-7xl mx-auto">
+          <div className="flex justify-between items-center h-16">
+            {/* Logo */}
+            <Link 
+              to="/" 
+              className="text-xl font-bold hover:opacity-80 transition-opacity duration-200 flex items-center gap-2"
+            >
+              <div className="w-8 h-8 flex items-center justify-center">
+                <img src="/logo.svg" alt="Criterium EDU" className="w-8 h-8" />
               </div>
-            </div>
-          </nav>
+              <span className="hidden sm:inline">Criterium EDU</span>
+            </Link>
 
-          {/* Mobile Menu Button - Only visible on mobile */}
-          <div className="md:hidden">
-            <Sheet open={isOpen} onOpenChange={setIsOpen}>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="text-primary-foreground">
-                  <MenuIcon />
-                  <span className="sr-only">Menu</span>
-                </Button>
-              </SheetTrigger>
-              <SheetContent 
-                side="right" 
-                className="w-[280px] sm:w-[350px] bg-background border-l border-border p-0"
-              >
-                <div className="flex flex-col h-full">
-                  <div className="flex items-center justify-between p-4 border-b">
-                    <SheetTitle className="text-xl font-bold">Menu</SheetTitle>
-                    <SheetClose asChild>
-                      <Button variant="ghost" size="icon" className="rounded-full">
-                        <CloseIcon />
-                        <span className="sr-only">Close</span>
-                      </Button>
-                    </SheetClose>
+            {/* Desktop Navigation */}
+            <nav className="hidden lg:flex items-center space-x-1 xl:space-x-2">
+              {allNavItems.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    className={`nav-link flex items-center gap-2 px-3 py-2 text-sm font-medium transition-all duration-200 ${
+                      isActiveRoute(item.path)
+                        ? 'bg-primary-foreground/20 text-primary-foreground'
+                        : 'text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/10'
+                    }`}
+                  >
+                    <Icon className="w-4 h-4" />
+                    <span>{item.label}</span>
+                  </Link>
+                );
+              })}
+              
+              {/* User dropdown */}
+              <div className="relative ml-4" ref={dropdownRef}>
+                <button
+                  onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/10 rounded-md transition-all duration-200"
+                >
+                  <div className="w-8 h-8 bg-primary-foreground/20 rounded-full flex items-center justify-center">
+                    <User className="w-4 h-4" />
                   </div>
+                  <span className="hidden xl:inline">
+                    {user?.firstName} {user?.lastName}
+                  </span>
+                  <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isUserMenuOpen ? 'rotate-180' : ''}`} />
+                </button>
+                
+                {/* Dropdown menu */}
+                {isUserMenuOpen && (
+                  <div className="absolute right-0 top-full mt-2 w-56 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl overflow-hidden z-50">
+                    <div className="p-3 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
+                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{user?.firstName} {user?.lastName}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{user?.email}</p>
+                    </div>
+                    <div className="p-1">
+                      <Link
+                        to="/profile"
+                        className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors duration-200"
+                        onClick={() => setIsUserMenuOpen(false)}
+                      >
+                        <User className="w-4 h-4" />
+                        Profile
+                      </Link>
+                      <button
+                        onClick={() => {
+                          setIsUserMenuOpen(false);
+                          handleLogout();
+                        }}
+                        className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors duration-200 text-red-600 dark:text-red-400 w-full text-left"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        Logout
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </nav>
+
+            {/* Mobile Menu Button */}
+            <div className="lg:hidden">
+              <Sheet open={isOpen} onOpenChange={setIsOpen}>
+                <SheetTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="text-primary-foreground hover:bg-primary-foreground/10"
+                  >
+                    <Menu className="w-6 h-6" />
+                    <span className="sr-only">Menu</span>
+                  </Button>
+                </SheetTrigger>
+                <SheetContent 
+                  side="right" 
+                  className="w-[300px] sm:w-[350px] p-0"
+                >
+                  <SheetHeader className="p-6 pb-4 border-b">
+                    <SheetTitle>Menu</SheetTitle>
+                  </SheetHeader>
                   
-                  <div className="flex-1 overflow-auto">
-                    <div className="p-4 flex flex-col space-y-1">
-                      <Link 
-                        to="/" 
-                        className="px-2 py-3 text-foreground hover:bg-muted rounded-md"
-                        onClick={() => setIsOpen(false)}
-                      >
-                        Dashboard
-                      </Link>
-                      <Link 
-                        to="/tasks" 
-                        className="px-2 py-3 text-foreground hover:bg-muted rounded-md"
-                        onClick={() => setIsOpen(false)}
-                      >
-                        Tasks
-                      </Link>
-                      <Link 
-                        to="/checker" 
-                        className="px-2 py-3 text-foreground hover:bg-muted rounded-md"
-                        onClick={() => setIsOpen(false)}
-                      >
-                        Code Checker
-                      </Link>
-                      
-                      {user?.role === UserRole.STUDENT && (
-                        <Link 
-                          to="/my-solutions" 
-                          className="px-2 py-3 text-foreground hover:bg-muted rounded-md"
-                          onClick={() => setIsOpen(false)}
-                        >
-                          My Submissions
-                        </Link>
-                      )}
-                      
-                      {isAdminOrMentor && (
-                        <>
-                          <Link 
-                            to="/admin/reviews" 
-                            className="px-2 py-3 text-foreground hover:bg-muted rounded-md"
-                            onClick={() => setIsOpen(false)}
-                          >
-                            Reviews
-                          </Link>
-                          <Link 
-                            to="/admin/bulk-import" 
-                            className="px-2 py-3 text-foreground hover:bg-muted rounded-md"
-                            onClick={() => setIsOpen(false)}
-                          >
-                            Bulk Import
-                          </Link>
-                          {hasRole(UserRole.ADMIN) && (
-                            <Link 
-                              to="/admin/tasks/create" 
-                              className="px-2 py-3 text-foreground hover:bg-muted rounded-md"
-                              onClick={() => setIsOpen(false)}
-                            >
-                              Create Task
-                            </Link>
-                          )}
-                        </>
-                      )}
+                  {/* User info in mobile menu */}
+                  <div className="p-6 pt-4 pb-4 bg-muted/50 border-b">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-semibold text-lg">
+                        {user?.firstName?.[0]}{user?.lastName?.[0]}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium truncate">{user?.firstName} {user?.lastName}</p>
+                        <p className="text-sm text-muted-foreground truncate">{user?.email}</p>
+                      </div>
                     </div>
                   </div>
                   
-                  <div className="border-t p-4">
-                    <Link 
-                      to="/profile" 
-                      className="block px-2 py-3 text-foreground hover:bg-muted rounded-md"
+                  {/* Navigation items */}
+                  <div className="flex-1 overflow-y-auto py-4">
+                    <nav className="px-4 space-y-1">
+                      {allNavItems.map((item) => {
+                        const Icon = item.icon;
+                        const isActive = isActiveRoute(item.path);
+                        return (
+                          <Link
+                            key={item.path}
+                            to={item.path}
+                            className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
+                              isActive
+                                ? 'bg-primary text-primary-foreground font-medium'
+                                : 'text-foreground hover:bg-muted'
+                            }`}
+                            onClick={() => setIsOpen(false)}
+                          >
+                            <Icon className="w-5 h-5" />
+                            <span>{item.label}</span>
+                          </Link>
+                        );
+                      })}
+                    </nav>
+                  </div>
+                  
+                  {/* Mobile menu footer */}
+                  <div className="border-t p-4 space-y-1 mt-auto">
+                    <Link
+                      to="/profile"
+                      className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-muted transition-colors duration-200"
                       onClick={() => setIsOpen(false)}
                     >
-                      Profile
+                      <User className="w-5 h-5" />
+                      <span>Profile</span>
                     </Link>
                     <button
                       onClick={handleLogout}
-                      className="w-full text-left px-2 py-3 text-destructive hover:bg-muted rounded-md mt-1"
+                      className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-muted transition-colors duration-200 text-destructive w-full text-left"
                     >
-                      Logout
+                      <LogOut className="w-5 h-5" />
+                      <span>Logout</span>
                     </button>
                   </div>
-                </div>
-              </SheetContent>
-            </Sheet>
+                </SheetContent>
+              </Sheet>
+            </div>
           </div>
         </div>
       </header>
 
       {/* Main content */}
-      <main className="flex-grow container mx-auto px-4 py-6">
-        <Outlet />
+      <main className="flex-grow bg-background">
+        <div className="container-responsive max-w-7xl mx-auto py-6 sm:py-8 lg:py-10 fade-in">
+          <Outlet />
+        </div>
       </main>
 
       {/* Footer */}
-      <footer className="bg-muted py-4">
-        <div className="container mx-auto px-4 text-center text-muted-foreground">
-          <p>
-            &copy; {new Date().getFullYear()} Criterium EDU. All rights
-            reserved.
-          </p>
+      <footer className="bg-muted border-t border-border mt-auto">
+        <div className="container-responsive max-w-7xl mx-auto py-6 sm:py-8">
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 flex items-center justify-center">
+                <img src="/logo.svg" alt="Criterium EDU" className="w-6 h-6" />
+              </div>
+              <p className="text-sm text-muted-foreground">
+                &copy; {new Date().getFullYear()} Criterium EDU. All rights reserved.
+              </p>
+            </div>
+            <div className="flex gap-4 text-sm text-muted-foreground">
+              <span>Educational Platform for Excellence</span>
+            </div>
+          </div>
         </div>
       </footer>
     </div>
