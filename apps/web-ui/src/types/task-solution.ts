@@ -1,4 +1,5 @@
 export enum TaskSolutionStatus {
+  PENDING = 'pending',
   SUBMITTED = 'submitted',
   IN_REVIEW = 'in_review',
   REVIEWED = 'reviewed',
