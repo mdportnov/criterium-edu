@@ -10,6 +10,7 @@ import {
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { TaskCriterion } from './task-criterion.entity';
+import { TaskSolution } from '../../task-solutions/entities/task-solution.entity';
 
 @Entity('tasks')
 export class Task {
@@ -43,6 +44,9 @@ export class Task {
     eager: true,
   })
   criteria: TaskCriterion[];
+
+  @OneToMany(() => TaskSolution, (solution) => solution.task)
+  solutions: TaskSolution[];
 
   @CreateDateColumn()
   createdAt: Date;

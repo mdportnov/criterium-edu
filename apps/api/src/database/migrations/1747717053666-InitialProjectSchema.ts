@@ -5,7 +5,7 @@ export class InitialProjectSchema1747717053666 implements MigrationInterface {
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
-      `CREATE TYPE "public"."users_role_enum" AS ENUM('admin', 'mentor', 'student')`,
+      `CREATE TYPE "public"."users_role_enum" AS ENUM('admin', 'reviewer', 'student')`,
     );
     await queryRunner.query(
       `CREATE TABLE "users" ("id" SERIAL NOT NULL, "email" character varying NOT NULL, "firstName" character varying NOT NULL, "lastName" character varying NOT NULL, "password" character varying NOT NULL, "role" "public"."users_role_enum" NOT NULL DEFAULT 'student', "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "updatedAt" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "UQ_97672ac88f789774dd47f7c8be3" UNIQUE ("email"), CONSTRAINT "PK_a3ffb1c0c8416b9fc6f907b7433" PRIMARY KEY ("id"))`,
@@ -23,7 +23,7 @@ export class InitialProjectSchema1747717053666 implements MigrationInterface {
       `CREATE TYPE "public"."task_solution_reviews_source_enum" AS ENUM('auto', 'manual', 'auto_approved', 'auto_modified')`,
     );
     await queryRunner.query(
-      `CREATE TABLE "task_solution_reviews" ("id" SERIAL NOT NULL, "taskSolutionId" integer NOT NULL, "mentorId" integer, "totalScore" numeric(10,2) NOT NULL, "feedbackToStudent" text NOT NULL, "mentorComment" text, "source" "public"."task_solution_reviews_source_enum" NOT NULL DEFAULT 'auto', "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "updatedAt" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "PK_d553c07f1c0de6164a629d7545f" PRIMARY KEY ("id"))`,
+      `CREATE TABLE "task_solution_reviews" ("id" SERIAL NOT NULL, "taskSolutionId" integer NOT NULL, "reviewerId" integer, "totalScore" numeric(10,2) NOT NULL, "feedbackToStudent" text NOT NULL, "reviewerComment" text, "source" "public"."task_solution_reviews_source_enum" NOT NULL DEFAULT 'auto', "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "updatedAt" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "PK_d553c07f1c0de6164a629d7545f" PRIMARY KEY ("id"))`,
     );
     await queryRunner.query(
       `CREATE TABLE "solution_sources" ("id" SERIAL NOT NULL, "name" character varying NOT NULL, "description" character varying, CONSTRAINT "UQ_889fc19bc69578217842638fc34" UNIQUE ("name"), CONSTRAINT "PK_abd42357c6a62895989727e4114" PRIMARY KEY ("id"))`,
@@ -50,7 +50,7 @@ export class InitialProjectSchema1747717053666 implements MigrationInterface {
       `ALTER TABLE "task_solution_reviews" ADD CONSTRAINT "FK_f8eec83616b2b219ffb2f2db838" FOREIGN KEY ("taskSolutionId") REFERENCES "task_solutions"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`,
     );
     await queryRunner.query(
-      `ALTER TABLE "task_solution_reviews" ADD CONSTRAINT "FK_477dbd1684d6c020c0cf903efe7" FOREIGN KEY ("mentorId") REFERENCES "users"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`,
+      `ALTER TABLE "task_solution_reviews" ADD CONSTRAINT "FK_477dbd1684d6c020c0cf903efe7" FOREIGN KEY ("reviewerId") REFERENCES "users"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`,
     );
     await queryRunner.query(
       `ALTER TABLE "task_solutions" ADD CONSTRAINT "FK_85c843e8625b1f97b8a2f8b5273" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`,

@@ -14,11 +14,11 @@ export interface CriterionScore {
 export interface TaskSolutionReview {
   id: number;
   taskSolutionId: number;
-  mentorId?: number;
+  reviewerId?: number;
   criteriaScores: CriterionScore[];
   totalScore: number;
   feedbackToStudent: string;
-  mentorComment?: string;
+  reviewerComment?: string;
   source: ReviewSource;
   createdAt: string;
   updatedAt: string;
@@ -28,13 +28,13 @@ export interface CreateTaskSolutionReviewRequest {
   taskSolutionId: number;
   criteriaScores: CriterionScore[];
   feedbackToStudent: string;
-  mentorComment?: string;
+  reviewerComment?: string;
   source: ReviewSource;
 }
 
 export interface UpdateTaskSolutionReviewRequest {
   criteriaScores?: CriterionScore[];
   feedbackToStudent?: string;
-  mentorComment?: string;
+  reviewerComment?: string;
   source?: ReviewSource;
 }

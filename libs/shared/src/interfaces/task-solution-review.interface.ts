@@ -14,11 +14,11 @@ export enum ReviewSource {
 export interface TaskSolutionReview {
   id: number;
   taskSolutionId: number;
-  mentorId?: number;
+  reviewerId?: number;
   criteriaScores: CriterionScore[];
   totalScore: number;
   feedbackToStudent: string;
-  mentorComment?: string;
+  reviewerComment?: string;
   source: ReviewSource;
   createdAt: Date;
   updatedAt: Date;

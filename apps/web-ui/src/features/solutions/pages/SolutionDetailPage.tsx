@@ -15,9 +15,9 @@ const SolutionDetailPage: React.FC = () => {
   const [error, setError] = useState('');
 
   const isStudent = hasRole(UserRole.STUDENT);
-  const isMentor = hasRole(UserRole.MENTOR);
+  const isReviewer = hasRole(UserRole.REVIEWER);
   const isAdmin = hasRole(UserRole.ADMIN);
-  const canReview = isMentor || isAdmin;
+  const canReview = isReviewer || isAdmin;
   const isOwnSolution = solution?.studentId === user?.id;
 
   useEffect(() => {
@@ -79,7 +79,7 @@ const SolutionDetailPage: React.FC = () => {
     );
   }
 
-  // Only allow access to the solution owner, mentors, or admins
+  // Only allow access to the solution owner, reviewers, or admins
   if (!isOwnSolution && !canReview) {
     return (
       <div className="bg-destructive/15 text-destructive p-4 rounded-md">

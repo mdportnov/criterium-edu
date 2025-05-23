@@ -38,7 +38,7 @@ const MainLayout: React.FC = () => {
     navigate('/login');
   };
 
-  const isAdminOrMentor = hasRole([UserRole.ADMIN, UserRole.MENTOR]);
+  const isAdminOrReviewer = hasRole([UserRole.ADMIN, UserRole.REVIEWER]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -69,7 +69,7 @@ const MainLayout: React.FC = () => {
     ? [{ path: '/my-solutions', label: 'My Submissions', icon: FileText }]
     : [];
 
-  const adminItems = isAdminOrMentor
+  const adminItems = isAdminOrReviewer
     ? [
         { path: '/admin/reviews', label: 'Reviews', icon: Users },
         { path: '/admin/bulk-import', label: 'Bulk Import', icon: Upload },

@@ -59,7 +59,7 @@ export class TaskSolutionsController {
   constructor(private readonly taskSolutionsService: TaskSolutionsService) {}
 
   @Get()
-  @Roles(UserRole.ADMIN, UserRole.MENTOR)
+  @Roles(UserRole.ADMIN, UserRole.REVIEWER)
   @ApiQuery({ name: 'taskId', required: false })
   @ApiQuery({ name: 'studentId', required: false })
   async findAll(

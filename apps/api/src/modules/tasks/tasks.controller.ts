@@ -34,7 +34,7 @@ export class TasksController {
   }
 
   @Post()
-  @Roles(UserRole.ADMIN, UserRole.MENTOR)
+  @Roles(UserRole.ADMIN, UserRole.REVIEWER)
   async create(
     @Body() createTaskDto: CreateTaskDto,
     @Request() req,
@@ -43,7 +43,7 @@ export class TasksController {
   }
 
   @Patch(':id')
-  @Roles(UserRole.ADMIN, UserRole.MENTOR)
+  @Roles(UserRole.ADMIN, UserRole.REVIEWER)
   async update(
     @Param('id') id: number,
     @Body() updateTaskDto: UpdateTaskDto,
@@ -52,7 +52,7 @@ export class TasksController {
   }
 
   @Delete(':id')
-  @Roles(UserRole.ADMIN, UserRole.MENTOR)
+  @Roles(UserRole.ADMIN, UserRole.REVIEWER)
   async remove(@Param('id') id: number): Promise<void> {
     await this.tasksService.remove(id);
   }

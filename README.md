@@ -12,7 +12,7 @@ This project is organized as a monorepo with two main parts:
 ## Features
 
 - **Authentication**: Secure login, registration, and JWT-based authentication.
-- **Role-Based Access Control**: Different privileges for admins, mentors, and students.
+- **Role-Based Access Control**: Different privileges for admins, reviewers, and students.
 - **Task Management**: Create, edit, and delete educational tasks with evaluation criteria.
 - **Solution Submission**: Students can submit solutions to tasks.
 - **Review System**: Manual and automatic review of solutions with feedback.

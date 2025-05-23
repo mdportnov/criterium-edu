@@ -14,19 +14,19 @@ export class SolutionImportController {
   constructor(private readonly importService: SolutionImportService) {}
 
   @Post('batch')
-  @Roles(UserRole.ADMIN, UserRole.MENTOR)
+  @Roles(UserRole.ADMIN, UserRole.REVIEWER)
   async importBatch(@Body() dto: BatchImportSolutionsDto) {
     return this.importService.importBatch(dto);
   }
 
   @Get('sources')
-  @Roles(UserRole.ADMIN, UserRole.MENTOR)
+  @Roles(UserRole.ADMIN, UserRole.REVIEWER)
   async getSources() {
     return this.importService.getSources();
   }
 
   @Get('sources/:id')
-  @Roles(UserRole.ADMIN, UserRole.MENTOR)
+  @Roles(UserRole.ADMIN, UserRole.REVIEWER)
   async getSource(@Param('id') id: number) {
     return this.importService.getSource(id);
   }

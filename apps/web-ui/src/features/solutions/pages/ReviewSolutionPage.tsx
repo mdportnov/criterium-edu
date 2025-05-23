@@ -29,7 +29,7 @@ const ReviewSolutionPage: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
 
-  const canReview = hasRole([UserRole.MENTOR, UserRole.ADMIN]);
+  const canReview = hasRole([UserRole.REVIEWER, UserRole.ADMIN]);
 
   const [formData, setFormData] = useState<CreateTaskSolutionReviewRequest>({
     solutionId: 0,
