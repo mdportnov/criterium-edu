@@ -27,7 +27,7 @@ FROM nginx:alpine
 COPY --from=builder /app/apps/web-ui/dist /usr/share/nginx/html
 
 # Copy nginx config
-COPY apps/web-ui/nginx.conf /etc/nginx/conf.d/default.conf
+COPY apps/nginx/nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
 

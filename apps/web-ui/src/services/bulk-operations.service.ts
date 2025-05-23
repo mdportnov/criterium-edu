@@ -72,4 +72,18 @@ export const BulkOperationsService = {
       url: `/bulk-operations/operations/${operationId}/status`,
     });
   },
+
+  async stopOperation(operationId: string): Promise<ProcessingOperation> {
+    return apiRequest<ProcessingOperation>({
+      method: 'POST',
+      url: `/bulk-operations/operations/${operationId}/stop`,
+    });
+  },
+
+  async restartOperation(operationId: string): Promise<ProcessingOperation> {
+    return apiRequest<ProcessingOperation>({
+      method: 'POST',
+      url: `/bulk-operations/operations/${operationId}/restart`,
+    });
+  },
 };
