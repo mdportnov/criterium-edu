@@ -301,7 +301,7 @@ export class BulkOperationsService {
           llmModel: data.llmModel,
           taskId: data.taskId,
           systemPrompt: data.systemPrompt,
-          sessionStartTime: new Date(),
+          sessionStartTime: new Date().toISOString(),
         },
       );
 
@@ -324,7 +324,8 @@ export class BulkOperationsService {
           totalCost:
             completedSession.statistics?.modelUsage?.estimatedCost || 0,
           averageScore: completedSession.statistics?.averageScore || 0,
-          sessionCompletionTime: completedSession.completedAt || new Date(),
+          sessionCompletionTime:
+            completedSession.completedAt || new Date().toISOString(),
           totalProcessingTime:
             completedSession.statistics?.averageProcessingTime || 0,
         },
@@ -422,18 +423,26 @@ export class BulkOperationsService {
       );
     }
 
-    // Reset operation to initial state
-    await this.processingOperationRepository.update(operationId, {
-      status: ProcessingStatus.PENDING,
-      processedItems: 0,
-      progress: 0,
-      errorMessage: null,
-      metadata: {
-        ...operation.metadata,
-        restartedAt: new Date(),
-        restartCount: (operation.metadata?.restartCount || 0) + 1,
-      },
-    });
+    // Create a new operation object with updated metadata
+    if (operation.metadata) {
+      operation.metadata.restartedAt = new Date().toISOString();
+      operation.metadata.restartCount =
+        (operation.metadata.restartCount || 0) + 1;
+    } else {
+      operation.metadata = {
+        restartedAt: new Date().toISOString(),
+        restartCount: 1,
+      };
+    }
+
+    // Update other fields
+    operation.status = ProcessingStatus.PENDING;
+    operation.processedItems = 0;
+    operation.progress = 0;
+    operation.errorMessage = null;
+
+    // Save the updated entity
+    await this.processingOperationRepository.save(operation);
 
     // Handle different operation types
     if (operation.type === OperationType.LLM_ASSESSMENT) {
