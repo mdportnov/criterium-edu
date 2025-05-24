@@ -10,6 +10,7 @@ import {
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { TaskCriterion } from './task-criterion.entity';
+import { TaskSolution } from '../../task-solutions/entities/task-solution.entity';
 
 @Entity('tasks')
 export class Task {
@@ -25,6 +26,12 @@ export class Task {
   @Column({ type: 'text', nullable: true })
   authorSolution: string;
 
+  @Column({ type: 'simple-array', nullable: true })
+  categories: string[];
+
+  @Column({ type: 'simple-array', nullable: true })
+  tags: string[];
+
   @Column({ type: 'int' })
   createdBy: number;
 
@@ -37,6 +44,9 @@ export class Task {
     eager: true,
   })
   criteria: TaskCriterion[];
+
+  @OneToMany(() => TaskSolution, (solution) => solution.task)
+  solutions: TaskSolution[];
 
   @CreateDateColumn()
   createdAt: Date;

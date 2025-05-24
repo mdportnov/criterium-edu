@@ -1,19 +1,18 @@
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { FindOneOptions, Repository } from 'typeorm';
 import { TaskSolutionReview } from './entities/task-solution-review.entity';
 import { CriterionScore } from './entities/criterion-score.entity';
 import {
   CreateTaskSolutionReviewDto,
+  CriterionScoreDto,
   ReviewSource,
+  TaskSolutionReviewDto,
   TaskSolutionStatus,
   UpdateTaskSolutionReviewDto,
 } from '@app/shared';
 import { TaskSolution } from '../task-solutions/entities/task-solution.entity';
+import { TaskSolutionsService } from '../task-solutions/task-solutions.service';
 
 @Injectable()
 export class TaskSolutionReviewsService {
@@ -24,38 +23,89 @@ export class TaskSolutionReviewsService {
     private readonly criterionScoresRepository: Repository<CriterionScore>,
     @InjectRepository(TaskSolution)
     private readonly taskSolutionsRepository: Repository<TaskSolution>,
+    private readonly taskSolutionsService: TaskSolutionsService,
   ) {}
 
-  async findAll(): Promise<TaskSolutionReview[]> {
-    return this.reviewsRepository.find({
+  private mapCriterionScoreToDto(
+    criterionScore: CriterionScore,
+  ): CriterionScoreDto {
+    return {
+      criterionId: criterionScore.criterionId,
+      score: criterionScore.score,
+      comment: criterionScore.comment,
+    };
+  }
+
+  private mapReviewToDto(review: TaskSolutionReview): TaskSolutionReviewDto {
+    return {
+      id: review.id,
+      taskSolutionId: review.taskSolutionId,
+      reviewerId: review.reviewerId,
+      criteriaScores: review.criteriaScores
+        ? review.criteriaScores.map(this.mapCriterionScoreToDto)
+        : [],
+      totalScore: review.totalScore,
+      feedbackToStudent: review.feedbackToStudent,
+      reviewerComment: review.reviewerComment,
+      source: review.source,
+      createdAt: review.createdAt,
+      updatedAt: review.updatedAt,
+    };
+  }
+
+  async findAll(): Promise<TaskSolutionReviewDto[]> {
+    const reviews = await this.reviewsRepository.find({
       relations: [
         'taskSolution',
-        'mentor',
+        'reviewer',
         'criteriaScores',
         'criteriaScores.criterion',
       ],
     });
+    return reviews.map((review) => this.mapReviewToDto(review));
+  }
+
+  async findByTask(taskId: number): Promise<TaskSolutionReviewDto[]> {
+    const reviews = await this.reviewsRepository.find({
+      where: {
+        taskSolution: { task: { id: taskId } },
+      },
+      relations: [
+        'taskSolution',
+        'taskSolution.task',
+        'reviewer',
+        'criteriaScores',
+      ],
+    });
+    return reviews.map(this.mapReviewToDto);
   }
 
   async findByTaskSolution(
     taskSolutionId: number,
-  ): Promise<TaskSolutionReview[]> {
-    return this.reviewsRepository.find({
+  ): Promise<TaskSolutionReviewDto[]> {
+    const reviews = await this.reviewsRepository.find({
       where: { taskSolutionId },
-      relations: ['mentor', 'criteriaScores', 'criteriaScores.criterion'],
+      relations: ['reviewer', 'criteriaScores', 'criteriaScores.criterion'],
     });
+    return reviews.map((review) => this.mapReviewToDto(review));
   }
 
-  async findOne(id: number): Promise<TaskSolutionReview> {
-    const review = await this.reviewsRepository.findOne({
+  async findOne(
+    id: number,
+    options?: FindOneOptions<TaskSolutionReview>,
+  ): Promise<TaskSolutionReview> {
+    const findOptions: FindOneOptions<TaskSolutionReview> = {
       where: { id },
       relations: [
         'taskSolution',
-        'mentor',
+        'taskSolution.user',
+        'reviewer',
         'criteriaScores',
         'criteriaScores.criterion',
       ],
-    });
+      ...options,
+    };
+    const review = await this.reviewsRepository.findOne(findOptions);
 
     if (!review) {
       throw new NotFoundException(`Review with ID ${id} not found`);
@@ -66,9 +116,8 @@ export class TaskSolutionReviewsService {
 
   async create(
     createReviewDto: CreateTaskSolutionReviewDto,
-    mentorId?: number,
-  ): Promise<TaskSolutionReview> {
-    // Check if task solution exists
+    reviewerId?: number,
+  ): Promise<TaskSolutionReviewDto> {
     const taskSolution = await this.taskSolutionsRepository.findOne({
       where: { id: createReviewDto.taskSolutionId },
       relations: ['task', 'task.criteria'],
@@ -80,25 +129,22 @@ export class TaskSolutionReviewsService {
       );
     }
 
-    // Calculate total score
     const totalScore = createReviewDto.criteriaScores.reduce(
       (sum, criterionScore) => sum + criterionScore.score,
       0,
     );
 
-    // Create review
     const review = this.reviewsRepository.create({
       taskSolutionId: createReviewDto.taskSolutionId,
-      mentorId,
+      reviewerId: reviewerId,
       totalScore,
       feedbackToStudent: createReviewDto.feedbackToStudent,
-      mentorComment: createReviewDto.mentorComment,
+      reviewerComment: createReviewDto.reviewerComment,
       source: createReviewDto.source,
     });
 
     const savedReview = await this.reviewsRepository.save(review);
 
-    // Create criterion scores
     const criteriaScores = createReviewDto.criteriaScores.map(
       (criterionScoreDto) =>
         this.criterionScoresRepository.create({
@@ -112,37 +158,34 @@ export class TaskSolutionReviewsService {
     savedReview.criteriaScores =
       await this.criterionScoresRepository.save(criteriaScores);
 
-    // Update task solution status
     taskSolution.status = TaskSolutionStatus.REVIEWED;
     await this.taskSolutionsRepository.save(taskSolution);
 
-    return savedReview;
+    return this.mapReviewToDto(savedReview);
   }
 
   async update(
     id: number,
     updateReviewDto: UpdateTaskSolutionReviewDto,
-  ): Promise<TaskSolutionReview> {
+  ): Promise<TaskSolutionReviewDto> {
     const review = await this.findOne(id);
 
-    // Update basic review info
     if (updateReviewDto.feedbackToStudent)
       review.feedbackToStudent = updateReviewDto.feedbackToStudent;
-    if (updateReviewDto.mentorComment !== undefined)
-      review.mentorComment = updateReviewDto.mentorComment;
+    if (updateReviewDto.reviewerComment !== undefined)
+      review.reviewerComment = updateReviewDto.reviewerComment;
     if (updateReviewDto.source) review.source = updateReviewDto.source;
+    if (updateReviewDto.reviewerId !== undefined)
+      review.reviewerId = updateReviewDto.reviewerId;
 
-    // Update criteria scores if provided
     if (
       updateReviewDto.criteriaScores &&
       updateReviewDto.criteriaScores.length > 0
     ) {
-      // Remove existing scores
       if (review.criteriaScores && review.criteriaScores.length > 0) {
         await this.criterionScoresRepository.remove(review.criteriaScores);
       }
 
-      // Calculate new total score
       const totalScore = updateReviewDto.criteriaScores.reduce(
         (sum, criterionScore) => sum + criterionScore.score,
         0,
@@ -150,7 +193,6 @@ export class TaskSolutionReviewsService {
 
       review.totalScore = totalScore;
 
-      // Create new scores
       const criteriaScores = updateReviewDto.criteriaScores.map(
         (criterionScoreDto) =>
           this.criterionScoresRepository.create({
@@ -165,23 +207,113 @@ export class TaskSolutionReviewsService {
         await this.criterionScoresRepository.save(criteriaScores);
     }
 
-    return this.reviewsRepository.save(review);
+    await this.reviewsRepository.save(review);
+
+    return this.mapReviewToDto(review);
   }
 
   async remove(id: number): Promise<void> {
     const review = await this.findOne(id);
 
-    // Get the associated task solution
     const taskSolution = await this.taskSolutionsRepository.findOneBy({
       id: review.taskSolutionId,
     });
 
-    // Update task solution status back to IN_REVIEW if it was REVIEWED
     if (taskSolution && taskSolution.status === TaskSolutionStatus.REVIEWED) {
       taskSolution.status = TaskSolutionStatus.IN_REVIEW;
       await this.taskSolutionsRepository.save(taskSolution);
     }
 
     await this.reviewsRepository.remove(review);
+  }
+
+  async batchApproveReviews(
+    reviewIds: number[],
+    reviewerId: number,
+  ): Promise<{ approvedCount: number; errors: any[] }> {
+    const results = [];
+    const errors = [];
+
+    for (const reviewId of reviewIds) {
+      try {
+        const review = await this.findOne(reviewId);
+
+        if (review.source !== ReviewSource.AUTO) {
+          errors.push({
+            reviewId,
+            error: 'Only automated reviews can be approved',
+          });
+          continue;
+        }
+
+        await this.update(reviewId, {
+          source: ReviewSource.AUTO_APPROVED,
+          reviewerId,
+        });
+
+        results.push(reviewId);
+      } catch (error) {
+        errors.push({
+          reviewId,
+          error: error.message,
+        });
+      }
+    }
+
+    return {
+      approvedCount: results.length,
+      errors,
+    };
+  }
+
+  async batchRejectReviews(
+    reviewIds: number[],
+  ): Promise<{ rejectedCount: number; errors: any[] }> {
+    const results = [];
+    const errors = [];
+
+    for (const reviewId of reviewIds) {
+      try {
+        const review = await this.findOne(reviewId);
+
+        if (review.source !== ReviewSource.AUTO) {
+          errors.push({
+            reviewId,
+            error: 'Only automated reviews can be rejected',
+          });
+          continue;
+        }
+
+        await this.remove(reviewId);
+        results.push(reviewId);
+      } catch (error) {
+        errors.push({
+          reviewId,
+          error: error.message,
+        });
+      }
+    }
+
+    return {
+      rejectedCount: results.length,
+      errors,
+    };
+  }
+
+  async findPendingAutoReviews(
+    taskId?: number,
+  ): Promise<TaskSolutionReviewDto[]> {
+    const queryBuilder = this.reviewsRepository
+      .createQueryBuilder('review')
+      .leftJoinAndSelect('review.taskSolution', 'taskSolution')
+      .leftJoinAndSelect('review.criteriaScores', 'criteriaScores')
+      .where('review.source = :source', { source: ReviewSource.AUTO });
+
+    if (taskId) {
+      queryBuilder.andWhere('taskSolution.task = :taskId', { taskId });
+    }
+
+    const reviews = await queryBuilder.getMany();
+    return reviews.map((review) => this.mapReviewToDto(review));
   }
 }

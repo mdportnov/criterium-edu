@@ -21,20 +21,20 @@ jobs:
       REGISTRY: ghcr.io
 
     steps:
-      - name: Checkout repository
+      - name: "Checkout repository"
         uses: actions/checkout@v3
 
-      - name: Set up Docker Buildx
+      - name: "Set up Docker Buildx"
         uses: docker/setup-buildx-action@v2
 
-      - name: Log in to GitHub Container Registry
+      - name: "Log in to GitHub Container Registry"
         uses: docker/login-action@v2
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push Backend Docker image
+      - name: "Build and push Backend Docker image"
         uses: docker/build-push-action@v4
         with:
           context: .
@@ -46,7 +46,7 @@ jobs:
             DATABASE_URL=${{ secrets.DATABASE_URL }}
             JWT_SECRET=${{ secrets.JWT_SECRET }}
 
-      - name: Copy compose.yml files to server
+      - name: "Copy compose.yml files to server"
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -57,7 +57,7 @@ jobs:
           source: "compose.yml,.env.example"
           target: "~/criterium/"
 
-      - name: Deploy to server
+      - name: "Deploy to server"
         uses: appleboy/ssh-action@v1.2.2
         with:
           host: ${{ secrets.SSH_HOST }}

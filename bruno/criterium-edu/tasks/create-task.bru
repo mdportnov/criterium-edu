@@ -59,13 +59,13 @@ docs {
   
   ## Authentication
   
-  Requires a valid JWT token. User must have admin or mentor role.
+  Requires a valid JWT token. User must have admin or reviewer role.
   
   ## Request Body
   
   - `title`: Task title
   - `description`: Task description (supports Markdown)
-  - `authorSolution`: Optional reference solution (visible only to mentors)
+  - `authorSolution`: Optional reference solution (visible only to reviewers)
   - `criteria`: Array of assessment criteria, each containing:
     - `name`: Criterion name
     - `description`: Criterion description

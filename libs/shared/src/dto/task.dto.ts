@@ -7,8 +7,13 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class TaskCriterionDto {
+  @IsNumber()
+  @IsOptional()
+  id?: number;
+
   @IsString()
   @IsNotEmpty()
   name: string;
@@ -39,6 +44,18 @@ export class CreateTaskDto {
   @IsOptional()
   authorSolution?: string;
 
+  @ApiProperty({ type: [String], required: false, nullable: true })
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  categories?: string[];
+
+  @ApiProperty({ type: [String], required: false, nullable: true })
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  tags?: string[];
+
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => TaskCriterionDto)
@@ -58,6 +75,18 @@ export class UpdateTaskDto {
   @IsOptional()
   authorSolution?: string;
 
+  @ApiProperty({ type: [String], required: false, nullable: true })
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  categories?: string[];
+
+  @ApiProperty({ type: [String], required: false, nullable: true })
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  tags?: string[];
+
   @IsArray()
   @IsOptional()
   @ValidateNested({ each: true })
@@ -70,6 +99,13 @@ export class TaskDto {
   title: string;
   description: string;
   authorSolution?: string;
+
+  @ApiProperty({ type: [String], required: false, nullable: true })
+  categories?: string[];
+
+  @ApiProperty({ type: [String], required: false, nullable: true })
+  tags?: string[];
+
   criteria: TaskCriterionDto[];
   createdBy: number;
   createdAt: Date;

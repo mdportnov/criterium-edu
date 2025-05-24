@@ -1,0 +1,59 @@
+/* App-specific styles - Most styling is handled by Tailwind CSS */
+
+/* Logo animation */
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Apply animation to logos if needed */
+@media (prefers-reduced-motion: no-preference) {
+  .logo-spin {
+    animation: logo-spin infinite 20s linear;
+  }
+}
+
+/* Code block styling */
+.code-block {
+  background-color: hsl(var(--muted));
+  border-radius: 0.375rem;
+  padding: 1rem;
+  overflow-x: auto;
+  font-family: 'Monaco', 'Courier New', monospace;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+/* Custom utility classes */
+.gradient-text {
+  background: linear-gradient(to right, hsl(var(--primary)), hsl(var(--primary) / 0.7));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Responsive table */
+.responsive-table {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.responsive-table table {
+  width: 100%;
+  min-width: 600px;
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  .print-only {
+    display: block !important;
+  }
+}

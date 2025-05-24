@@ -3,7 +3,12 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Task } from './entities/task.entity';
 import { TaskCriterion } from './entities/task-criterion.entity';
-import { CreateTaskDto, UpdateTaskDto } from '@app/shared';
+import {
+  CreateTaskDto,
+  TaskDto,
+  UpdateTaskDto,
+  TaskCriterionDto,
+} from '@app/shared';
 
 @Injectable()
 export class TasksService {
@@ -14,13 +19,91 @@ export class TasksService {
     private readonly criteriaRepository: Repository<TaskCriterion>,
   ) {}
 
-  async findAll(): Promise<Task[]> {
-    return this.tasksRepository.find({
-      relations: ['criteria'],
+  private mapTaskCriterionToDto = (
+    criterion: TaskCriterion,
+  ): TaskCriterionDto => {
+    return {
+      id: criterion.id,
+      name: criterion.name,
+      description: criterion.description,
+      maxPoints: criterion.maxPoints,
+    };
+  };
+
+  private mapTaskToDto = (task: Task): TaskDto => {
+    return {
+      id: task.id,
+      title: task.title,
+      description: task.description,
+      authorSolution: task.authorSolution,
+      categories: task.categories,
+      tags: task.tags,
+      createdBy: task.createdBy,
+      criteria: task.criteria
+        ? task.criteria.map(this.mapTaskCriterionToDto)
+        : [],
+      createdAt: task.createdAt,
+      updatedAt: task.updatedAt,
+    };
+  };
+
+  async findAll(): Promise<TaskDto[]> {
+    const tasks = await this.tasksRepository.find({
+      relations: ['criteria', 'creator'], // Eager load criteria and creator
     });
+    return tasks.map((task) => this.mapTaskToDto(task));
   }
 
-  async findOne(id: number): Promise<Task> {
+  async findOne(id: number): Promise<TaskDto> {
+    const task = await this.tasksRepository.findOne({
+      where: { id },
+      relations: ['criteria', 'creator'], // Eager load criteria and creator
+    });
+
+    if (!task) {
+      throw new NotFoundException(`Task with ID ${id} not found`);
+    }
+    return this.mapTaskToDto(task);
+  }
+
+  async create(createTaskDto: CreateTaskDto, userId: number): Promise<TaskDto> {
+    const {
+      criteria: criteriaDto,
+      categories,
+      tags,
+      ...restTaskData
+    } = createTaskDto;
+
+    const newCriteriaEntities: TaskCriterion[] = criteriaDto.map(
+      (criterion: TaskCriterionDto): TaskCriterion =>
+        this.criteriaRepository.create(criterion),
+    );
+
+    const newTask = this.tasksRepository.create({
+      ...restTaskData,
+      createdBy: userId,
+      categories: categories || [],
+      tags: tags || [],
+      criteria: newCriteriaEntities,
+    });
+
+    const savedTask = await this.tasksRepository.save(newTask);
+    // Fetch the saved task with relations to ensure all data is present for DTO mapping
+    const fullSavedTask = await this.tasksRepository.findOne({
+      where: { id: savedTask.id },
+      relations: ['criteria', 'creator'],
+    });
+    return this.mapTaskToDto(fullSavedTask);
+  }
+
+  async update(id: number, updateTaskDto: UpdateTaskDto): Promise<TaskDto> {
+    const {
+      criteria: criteriaDto,
+      categories,
+      tags,
+      ...restTaskData
+    } = updateTaskDto;
+
     const task = await this.tasksRepository.findOne({
       where: { id },
       relations: ['criteria'],
@@ -30,66 +113,53 @@ export class TasksService {
       throw new NotFoundException(`Task with ID ${id} not found`);
     }
 
-    return task;
-  }
+    // Update scalar properties
+    this.tasksRepository.merge(task, restTaskData);
+    if (categories !== undefined) {
+      task.categories = categories;
+    }
+    if (tags !== undefined) {
+      task.tags = tags;
+    }
 
-  async create(createTaskDto: CreateTaskDto, userId: number): Promise<Task> {
-    const task = this.tasksRepository.create({
-      title: createTaskDto.title,
-      description: createTaskDto.description,
-      authorSolution: createTaskDto.authorSolution,
-      createdBy: userId,
+    // Handle criteria update
+    if (criteriaDto) {
+      // Remove old criteria associated with this task
+      await this.criteriaRepository.delete({ task: { id: task.id } });
+      // Add new criteria
+      const newCriteriaEntities: TaskCriterion[] = criteriaDto.map(
+        (criterion: TaskCriterionDto): TaskCriterion =>
+          this.criteriaRepository.create(criterion),
+      );
+      task.criteria = newCriteriaEntities;
+    } else if (
+      updateTaskDto.hasOwnProperty('criteria') &&
+      criteriaDto === null
+    ) {
+      // If 'criteria' was explicitly passed as null (or empty array which becomes criteriaDto = null if not handled earlier)
+      // This handles the case where the client wants to remove all criteria
+      await this.criteriaRepository.delete({ task: { id: task.id } });
+      task.criteria = [];
+    }
+
+    const updatedTask = await this.tasksRepository.save(task);
+    // Fetch the updated task with relations for DTO mapping
+    const fullUpdatedTask = await this.tasksRepository.findOne({
+      where: { id: updatedTask.id },
+      relations: ['criteria', 'creator'],
     });
-
-    const savedTask = await this.tasksRepository.save(task);
-
-    // Create criteria
-    if (createTaskDto.criteria && createTaskDto.criteria.length > 0) {
-      const criteria = createTaskDto.criteria.map((criterionDto) =>
-        this.criteriaRepository.create({
-          ...criterionDto,
-          taskId: savedTask.id,
-        }),
-      );
-
-      savedTask.criteria = await this.criteriaRepository.save(criteria);
-    }
-
-    return savedTask;
-  }
-
-  async update(id: number, updateTaskDto: UpdateTaskDto): Promise<Task> {
-    const task = await this.findOne(id);
-
-    // Update basic task info
-    if (updateTaskDto.title) task.title = updateTaskDto.title;
-    if (updateTaskDto.description) task.description = updateTaskDto.description;
-    if (updateTaskDto.authorSolution !== undefined)
-      task.authorSolution = updateTaskDto.authorSolution;
-
-    // Update criteria if provided
-    if (updateTaskDto.criteria && updateTaskDto.criteria.length > 0) {
-      // Remove existing criteria
-      if (task.criteria && task.criteria.length > 0) {
-        await this.criteriaRepository.remove(task.criteria);
-      }
-
-      // Create new criteria
-      const criteria = updateTaskDto.criteria.map((criterionDto) =>
-        this.criteriaRepository.create({
-          ...criterionDto,
-          taskId: task.id,
-        }),
-      );
-
-      task.criteria = await this.criteriaRepository.save(criteria);
-    }
-
-    return this.tasksRepository.save(task);
+    return this.mapTaskToDto(fullUpdatedTask);
   }
 
   async remove(id: number): Promise<void> {
-    const task = await this.findOne(id);
+    // Ensure task exists before attempting to remove
+    const task = await this.tasksRepository.findOne({ where: { id } });
+    if (!task) {
+      throw new NotFoundException(`Task with ID ${id} not found`);
+    }
+    // Cascading delete for criteria should be handled by TypeORM if set up in entity
+    // or explicitly delete criteria first if not.
+    // Assuming Task entity has cascade:true for criteria, this is sufficient.
     await this.tasksRepository.remove(task);
   }
 }

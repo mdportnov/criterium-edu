@@ -13,6 +13,9 @@ import { TasksModule } from './modules/tasks/tasks.module';
 import { TaskSolutionsModule } from './modules/task-solutions/task-solutions.module';
 import { TaskSolutionReviewsModule } from './modules/task-solution-reviews/task-solution-reviews.module';
 import { CheckerModule } from './modules/checker/checker.module';
+import { BulkOperationsModule } from './modules/bulk-operations/bulk-operations.module';
+import { OpenaiModule } from './modules/openai/openai.module';
+import { DashboardModule } from './modules/dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -21,6 +24,7 @@ import { CheckerModule } from './modules/checker/checker.module';
       isGlobal: true,
       load: [configuration],
       cache: true,
+      // envFilePath: '.env.example', // Load .env.example for this test
     }),
 
     // Database - with proper error handling
@@ -70,6 +74,9 @@ import { CheckerModule } from './modules/checker/checker.module';
     TaskSolutionsModule,
     TaskSolutionReviewsModule,
     CheckerModule,
+    BulkOperationsModule,
+    OpenaiModule,
+    DashboardModule,
   ],
 })
 export class AppModule {}

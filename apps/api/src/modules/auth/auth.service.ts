@@ -54,10 +54,10 @@ export class AuthService {
   async loginAs(userId: number, adminId: number): Promise<TokenDto> {
     // Check if the target user exists
     const user = await this.usersService.findOne(userId);
-    
+
     // Log this action for auditing purposes
     console.log(`Admin with ID ${adminId} logged in as user with ID ${userId}`);
-    
+
     // Create a JWT token for the target user
     const payload = {
       email: user.email,
@@ -66,7 +66,7 @@ export class AuthService {
       firstName: user.firstName,
       lastName: user.lastName,
       // Add a flag to identify this as an impersonation session
-      impersonatedBy: adminId
+      impersonatedBy: adminId,
     };
 
     return {
@@ -88,4 +88,3 @@ export class AuthService {
     return user;
   }
 }
-

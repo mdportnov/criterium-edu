@@ -40,7 +40,7 @@ export class CreateTaskSolutionReviewDto {
 
   @IsString()
   @IsOptional()
-  mentorComment?: string;
+  reviewerComment?: string;
 
   @IsEnum(ReviewSource)
   @IsNotEmpty()
@@ -60,21 +60,25 @@ export class UpdateTaskSolutionReviewDto {
 
   @IsString()
   @IsOptional()
-  mentorComment?: string;
+  reviewerComment?: string;
 
   @IsEnum(ReviewSource)
   @IsOptional()
   source?: ReviewSource;
+
+  @IsNumber()
+  @IsOptional()
+  reviewerId?: number;
 }
 
 export class TaskSolutionReviewDto {
   id: number;
   taskSolutionId: number;
-  mentorId?: number;
+  reviewerId?: number;
   criteriaScores: CriterionScoreDto[];
   totalScore: number;
   feedbackToStudent: string;
-  mentorComment?: string;
+  reviewerComment?: string;
   source: ReviewSource;
   createdAt: Date;
   updatedAt: Date;

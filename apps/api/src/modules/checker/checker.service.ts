@@ -1,9 +1,15 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { CriterionScoreDto, ReviewSource } from '@app/shared';
+import {
+  CriterionScoreDto,
+  ReviewSource,
+  TaskDto,
+  TaskSolutionDto,
+} from '@app/shared';
 import { TasksService } from '../tasks/tasks.service';
 import { TaskSolutionsService } from '../task-solutions/task-solutions.service';
 import { TaskSolutionReviewsService } from '../task-solution-reviews/task-solution-reviews.service';
+import { OpenaiApiService } from '../openai/services/openai.service';
 
 @Injectable()
 export class CheckerService {
@@ -14,6 +20,7 @@ export class CheckerService {
     private readonly tasksService: TasksService,
     private readonly taskSolutionsService: TaskSolutionsService,
     private readonly reviewsService: TaskSolutionReviewsService,
+    private readonly openaiApiService: OpenaiApiService,
   ) {}
 
   /**
@@ -25,7 +32,7 @@ export class CheckerService {
     try {
       // Get task solution with task details
       const taskSolution =
-        await this.taskSolutionsService.findOne(taskSolutionId);
+        await this.taskSolutionsService.findOneAsDto(taskSolutionId);
       const task = await this.tasksService.findOne(taskSolution.taskId);
 
       // Generate criteria scores based on AI model evaluation
@@ -38,7 +45,6 @@ export class CheckerService {
         criteriaScores,
       );
 
-      // Create review
       const review = await this.reviewsService.create({
         taskSolutionId: taskSolution.id,
         criteriaScores,
@@ -60,73 +66,189 @@ export class CheckerService {
     }
   }
 
-  /**
-   * Mock implementation of solution evaluation with AI
-   * In a real implementation, this would call the AI model
-   */
   private async evaluateSolution(
-    task: any,
-    taskSolution: any,
+    task: TaskDto,
+    taskSolution: TaskSolutionDto,
   ): Promise<CriterionScoreDto[]> {
-    this.logger.log(`Evaluating solution for task: ${task.title}`);
+    this.logger.log(
+      `Evaluating solution for task: "${task.title}" (ID: ${task.id}), solution ID: ${taskSolution.id}`,
+    );
+    const criteriaScores: CriterionScoreDto[] = [];
 
-    // In a real implementation, this would use an AI model to evaluate the solution
-    // For now, we'll create mock criteria scores
-    return task.criteria.map((criterion) => ({
-      criterionId: criterion.id,
-      score: Math.floor(Math.random() * (criterion.maxPoints + 1)), // Random score between 0 and maxPoints
-      comment: `Automated assessment for criterion "${criterion.name}"`,
-    }));
+    for (const criterion of task.criteria) {
+      this.logger.debug(
+        `Evaluating criterion: "${criterion.name}" (ID: ${criterion.id})`,
+      );
+
+      const prompt = `
+You are an expert academic assessor. Your task is to evaluate a student's solution based on a specific criterion for a given task.
+Please provide your assessment in a JSON string format with two keys: "score" (a number) and "comment" (a string explaining your score).
+
+Task Title: "${task.title}"
+Task Description: "${task.description}"
+
+Criterion to Evaluate:
+- Name: "${criterion.name}"
+- Description: "${criterion.description}"
+- Maximum Points: ${criterion.maxPoints}
+
+Student's Solution:
+\`\`\`
+${taskSolution.solutionText}
+\`\`\`
+
+Based on the criterion's description and the maximum points, evaluate the student's solution specifically for this criterion.
+The score should be an integer between 0 and ${criterion.maxPoints}.
+The comment should justify the score and provide constructive feedback related to this criterion.
+
+Return ONLY the JSON string. For example: {"score": ${Math.floor(criterion.maxPoints / 2)}, "comment": "The solution partially meets the criterion..."}
+`;
+
+      try {
+        const aiResponse =
+          await this.openaiApiService.getChatCompletion(prompt);
+
+        if (!aiResponse) {
+          this.logger.warn(
+            `AI did not return a response for criterion "${criterion.name}" (ID: ${criterion.id}). Assigning default score 0.`,
+          );
+          criteriaScores.push({
+            criterionId: criterion.id,
+            score: 0,
+            comment:
+              'AI evaluation failed or returned no response for this criterion.',
+          });
+          continue;
+        }
+
+        this.logger.debug(
+          `Raw AI response for criterion "${criterion.name}" (ID: ${criterion.id}): ${aiResponse}`,
+        );
+
+        let parsedResponse;
+        try {
+          const cleanedAiResponse = aiResponse.replace(
+            /^```json\s*|```\s*$/g,
+            '',
+          );
+          parsedResponse = JSON.parse(cleanedAiResponse);
+        } catch (parseError) {
+          this.logger.error(
+            `Failed to parse AI JSON response for criterion "${criterion.name}" (ID: ${criterion.id}): ${parseError.message}. Response: ${aiResponse}. Assigning default score 0.`,
+          );
+          criteriaScores.push({
+            criterionId: criterion.id,
+            score: 0,
+            comment: `AI evaluation returned an invalid format: ${aiResponse.substring(0, 100)}...`,
+          });
+          continue;
+        }
+
+        if (
+          typeof parsedResponse.score !== 'number' ||
+          typeof parsedResponse.comment !== 'string'
+        ) {
+          this.logger.error(
+            `AI response for criterion "${criterion.name}" (ID: ${criterion.id}) has incorrect structure: ${JSON.stringify(parsedResponse)}. Assigning default score 0.`,
+          );
+          criteriaScores.push({
+            criterionId: criterion.id,
+            score: 0,
+            comment: `AI evaluation returned unexpected structure: ${aiResponse.substring(0, 100)}...`,
+          });
+          continue;
+        }
+
+        let score = parsedResponse.score;
+        if (score < 0) score = 0;
+        if (score > criterion.maxPoints) score = criterion.maxPoints;
+        score = Math.round(score);
+
+        criteriaScores.push({
+          criterionId: criterion.id,
+          score: score,
+          comment: parsedResponse.comment,
+        });
+        this.logger.debug(
+          `Successfully evaluated criterion "${criterion.name}" (ID: ${criterion.id}). Score: ${score}, Comment: ${parsedResponse.comment.substring(0, 50)}...`,
+        );
+      } catch (error) {
+        this.logger.error(
+          `Error evaluating criterion "${criterion.name}" (ID: ${criterion.id}) with AI: ${error.message}`,
+          error.stack,
+        );
+        criteriaScores.push({
+          criterionId: criterion.id,
+          score: 0,
+          comment: `Error during AI evaluation for this criterion: ${error.message}`,
+        });
+      }
+    }
+
+    this.logger.log(
+      `Finished evaluating all criteria for task solution ID: ${taskSolution.id}`,
+    );
+    return criteriaScores;
   }
 
-  /**
-   * Mock implementation of feedback generation with AI
-   * In a real implementation, this would call the AI model
-   */
   private async generateFeedback(
-    task: any,
-    taskSolution: any,
+    task: TaskDto,
+    taskSolution: TaskSolutionDto,
     criteriaScores: CriterionScoreDto[],
   ): Promise<string> {
-    this.logger.log(`Generating feedback for task: ${task.title}`);
-
-    // Calculate total score
-    const totalScore = criteriaScores.reduce(
-      (sum, criterionScore) => sum + criterionScore.score,
-      0,
+    this.logger.log(
+      `Generating overall feedback for task: "${task.title}" (ID: ${task.id}), solution ID: ${taskSolution.id}`,
     );
-    const maxPossibleScore = task.criteria.reduce(
-      (sum, criterion) => sum + criterion.maxPoints,
-      0,
-    );
-    const scorePercentage = (totalScore / maxPossibleScore) * 100;
 
-    // In a real implementation, this would use an AI model to generate personalized feedback
-    // For now, we'll return a basic template
-    return `
-# Automated Assessment
+    const criteriaDetails = task.criteria
+      .map((criterion) => {
+        const scoreInfo = criteriaScores.find(
+          (cs) => cs.criterionId === criterion.id,
+        );
+        return `- Criterion: "${criterion.name}" (Max Points: ${criterion.maxPoints})\n  - Score: ${scoreInfo?.score ?? 'N/A'}\n  - AI Comment: ${scoreInfo?.comment ?? 'No comment available'}`;
+      })
+      .join('\n\n');
 
-Your solution for "${task.title}" has been evaluated.
+    const prompt = `
+You are an expert academic assessor. Your task is to provide overall feedback and a summary for a student's solution to a programming task, based on the scores and comments provided for individual criteria.
 
-## Overall Score: ${totalScore}/${maxPossibleScore} (${scorePercentage.toFixed(2)}%)
+Task Title: "${task.title}"
+Task Description: "${task.description}"
 
-## Feedback by Criteria:
-${criteriaScores
-  .map((score) => {
-    const criterion = task.criteria.find((c) => c.id === score.criterionId);
-    return `### ${criterion.name}: ${score.score}/${criterion.maxPoints}\n${score.comment}\n`;
-  })
-  .join('\n')}
+Student's Solution:
+\`\`\`
+${taskSolution.solutionText}
+\`\`\`
 
-## General Observations:
-This is an automated assessment. Your solution has been evaluated based on the provided criteria.
-${
-  scorePercentage > 80
-    ? 'Overall, your solution demonstrates a good understanding of the task requirements.'
-    : scorePercentage > 50
-      ? 'Your solution meets the basic requirements, but there is room for improvement.'
-      : 'Your solution needs significant improvement to meet the requirements.'
-}
-    `;
+Assessment per Criterion:
+${criteriaDetails}
+
+Based on the task, the student's solution, and the detailed assessment for each criterion, please:
+1. Provide a concise overall feedback statement for the student.
+2. Summarize the key strengths and areas for improvement.
+3. Maintain a constructive and encouraging tone.
+
+Return ONLY the feedback text. Do not include any preamble like "Here is the feedback:".
+`;
+
+    try {
+      const aiFeedback = await this.openaiApiService.getChatCompletion(prompt);
+      if (!aiFeedback) {
+        this.logger.warn(
+          `AI did not return feedback for task solution ID: ${taskSolution.id}. Using default message.`,
+        );
+        return 'Overall feedback could not be generated by the AI at this time.';
+      }
+      this.logger.log(
+        `Successfully generated AI feedback for task solution ID: ${taskSolution.id}. Length: ${aiFeedback.length}`,
+      );
+      return aiFeedback;
+    } catch (error) {
+      this.logger.error(
+        `Error generating AI feedback for task solution ID: ${taskSolution.id}: ${error.message}`,
+        error.stack,
+      );
+      return `An error occurred while generating AI feedback: ${error.message}`;
+    }
   }
 }
