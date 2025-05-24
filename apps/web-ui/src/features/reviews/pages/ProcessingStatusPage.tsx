@@ -5,12 +5,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { BulkOperationsService } from '@/services/bulk-operations.service';
 import type { ProcessingOperation, ProcessingStatus, OperationType } from '@/types';
-import { Activity, Clock, CheckCircle, AlertCircle, RefreshCw, FileText, Zap } from 'lucide-react';
+import { Activity, Clock, CheckCircle, AlertCircle, RefreshCw, FileText, Zap, Trash2 } from 'lucide-react';
 
 const ProcessingStatusPage = () => {
   const [operations, setOperations] = useState<ProcessingOperation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchOperations = async () => {
@@ -42,6 +43,22 @@ const ProcessingStatusPage = () => {
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to refresh operations');
       setLoading(false);
+    }
+  };
+
+  const handleDeleteOperation = async (operationId: string) => {
+    if (!confirm('Are you sure you want to delete this operation?')) {
+      return;
+    }
+
+    setDeletingId(operationId);
+    try {
+      await BulkOperationsService.deleteOperation(operationId);
+      setOperations(operations.filter(op => op.id !== operationId));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete operation');
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -227,8 +244,22 @@ const ProcessingStatusPage = () => {
                   )}
                 </div>
 
-                {(operation.status === 'in_progress' || operation.status === 'completed') && (
-                  <div className="flex justify-end">
+                <div className="flex justify-between items-center">
+                  <div className="flex gap-2">
+                    {(operation.status === 'completed' || operation.status === 'failed') && (
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => handleDeleteOperation(operation.id)}
+                        disabled={deletingId === operation.id}
+                        className="gap-2"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        {deletingId === operation.id ? 'Deleting...' : 'Delete'}
+                      </Button>
+                    )}
+                  </div>
+                  {(operation.status === 'in_progress' || operation.status === 'completed') && (
                     <Button 
                       variant="outline" 
                       size="sm"
@@ -238,8 +269,8 @@ const ProcessingStatusPage = () => {
                         View Details
                       </Link>
                     </Button>
-                  </div>
-                )}
+                  )}
+                </div>
               </CardContent>
             </Card>
           ))}

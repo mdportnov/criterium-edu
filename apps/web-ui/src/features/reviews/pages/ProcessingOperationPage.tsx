@@ -20,17 +20,14 @@ import {
 import {
   Activity,
   AlertCircle,
+  ArrowLeft,
   CheckCircle,
   Clock,
-  RefreshCw,
-  Play,
-  Pause,
-  ArrowLeft,
   FileText,
-  Users,
-  Zap,
-  Square,
+  RefreshCw,
   RotateCcw,
+  Square,
+  Zap,
 } from 'lucide-react';
 
 const ProcessingOperationPage = () => {
@@ -102,18 +99,14 @@ const ProcessingOperationPage = () => {
 
   const handleStopOperation = async () => {
     if (!operationId) return;
-    
+
     try {
       setIsStoppingOperation(true);
       await BulkOperationsService.stopOperation(operationId);
       // Refresh the operation status
       handleManualRefresh();
     } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : 'Failed to stop operation',
-      );
+      setError(err instanceof Error ? err.message : 'Failed to stop operation');
     } finally {
       setIsStoppingOperation(false);
     }
@@ -121,7 +114,7 @@ const ProcessingOperationPage = () => {
 
   const handleRestartOperation = async () => {
     if (!operationId) return;
-    
+
     try {
       setIsRestartingOperation(true);
       await BulkOperationsService.restartOperation(operationId);
@@ -129,9 +122,7 @@ const ProcessingOperationPage = () => {
       handleManualRefresh();
     } catch (err) {
       setError(
-        err instanceof Error
-          ? err.message
-          : 'Failed to restart operation',
+        err instanceof Error ? err.message : 'Failed to restart operation',
       );
     } finally {
       setIsRestartingOperation(false);
@@ -195,7 +186,7 @@ const ProcessingOperationPage = () => {
     const diff = end.getTime() - startDate.getTime();
     const minutes = Math.floor(diff / 60000);
     const seconds = Math.floor((diff % 60000) / 1000);
-    
+
     if (minutes > 0) {
       return `${minutes}m ${seconds}s`;
     }
@@ -219,7 +210,7 @@ const ProcessingOperationPage = () => {
             </div>
           </div>
         )}
-        
+
         {metadata.llmModel && (
           <div>
             <p className="text-sm font-medium mb-1">AI Model</p>
@@ -233,7 +224,10 @@ const ProcessingOperationPage = () => {
           <div>
             <p className="text-sm font-medium mb-1">Import Results</p>
             <div className="flex gap-2">
-              <Badge variant="default" className="text-xs bg-green-100 text-green-800">
+              <Badge
+                variant="default"
+                className="text-xs bg-green-100 text-green-800"
+              >
                 {metadata.successfullyImported} imported
               </Badge>
               {metadata.errors && metadata.errors.length > 0 && (
@@ -249,7 +243,10 @@ const ProcessingOperationPage = () => {
           <div>
             <p className="text-sm font-medium mb-1">Processing Results</p>
             <div className="flex gap-2">
-              <Badge variant="default" className="text-xs bg-green-100 text-green-800">
+              <Badge
+                variant="default"
+                className="text-xs bg-green-100 text-green-800"
+              >
                 {metadata.successfullyProcessed} processed
               </Badge>
               {metadata.errors && metadata.errors.length > 0 && (
@@ -266,8 +263,13 @@ const ProcessingOperationPage = () => {
             <p className="text-sm font-medium mb-2">Errors</p>
             <div className="space-y-1 max-h-32 overflow-y-auto">
               {metadata.errors.slice(0, 5).map((error: any, index: number) => (
-                <div key={index} className="text-xs bg-red-50 text-red-800 p-2 rounded">
-                  {typeof error === 'string' ? error : error.error || JSON.stringify(error)}
+                <div
+                  key={index}
+                  className="text-xs bg-red-50 text-red-800 p-2 rounded"
+                >
+                  {typeof error === 'string'
+                    ? error
+                    : error.error || JSON.stringify(error)}
                 </div>
               ))}
               {metadata.errors.length > 5 && (
@@ -324,7 +326,7 @@ const ProcessingOperationPage = () => {
             variant="ghost"
             size="sm"
             onClick={() => navigate('/dashboard/reviews')}
-            className="mt-1"
+            className="mt-1 hover:cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back
@@ -341,7 +343,7 @@ const ProcessingOperationPage = () => {
         </div>
         <div className="flex gap-2">
           {/* Stop Button - Show only for running operations */}
-          {(operation.status === ProcessingStatus.PENDING || 
+          {(operation.status === ProcessingStatus.PENDING ||
             operation.status === ProcessingStatus.IN_PROGRESS) && (
             <Button
               variant="destructive"
@@ -349,20 +351,26 @@ const ProcessingOperationPage = () => {
               disabled={isStoppingOperation}
               className="gap-2"
             >
-              <Square className={`w-4 h-4 ${isStoppingOperation ? 'animate-pulse' : ''}`} />
+              <Square
+                className={`w-4 h-4 ${isStoppingOperation ? 'animate-pulse' : ''}`}
+              />
               {isStoppingOperation ? 'Stopping...' : 'Stop'}
             </Button>
           )}
-          
-          {/* Restart Button - Show only for failed operations */}
-          {operation.status === ProcessingStatus.FAILED && (
+
+          {/* Restart Button - Show for failed or completed LLM assessment operations */}
+          {(operation.status === ProcessingStatus.FAILED ||
+            (operation.status === ProcessingStatus.COMPLETED &&
+              operation.type === OperationType.LLM_ASSESSMENT)) && (
             <Button
               variant="outline"
               onClick={handleRestartOperation}
               disabled={isRestartingOperation}
               className="gap-2"
             >
-              <RotateCcw className={`w-4 h-4 ${isRestartingOperation ? 'animate-spin' : ''}`} />
+              <RotateCcw
+                className={`w-4 h-4 ${isRestartingOperation ? 'animate-spin' : ''}`}
+              />
               {isRestartingOperation ? 'Restarting...' : 'Restart'}
             </Button>
           )}
@@ -373,7 +381,9 @@ const ProcessingOperationPage = () => {
             disabled={isRefreshing}
             className="gap-2"
           >
-            <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+            <RefreshCw
+              className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`}
+            />
             Refresh
           </Button>
         </div>
@@ -388,16 +398,23 @@ const ProcessingOperationPage = () => {
                   {getStatusIcon(operation.status)}
                   Operation Details
                 </CardTitle>
-                <Badge variant={getStatusColor(operation.status)} className="gap-1">
+                <Badge
+                  variant={getStatusColor(operation.status)}
+                  className="gap-1"
+                >
                   {getStatusIcon(operation.status)}
                   {operation.status.toUpperCase()}
                 </Badge>
               </div>
               <CardDescription>
                 Started {new Date(operation.createdAt).toLocaleString()}
-                {operation.updatedAt && operation.updatedAt !== operation.createdAt && (
-                  <span> • Updated {new Date(operation.updatedAt).toLocaleString()}</span>
-                )}
+                {operation.updatedAt &&
+                  operation.updatedAt !== operation.createdAt && (
+                    <span>
+                      {' '}
+                      • Updated {new Date(operation.updatedAt).toLocaleString()}
+                    </span>
+                  )}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -425,7 +442,12 @@ const ProcessingOperationPage = () => {
                   <div>
                     <p className="text-sm font-medium">Duration</p>
                     <p className="text-xs text-muted-foreground">
-                      {formatDuration(new Date(operation.createdAt), operation.updatedAt ? new Date(operation.updatedAt) : undefined)}
+                      {formatDuration(
+                        new Date(operation.createdAt),
+                        operation.updatedAt
+                          ? new Date(operation.updatedAt)
+                          : undefined,
+                      )}
                     </p>
                   </div>
                 </div>
@@ -460,7 +482,10 @@ const ProcessingOperationPage = () => {
               </div>
 
               {operation.errorMessage && (
-                <Alert variant="destructive" className="border-l-4 border-l-red-500">
+                <Alert
+                  variant="destructive"
+                  className="border-l-4 border-l-red-500"
+                >
                   <AlertCircle className="h-4 w-4" />
                   <div>
                     <p className="font-medium">Operation Failed</p>
@@ -479,9 +504,7 @@ const ProcessingOperationPage = () => {
                   Additional information about this operation
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                {renderMetadata(operation.metadata)}
-              </CardContent>
+              <CardContent>{renderMetadata(operation.metadata)}</CardContent>
             </Card>
           )}
         </div>
@@ -494,32 +517,49 @@ const ProcessingOperationPage = () => {
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Status</span>
-                <Badge variant={getStatusColor(operation.status)} className="text-xs">
+                <Badge
+                  variant={getStatusColor(operation.status)}
+                  className="text-xs"
+                >
                   {operation.status}
                 </Badge>
               </div>
               <Separator />
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Processed</span>
-                <span className="text-sm font-medium">{operation.processedItems}</span>
+                <span className="text-sm font-medium">
+                  {operation.processedItems}
+                </span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Remaining</span>
-                <span className="text-sm font-medium">{operation.totalItems - operation.processedItems}</span>
+                <span className="text-sm font-medium">
+                  {operation.totalItems - operation.processedItems}
+                </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Total Items</span>
-                <span className="text-sm font-medium">{operation.totalItems}</span>
+                <span className="text-sm text-muted-foreground">
+                  Total Items
+                </span>
+                <span className="text-sm font-medium">
+                  {operation.totalItems}
+                </span>
               </div>
               <Separator />
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Started</span>
-                <span className="text-xs">{new Date(operation.createdAt).toLocaleTimeString()}</span>
+                <span className="text-xs">
+                  {new Date(operation.createdAt).toLocaleTimeString()}
+                </span>
               </div>
               {operation.updatedAt && (
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Last Update</span>
-                  <span className="text-xs">{new Date(operation.updatedAt).toLocaleTimeString()}</span>
+                  <span className="text-sm text-muted-foreground">
+                    Last Update
+                  </span>
+                  <span className="text-xs">
+                    {new Date(operation.updatedAt).toLocaleTimeString()}
+                  </span>
                 </div>
               )}
             </CardContent>
@@ -527,7 +567,7 @@ const ProcessingOperationPage = () => {
         </div>
       </div>
 
-        {isCompleted && (
+      {isCompleted && (
         <Card className="mt-6">
           <CardHeader>
             <CardTitle>Operation Completed</CardTitle>
@@ -539,9 +579,22 @@ const ProcessingOperationPage = () => {
                 <Button onClick={handleNextStep}>Start LLM Assessment</Button>
               )}
               {operation.type === OperationType.LLM_ASSESSMENT && (
-                <Button onClick={handleNextStep}>
-                  Review Generated Feedback
-                </Button>
+                <>
+                  <Button onClick={handleNextStep}>
+                    Review Generated Feedback
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={handleRestartOperation}
+                    disabled={isRestartingOperation}
+                    className="gap-2"
+                  >
+                    <RotateCcw
+                      className={`w-4 h-4 ${isRestartingOperation ? 'animate-spin' : ''}`}
+                    />
+                    {isRestartingOperation ? 'Restarting...' : 'Run Again'}
+                  </Button>
+                </>
               )}
               <Button
                 variant="outline"
@@ -570,7 +623,9 @@ const ProcessingOperationPage = () => {
                 disabled={isRestartingOperation}
                 className="gap-2"
               >
-                <RotateCcw className={`w-4 h-4 ${isRestartingOperation ? 'animate-spin' : ''}`} />
+                <RotateCcw
+                  className={`w-4 h-4 ${isRestartingOperation ? 'animate-spin' : ''}`}
+                />
                 {isRestartingOperation ? 'Restarting...' : 'Restart Operation'}
               </Button>
               <Button onClick={() => navigate('/dashboard/reviews')}>

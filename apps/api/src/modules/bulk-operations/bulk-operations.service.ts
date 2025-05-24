@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { TasksService } from '../tasks/tasks.service';
@@ -254,6 +254,7 @@ export class BulkOperationsService {
         userId: data.userId,
         sessionName: data.sessionName,
         sessionDescription: data.sessionDescription,
+        solutionIds: data.solutionIds, // Store for restart capability
       },
     });
 
@@ -301,7 +302,7 @@ export class BulkOperationsService {
           llmModel: data.llmModel,
           taskId: data.taskId,
           systemPrompt: data.systemPrompt,
-          sessionStartTime: new Date(),
+          sessionStartTime: new Date().toISOString(),
         },
       );
 
@@ -324,7 +325,8 @@ export class BulkOperationsService {
           totalCost:
             completedSession.statistics?.modelUsage?.estimatedCost || 0,
           averageScore: completedSession.statistics?.averageScore || 0,
-          sessionCompletionTime: completedSession.completedAt || new Date(),
+          sessionCompletionTime:
+            completedSession.completedAt || new Date().toISOString(),
           totalProcessingTime:
             completedSession.statistics?.averageProcessingTime || 0,
         },
@@ -413,39 +415,55 @@ export class BulkOperationsService {
       throw new BadRequestException('Operation not found');
     }
 
-    if (operation.status !== ProcessingStatus.FAILED) {
-      throw new BadRequestException('Only failed operations can be restarted');
+    if (
+      operation.status !== ProcessingStatus.FAILED &&
+      operation.status !== ProcessingStatus.COMPLETED
+    ) {
+      throw new BadRequestException(
+        'Only failed or completed operations can be restarted',
+      );
     }
 
-    // Reset operation to initial state
-    await this.processingOperationRepository.update(operationId, {
-      status: ProcessingStatus.PENDING,
-      processedItems: 0,
-      progress: 0,
-      errorMessage: null,
-    });
+    // Create a new operation object with updated metadata
+    if (operation.metadata) {
+      operation.metadata.restartedAt = new Date().toISOString();
+      operation.metadata.restartCount =
+        (operation.metadata.restartCount || 0) + 1;
+    } else {
+      operation.metadata = {
+        restartedAt: new Date().toISOString(),
+        restartCount: 1,
+      };
+    }
 
-    // If it's an LLM assessment operation, restart the assessment session and reprocess
-    if (
-      operation.type === OperationType.LLM_ASSESSMENT &&
-      operation.metadata?.assessmentSessionId
-    ) {
+    // Update other fields
+    operation.status = ProcessingStatus.PENDING;
+    operation.processedItems = 0;
+    operation.progress = 0;
+    operation.errorMessage = null;
+
+    // Save the updated entity
+    await this.processingOperationRepository.save(operation);
+
+    // Handle different operation types
+    if (operation.type === OperationType.LLM_ASSESSMENT) {
       try {
-        await this.autoAssessmentService.restartSession(
-          operation.metadata.assessmentSessionId,
-        );
-
-        // Restart the processing
+        // For LLM assessments, we can restart with the stored metadata
         const restartData = {
           solutionIds: operation.metadata.solutionIds || [],
           llmModel: operation.metadata.llmModel,
           taskId: operation.metadata.taskId,
           systemPrompt: operation.metadata.systemPrompt,
           userId: operation.metadata.userId,
-          sessionName: operation.metadata.sessionName,
-          sessionDescription: operation.metadata.sessionDescription,
+          sessionName:
+            operation.metadata.sessionName ||
+            `Restarted Assessment ${operationId}`,
+          sessionDescription:
+            operation.metadata.sessionDescription ||
+            `Restarted LLM assessment for operation ${operationId}`,
         };
 
+        // Create a new assessment session for restart
         await this.processLLMAssessmentAsync(operationId, restartData);
       } catch (error) {
         await this.updateOperationStatus(
@@ -455,9 +473,39 @@ export class BulkOperationsService {
           `Restart failed: ${error.message}`,
         );
       }
+    } else if (operation.type === OperationType.BULK_SOLUTION_IMPORT) {
+      // For bulk solution imports, we would need to store the original data
+      // This is a more complex case as we need the original solutions data
+      await this.updateOperationStatus(
+        operationId,
+        ProcessingStatus.FAILED,
+        operation.metadata,
+        'Cannot restart bulk import operations - original data not stored',
+      );
     }
 
     return this.getOperationStatus(operationId);
+  }
+
+  async deleteOperation(operationId: string): Promise<void> {
+    const operation = await this.processingOperationRepository.findOne({
+      where: { id: operationId },
+    });
+
+    if (!operation) {
+      throw new NotFoundException('Operation not found');
+    }
+
+    if (
+      operation.status === ProcessingStatus.IN_PROGRESS ||
+      operation.status === ProcessingStatus.PENDING
+    ) {
+      throw new BadRequestException(
+        'Cannot delete operation that is still in progress. Stop the operation first.',
+      );
+    }
+
+    await this.processingOperationRepository.delete(operationId);
   }
 
   private mapOperationToDto(
