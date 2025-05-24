@@ -25,9 +25,9 @@ FROM nginx:alpine
 
 # Copy the built files to nginx
 COPY --from=builder /app/apps/web-ui/dist /usr/share/nginx/html
-
-# Copy nginx config
-COPY apps/nginx/nginx.conf /etc/nginx/conf.d/default.conf
+COPY apps/nginx/nginx.conf /etc/nginx/nginx.conf
+COPY apps/nginx/docker-entrypoint.sh /docker-entrypoint.d/
+RUN chmod +x /docker-entrypoint.d/docker-entrypoint.sh
 
 EXPOSE 80
 
