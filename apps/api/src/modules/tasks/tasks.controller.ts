@@ -6,7 +6,6 @@ import {
   Param,
   Patch,
   Post,
-  Request,
   UseGuards,
 } from '@nestjs/common';
 import { TasksService } from './tasks.service';
@@ -15,6 +14,8 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { GetCurrentUser } from '../auth/decorators/current-user.decorator';
+import { CurrentUser } from '@app/shared';
 
 @ApiTags('tasks')
 @ApiBearerAuth()
@@ -37,9 +38,9 @@ export class TasksController {
   @Roles(UserRole.ADMIN, UserRole.REVIEWER)
   async create(
     @Body() createTaskDto: CreateTaskDto,
-    @Request() req,
+    @GetCurrentUser() user: CurrentUser,
   ): Promise<TaskDto> {
-    return this.tasksService.create(createTaskDto, req.user.id);
+    return this.tasksService.create(createTaskDto, user.id);
   }
 
   @Patch(':id')

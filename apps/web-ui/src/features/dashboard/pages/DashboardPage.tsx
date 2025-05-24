@@ -4,7 +4,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { UserRole } from '@/types';
 import { dashboardService, type DashboardOverview, type TaskStatistics, type SolutionStatistics, type RecentActivity } from '@/services/dashboard.service';
 import {
   FileText,
@@ -25,6 +24,7 @@ import {
   Award,
   Database
 } from 'lucide-react';
+import { UserRole } from '@app/shared';
 
 const DashboardPage: React.FC = () => {
   const { hasRole } = useAuth();

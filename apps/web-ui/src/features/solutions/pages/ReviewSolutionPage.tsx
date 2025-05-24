@@ -6,16 +6,17 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
   type CreateTaskSolutionReviewRequest,
+  ReviewSource,
   type TaskCriterion,
   type TaskSolution,
   type TaskSolutionReview,
-  UserRole,
 } from '@/types';
 import {
   TaskService,
   TaskSolutionReviewService,
   TaskSolutionService,
 } from '@/services';
+import { UserRole } from '@app/shared';
 
 const ReviewSolutionPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -32,9 +33,10 @@ const ReviewSolutionPage: React.FC = () => {
   const canReview = hasRole([UserRole.REVIEWER, UserRole.ADMIN]);
 
   const [formData, setFormData] = useState<CreateTaskSolutionReviewRequest>({
-    solutionId: 0,
-    feedback: '',
+    taskSolutionId: 0,
+    feedbackToStudent: '',
     criteriaScores: [],
+    source: ReviewSource.AUTO,
   });
 
   useEffect(() => {

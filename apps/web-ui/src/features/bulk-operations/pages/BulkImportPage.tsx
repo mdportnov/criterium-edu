@@ -4,9 +4,10 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { type BulkOperationStatus, UserRole } from '@/types';
+import { type BulkOperationStatus } from '@/types';
 import { BulkOperationsService } from '@/services';
 import { AlertCircle } from 'lucide-react';
+import { UserRole } from '@app/shared';
 
 const BulkImportPage: React.FC = () => {
   const { hasRole } = useAuth();

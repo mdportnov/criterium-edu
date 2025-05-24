@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { UserRole } from '@/types';
 import { Button } from '@/components/ui/button';
 import {
   Sheet,
@@ -21,6 +20,7 @@ import {
   User,
   Users,
 } from 'lucide-react';
+import { UserRole } from '@app/shared';
 
 const MainLayout: React.FC = () => {
   const { user, logout, hasRole } = useAuth();
