@@ -46,7 +46,7 @@ jobs:
             DATABASE_URL=${{ secrets.DATABASE_URL }}
             JWT_SECRET=${{ secrets.JWT_SECRET }}
 
-      - name: "Copy compose.yml files to server"
+      - name: "Copy docker-compose.prod.yml files to server"
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -54,7 +54,7 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           passphrase: ${{ secrets.PASSPHRASE }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "compose.yml,.env.example"
+          source: "docker-compose.prod.yml,.env.example, ./apps/web-ui/.env.production"
           target: "~/criterium/"
 
       - name: "Deploy to server"
@@ -69,8 +69,9 @@ jobs:
             sudo mkdir -p /var/www/criterium
             sudo chown -R ${{ secrets.SSH_USER }}:${{ secrets.SSH_USER }} /var/www/criterium
             
-            cp -f ~/criterium/compose.yml /var/www/criterium/
+            cp -f ~/criterium/docker-compose.prod.yml /var/www/criterium/
             cp -f ~/criterium/.env.example /var/www/criterium/
+            cp -f ~/criterium/apps/web-ui/.env.production /var/www/criterium/
             
             cd /var/www/criterium
             
@@ -79,6 +80,6 @@ jobs:
             
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             
-            docker compose pull
-            docker compose up -d backend postgres
+            docker compose -f docker-compose.prod.yml pull
+            docker compose -f docker-compose.prod.yml up -d backend postgres
             docker system prune -af
