@@ -20,15 +20,15 @@ ENV VITE_API_URL=$VITE_API_URL
 # Build frontend
 RUN npm run build:web
 
-## Production stage with Nginx
-#FROM nginx:alpine
-#
-## Copy the built files to nginx
-#COPY --from=builder /app/apps/web-ui/dist /usr/share/nginx/html
-#
-## Copy nginx config
-#COPY apps/nginx/nginx.conf /etc/nginx/conf.d/default.conf
-#
-#EXPOSE 80
-#
-#CMD ["nginx", "-g", "daemon off;"]
+# Production stage with Nginx
+FROM nginx:alpine
+
+# Copy the built files to nginx
+COPY --from=builder /app/apps/web-ui/dist /usr/share/nginx/html
+
+# Copy nginx config
+COPY apps/nginx/nginx.conf /etc/nginx/conf.d/default.conf
+
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]
