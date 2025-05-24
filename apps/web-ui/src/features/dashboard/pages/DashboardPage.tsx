@@ -196,11 +196,11 @@ const DashboardPage: React.FC = () => {
       {/* Overview Statistics */}
       {overview && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card className="p-6 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-800">
+          <Card className="p-6 dashboard-card-blue">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-blue-700 dark:text-blue-300">Total Tasks</p>
-                <p className="text-3xl font-bold text-blue-900 dark:text-blue-100 mt-1">
+                <p className="text-3xl font-bold text-blue-900 dark:text-blue-300 mt-1">
                   {overview.totalTasks}
                 </p>
               </div>
@@ -214,11 +214,11 @@ const DashboardPage: React.FC = () => {
             </div>
           </Card>
 
-          <Card className="p-6 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-200 dark:border-green-800">
+          <Card className="p-6 dashboard-card-green">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-green-700 dark:text-green-300">Total Solutions</p>
-                <p className="text-3xl font-bold text-green-900 dark:text-green-100 mt-1">
+                <p className="text-3xl font-bold text-green-900 dark:text-green-300 mt-1">
                   {overview.totalSolutions}
                 </p>
               </div>
@@ -232,11 +232,11 @@ const DashboardPage: React.FC = () => {
             </div>
           </Card>
 
-          <Card className="p-6 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 border-purple-200 dark:border-purple-800">
+          <Card className="p-6 dashboard-card-purple">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-purple-700 dark:text-purple-300">Total Reviews</p>
-                <p className="text-3xl font-bold text-purple-900 dark:text-purple-100 mt-1">
+                <p className="text-3xl font-bold text-purple-900 dark:text-purple-300 mt-1">
                   {overview.totalReviews}
                 </p>
               </div>
@@ -250,11 +250,11 @@ const DashboardPage: React.FC = () => {
             </div>
           </Card>
 
-          <Card className="p-6 bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 border-orange-200 dark:border-orange-800">
+          <Card className="p-6 dashboard-card-orange">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-orange-700 dark:text-orange-300">Processing Rate</p>
-                <p className="text-3xl font-bold text-orange-900 dark:text-orange-100 mt-1">
+                <p className="text-3xl font-bold text-orange-900 dark:text-orange-300 mt-1">
                   {overview.processingRate}%
                 </p>
               </div>
@@ -278,37 +278,37 @@ const DashboardPage: React.FC = () => {
             Solution Status Overview
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="flex items-center justify-between p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+            <div className="flex items-center justify-between p-4 dashboard-card-yellow rounded-lg">
               <div>
                 <p className="text-sm text-yellow-700 dark:text-yellow-300">Pending</p>
-                <p className="text-2xl font-bold text-yellow-900 dark:text-yellow-100">
+                <p className="text-2xl font-bold text-yellow-900 dark:text-yellow-300">
                   {overview.solutionStatusBreakdown.pending}
                 </p>
               </div>
               <Clock className="w-8 h-8 text-yellow-600 dark:text-yellow-400" />
             </div>
-            <div className="flex items-center justify-between p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+            <div className="flex items-center justify-between p-4 dashboard-card-blue rounded-lg">
               <div>
                 <p className="text-sm text-blue-700 dark:text-blue-300">Submitted</p>
-                <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">
+                <p className="text-2xl font-bold text-blue-900 dark:text-blue-300">
                   {overview.solutionStatusBreakdown.submitted}
                 </p>
               </div>
               <FileText className="w-8 h-8 text-blue-600 dark:text-blue-400" />
             </div>
-            <div className="flex items-center justify-between p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+            <div className="flex items-center justify-between p-4 dashboard-card-orange rounded-lg">
               <div>
                 <p className="text-sm text-orange-700 dark:text-orange-300">In Review</p>
-                <p className="text-2xl font-bold text-orange-900 dark:text-orange-100">
+                <p className="text-2xl font-bold text-orange-900 dark:text-orange-300">
                   {overview.solutionStatusBreakdown.inReview}
                 </p>
               </div>
               <Timer className="w-8 h-8 text-orange-600 dark:text-orange-400" />
             </div>
-            <div className="flex items-center justify-between p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+            <div className="flex items-center justify-between p-4 dashboard-card-green rounded-lg">
               <div>
                 <p className="text-sm text-green-700 dark:text-green-300">Reviewed</p>
-                <p className="text-2xl font-bold text-green-900 dark:text-green-100">
+                <p className="text-2xl font-bold text-green-900 dark:text-green-300">
                   {overview.solutionStatusBreakdown.reviewed}
                 </p>
               </div>
@@ -331,20 +331,20 @@ const DashboardPage: React.FC = () => {
                 </h2>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                  <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">
+                <div className="text-center p-4 dashboard-card-blue rounded-lg">
+                  <p className="text-2xl font-bold text-blue-900 dark:text-blue-300">
                     {taskStats.tasksCreated}
                   </p>
                   <p className="text-sm text-blue-700 dark:text-blue-300">Tasks Created</p>
                 </div>
-                <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                  <p className="text-2xl font-bold text-green-900 dark:text-green-100">
+                <div className="text-center p-4 dashboard-card-green rounded-lg">
+                  <p className="text-2xl font-bold text-green-900 dark:text-green-300">
                     {taskStats.tasksWithSolutions}
                   </p>
                   <p className="text-sm text-green-700 dark:text-green-300">With Solutions</p>
                 </div>
-                <div className="text-center p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
-                  <p className="text-2xl font-bold text-orange-900 dark:text-orange-100">
+                <div className="text-center p-4 dashboard-card-orange rounded-lg">
+                  <p className="text-2xl font-bold text-orange-900 dark:text-orange-300">
                     {taskStats.utilizationRate}%
                   </p>
                   <p className="text-sm text-orange-700 dark:text-orange-300">Utilization Rate</p>
@@ -362,24 +362,24 @@ const DashboardPage: React.FC = () => {
                 </h2>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="text-center p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                <div className="text-center p-4 bg-gray-300  rounded-lg border">
                   <p className="text-2xl font-bold">{solutionStats.totalSolutions}</p>
                   <p className="text-sm text-muted-foreground">Total Solutions</p>
                 </div>
-                <div className="text-center p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
-                  <p className="text-2xl font-bold text-yellow-900 dark:text-yellow-100">
+                <div className="text-center p-4 dashboard-card-yellow rounded-lg">
+                  <p className="text-2xl font-bold text-yellow-900 dark:text-yellow-300">
                     {solutionStats.statusBreakdown.pending}
                   </p>
                   <p className="text-sm text-yellow-700 dark:text-yellow-300">Pending</p>
                 </div>
-                <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                  <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">
+                <div className="text-center p-4 dashboard-card-blue rounded-lg">
+                  <p className="text-2xl font-bold text-blue-900 dark:text-blue-300">
                     {solutionStats.statusBreakdown.submitted}
                   </p>
                   <p className="text-sm text-blue-700 dark:text-blue-300">Submitted</p>
                 </div>
-                <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                  <p className="text-2xl font-bold text-green-900 dark:text-green-100">
+                <div className="text-center p-4 dashboard-card-green rounded-lg">
+                  <p className="text-2xl font-bold text-green-900 dark:text-green-300">
                     {solutionStats.statusBreakdown.reviewed}
                   </p>
                   <p className="text-sm text-green-700 dark:text-green-300">Reviewed</p>
