@@ -125,7 +125,7 @@ Return ONLY the JSON string. For example: {"score": ${Math.floor(criterion.maxPo
           `Raw AI response for criterion "${criterion.name}" (ID: ${criterion.id}): ${aiResponse}`,
         );
 
-        let parsedResponse;
+        let parsedResponse: { score: any; comment: string };
         try {
           const cleanedAiResponse = aiResponse.replace(
             /^```json\s*|```\s*$/g,

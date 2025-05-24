@@ -2,8 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { type TaskSolution, type TaskSolutionReview, UserRole } from '@/types';
+import { type TaskSolution, type TaskSolutionReview } from '@/types';
 import { TaskSolutionService, TaskSolutionReviewService } from '@/services';
+import { UserRole } from '@app/shared';
 
 const SolutionDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();

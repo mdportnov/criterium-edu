@@ -6,13 +6,13 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { TaskSolution } from './entities/task-solution.entity';
-import { User } from '../users/entities/user.entity';
 import {
   CreateTaskSolutionDto,
   TaskSolutionStatus,
   UpdateTaskSolutionDto,
   UserRole,
   TaskSolutionDto,
+  CurrentUser,
 } from '@app/shared';
 
 @Injectable()
@@ -58,7 +58,7 @@ export class TaskSolutionsService {
     });
   }
 
-  async findOne(id: number, user?: User): Promise<TaskSolution> {
+  async findOne(id: number, user?: CurrentUser): Promise<TaskSolution> {
     const taskSolution = await this.taskSolutionsRepository.findOne({
       where: { id },
       relations: ['task', 'user'], // Ensure task and user are loaded for the DTO
@@ -89,12 +89,12 @@ export class TaskSolutionsService {
 
   async create(
     createTaskSolutionDto: CreateTaskSolutionDto,
-    user: User,
+    user: CurrentUser,
   ): Promise<TaskSolution> {
     const taskSolution = this.taskSolutionsRepository.create({
       content: createTaskSolutionDto.solutionText,
       task: { id: createTaskSolutionDto.taskId },
-      user: user,
+      user: { id: user.id },
       status: TaskSolutionStatus.SUBMITTED,
     });
 

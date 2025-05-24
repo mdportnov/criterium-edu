@@ -5,9 +5,9 @@ import { Task } from './entities/task.entity';
 import { TaskCriterion } from './entities/task-criterion.entity';
 import {
   CreateTaskDto,
+  TaskCriterionDto,
   TaskDto,
   UpdateTaskDto,
-  TaskCriterionDto,
 } from '@app/shared';
 
 @Injectable()
@@ -127,13 +127,12 @@ export class TasksService {
       // Remove old criteria associated with this task
       await this.criteriaRepository.delete({ task: { id: task.id } });
       // Add new criteria
-      const newCriteriaEntities: TaskCriterion[] = criteriaDto.map(
+      task.criteria = criteriaDto.map(
         (criterion: TaskCriterionDto): TaskCriterion =>
           this.criteriaRepository.create(criterion),
       );
-      task.criteria = newCriteriaEntities;
     } else if (
-      updateTaskDto.hasOwnProperty('criteria') &&
+      Object.prototype.hasOwnProperty.call(updateTaskDto, 'criteria') &&
       criteriaDto === null
     ) {
       // If 'criteria' was explicitly passed as null (or empty array which becomes criteriaDto = null if not handled earlier)

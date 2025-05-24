@@ -7,7 +7,7 @@ import {
   Put,
   UseGuards,
 } from '@nestjs/common';
-import { UserRole } from '@app/shared';
+import { CurrentUser, UserRole } from '@app/shared';
 import { ApiTags } from '@nestjs/swagger';
 import {
   AutoAssessRequestDto,
@@ -18,8 +18,7 @@ import { AutoAssessmentService } from './auto-assessment.service';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { GetUser } from '../auth/decorators/get-user.decorator';
-import { User } from '../users/entities/user.entity';
+import { GetCurrentUser } from '../auth/decorators/current-user.decorator';
 
 @ApiTags('auto-assessment')
 @Controller('auto-assessment')
@@ -70,7 +69,7 @@ export class AutoAssessmentController {
       temperature?: number;
       maxTokens?: number;
     },
-    @GetUser() user: User,
+    @GetCurrentUser() user: CurrentUser,
   ) {
     return this.assessmentService.createAssessmentSession({
       ...dto,

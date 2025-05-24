@@ -108,4 +108,24 @@ export const TaskSolutionReviewService = {
       data: { reviewIds },
     });
   },
+
+  // Alias methods for backward compatibility with component naming
+  async getTaskSolutionReviewsBySolutionId(
+    solutionId: number,
+  ): Promise<TaskSolutionReview[]> {
+    return this.getReviewsByTaskSolutionId(solutionId);
+  },
+
+  async createTaskSolutionReview(
+    data: CreateTaskSolutionReviewRequest,
+  ): Promise<TaskSolutionReview> {
+    return this.createReview(data);
+  },
+
+  async updateTaskSolutionReview(
+    id: number,
+    data: UpdateTaskSolutionReviewRequest,
+  ): Promise<TaskSolutionReview> {
+    return this.updateReview(id, data);
+  },
 };
