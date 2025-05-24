@@ -16,11 +16,13 @@ import {
   Home,
   ListTodo,
   LogOut,
-  Menu,
   User,
   Users,
+  X,
 } from 'lucide-react';
 import { UserRole } from '@app/shared';
+import { ThemeToggle } from '@/components/ThemeToggle';
+import { HamburgerMenu } from '@/components/ui/hamburger-menu';
 
 const MainLayout: React.FC = () => {
   const { user, logout, hasRole } = useAuth();
@@ -57,6 +59,9 @@ const MainLayout: React.FC = () => {
 
   // Check if a route is active
   const isActiveRoute = (path: string) => {
+    if (path === '/dashboard') {
+      return location.pathname === '/dashboard';
+    }
     return (
       location.pathname === path || location.pathname.startsWith(path + '/')
     );
@@ -124,6 +129,11 @@ const MainLayout: React.FC = () => {
                 );
               })}
 
+              {/* Theme Toggle */}
+              <div className="mx-2">
+                <ThemeToggle />
+              </div>
+
               {/* User dropdown */}
               <div className="relative ml-4" ref={dropdownRef}>
                 <button
@@ -143,19 +153,19 @@ const MainLayout: React.FC = () => {
 
                 {/* Dropdown menu */}
                 {isUserMenuOpen && (
-                  <div className="absolute right-0 top-full mt-2 w-56 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl overflow-hidden z-50">
-                    <div className="p-3 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
-                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                  <div className="nav-user-dropdown">
+                    <div className="nav-user-info">
+                      <p className="nav-user-name">
                         {user?.firstName} {user?.lastName}
                       </p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                      <p className="nav-user-email">
                         {user?.email}
                       </p>
                     </div>
                     <div className="p-1">
                       <Link
                         to="/profile"
-                        className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors duration-200"
+                        className="nav-user-item"
                         onClick={() => setIsUserMenuOpen(false)}
                       >
                         <User className="w-4 h-4" />
@@ -166,7 +176,7 @@ const MainLayout: React.FC = () => {
                           setIsUserMenuOpen(false);
                           handleLogout();
                         }}
-                        className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors duration-200 text-red-600 dark:text-red-400 w-full text-left"
+                        className="nav-user-item destructive"
                       >
                         <LogOut className="w-4 h-4" />
                         Logout
@@ -178,15 +188,16 @@ const MainLayout: React.FC = () => {
             </nav>
 
             {/* Mobile Menu Button */}
-            <div className="lg:hidden">
+            <div className="lg:hidden flex items-center gap-2">
+              <ThemeToggle />
               <Sheet open={isOpen} onOpenChange={setIsOpen}>
                 <SheetTrigger asChild>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="text-white hover:bg-white/10"
+                    className="text-white hover:bg-white/10 p-2"
                   >
-                    <Menu className="w-6 h-6" />
+                    <HamburgerMenu isOpen={isOpen} onClick={() => {}} />
                     <span className="sr-only">Menu</span>
                   </Button>
                 </SheetTrigger>
@@ -194,8 +205,16 @@ const MainLayout: React.FC = () => {
                   side="right"
                   className="w-[300px] sm:w-[350px] p-0"
                 >
-                  <SheetHeader className="p-6 pb-4 border-b">
-                    <SheetTitle>Menu</SheetTitle>
+                  <SheetHeader className="p-6 pb-4 border-b flex-row items-center justify-between">
+                    <SheetTitle className="text-left">Menu</SheetTitle>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setIsOpen(false)}
+                      className="h-8 w-8 rounded-full hover:bg-muted/50 transition-all duration-200"
+                    >
+                      <X className="w-8 h-8 cursor-pointer" />
+                    </Button>
                   </SheetHeader>
 
                   {/* User info in mobile menu */}
@@ -226,10 +245,8 @@ const MainLayout: React.FC = () => {
                           <Link
                             key={item.path}
                             to={item.path}
-                            className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
-                              isActive
-                                ? 'bg-primary text-primary-foreground font-medium'
-                                : 'text-foreground hover:bg-muted'
+                            className={`mobile-nav-item ${
+                              isActive ? 'active' : ''
                             }`}
                             onClick={() => setIsOpen(false)}
                           >
@@ -242,10 +259,10 @@ const MainLayout: React.FC = () => {
                   </div>
 
                   {/* Mobile menu footer */}
-                  <div className="border-t p-4 space-y-1 mt-auto">
+                  <div className="mobile-nav-footer space-y-1">
                     <Link
                       to="/profile"
-                      className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-muted transition-colors duration-200"
+                      className="mobile-nav-item"
                       onClick={() => setIsOpen(false)}
                     >
                       <User className="w-5 h-5" />
@@ -253,7 +270,7 @@ const MainLayout: React.FC = () => {
                     </Link>
                     <button
                       onClick={handleLogout}
-                      className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-muted transition-colors duration-200 text-destructive w-full text-left"
+                      className="mobile-nav-item text-destructive w-full text-left"
                     >
                       <LogOut className="w-5 h-5" />
                       <span>Logout</span>
@@ -267,19 +284,19 @@ const MainLayout: React.FC = () => {
       </header>
 
       {/* Main content */}
-      <main className="flex-grow bg-background">
+      <main className="flex-grow bg-background theme-transition">
         <div className="container-responsive max-w-7xl mx-auto py-6 sm:py-8 lg:py-10 fade-in">
           <Outlet />
         </div>
       </main>
 
       {/* Footer */}
-      <footer className="bg-muted border-t border-border mt-auto">
+      <footer className="bg-muted/30 border-t border-border mt-auto theme-transition">
         <div className="container-responsive max-w-7xl mx-auto py-6 sm:py-8">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
             <div className="flex items-center gap-2">
-              <div className="w-6 h-6 flex items-center justify-center">
-                <img src="/logo.svg" alt="Criterium EDU" className="w-6 h-6" />
+              <div className="w-6 h-6 bg-primary/20 rounded flex items-center justify-center">
+                <span className="text-xs font-bold text-primary">CE</span>
               </div>
               <p className="text-sm text-muted-foreground">
                 &copy; {new Date().getFullYear()} Criterium EDU. All rights
