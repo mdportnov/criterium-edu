@@ -140,9 +140,10 @@ export class AutoAssessmentService {
 
     const results: AutoAssessment[] = [];
     const errors: any[] = [];
+    const processingTimes: number[] = [];
     let totalTokens = 0;
     let totalCost = 0;
-    const scoreDistribution = {};
+    const scoreDistribution: Record<number, number> = {};
 
     try {
       for (const solutionId of session.solutionIds) {
@@ -156,6 +157,7 @@ export class AutoAssessmentService {
           );
 
           const processingTime = Date.now() - startTime;
+          processingTimes.push(processingTime);
           results.push(assessment);
 
           if (assessment.tokenUsage) {
@@ -182,7 +184,7 @@ export class AutoAssessmentService {
           console.error(`Error assessing solution ${solutionId}:`, error);
           errors.push({
             solutionId,
-            error: error.message,
+            error: (error as Error).message,
             timestamp: new Date(),
           });
 
@@ -200,16 +202,22 @@ export class AutoAssessmentService {
 
       const completionTime = new Date();
       const totalTime = completionTime.getTime() - session.startedAt.getTime();
+      const averageProcessingTime =
+        processingTimes.length > 0
+          ? processingTimes.reduce((sum, time) => sum + time, 0) /
+            processingTimes.length
+          : 0;
 
       await this.sessionRepository.update(sessionId, {
         status: AssessmentSessionStatus.COMPLETED,
         completedAt: completionTime,
         progress: 100,
         statistics: {
-          averageProcessingTime: totalTime / session.totalSolutions,
+          totalTime,
+          averageProcessingTime,
           averageScore:
             results.reduce((sum, r) => sum + r.totalScore, 0) /
-              results.length || 0,
+            (results.length || 1),
           modelUsage: {
             promptTokens: 0,
             completionTokens: 0,
@@ -217,14 +225,26 @@ export class AutoAssessmentService {
             estimatedCost: totalCost,
           },
           criteriaDistribution: scoreDistribution,
+          processingTimes,
+          totalAssessments: session.totalSolutions,
+          successfulAssessments: session.successfulAssessments,
+          failedAssessments: session.failedAssessments,
         },
         errors,
       });
 
-      return this.sessionRepository.findOne({
+      const updatedSession = await this.sessionRepository.findOne({
         where: { id: sessionId },
         relations: ['initiatedBy'],
       });
+
+      if (!updatedSession) {
+        throw new NotFoundException(
+          `Session with ID ${sessionId} not found after update`,
+        );
+      }
+
+      return updatedSession;
     } catch (error) {
       await this.sessionRepository.update(sessionId, {
         status: AssessmentSessionStatus.FAILED,

@@ -7,7 +7,6 @@ import {
   Patch,
   Post,
   Query,
-  Request,
   UseGuards,
 } from '@nestjs/common';
 import { TaskSolutionsService } from './task-solutions.service';
@@ -22,6 +21,8 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { TaskSolution } from './entities/task-solution.entity';
+import { GetCurrentUser } from '../auth/decorators/current-user.decorator';
+import { CurrentUser } from '@app/shared';
 
 // Helper function to map a single TaskSolution entity to TaskSolutionDto
 function mapTaskSolutionToDto(solution: TaskSolution): TaskSolutionDto {
@@ -79,10 +80,10 @@ export class TaskSolutionsController {
 
   @Get('my-solutions')
   @Roles(UserRole.STUDENT)
-  async findMyTaskSolutions(@Request() req): Promise<TaskSolutionDto[]> {
-    const solutions = await this.taskSolutionsService.findByStudent(
-      req.user.id,
-    );
+  async findMyTaskSolutions(
+    @GetCurrentUser() user: CurrentUser,
+  ): Promise<TaskSolutionDto[]> {
+    const solutions = await this.taskSolutionsService.findByStudent(user.id);
     return mapTaskSolutionsToDtos(solutions);
   }
 
@@ -98,9 +99,9 @@ export class TaskSolutionsController {
   @Get(':id')
   async findOne(
     @Param('id') id: number,
-    @Request() req,
+    @GetCurrentUser() user: CurrentUser,
   ): Promise<TaskSolutionDto> {
-    const solution = await this.taskSolutionsService.findOne(id, req.user);
+    const solution = await this.taskSolutionsService.findOne(id, user);
     // Need to ensure findOne in service also loads relations if not already
     return mapTaskSolutionToDto(solution);
   }
@@ -109,11 +110,11 @@ export class TaskSolutionsController {
   @Roles(UserRole.STUDENT)
   async create(
     @Body() createTaskSolutionDto: CreateTaskSolutionDto,
-    @Request() req,
+    @GetCurrentUser() user: CurrentUser,
   ): Promise<TaskSolutionDto> {
     const solution = await this.taskSolutionsService.create(
       createTaskSolutionDto,
-      req.user,
+      user,
     );
     return mapTaskSolutionToDto(solution);
   }
@@ -122,19 +123,22 @@ export class TaskSolutionsController {
   async update(
     @Param('id') id: number,
     @Body() updateTaskSolutionDto: UpdateTaskSolutionDto,
-    @Request() req,
+    @GetCurrentUser() user: CurrentUser,
   ): Promise<TaskSolutionDto> {
     const solution = await this.taskSolutionsService.update(
       id,
       updateTaskSolutionDto,
-      req.user.id,
-      req.user.role,
+      user.id,
+      user.role,
     );
     return mapTaskSolutionToDto(solution);
   }
 
   @Delete(':id')
-  async remove(@Param('id') id: number, @Request() req): Promise<void> {
-    await this.taskSolutionsService.remove(id, req.user.id, req.user.role);
+  async remove(
+    @Param('id') id: number,
+    @GetCurrentUser() user: CurrentUser,
+  ): Promise<void> {
+    await this.taskSolutionsService.remove(id, user.id, user.role);
   }
 }

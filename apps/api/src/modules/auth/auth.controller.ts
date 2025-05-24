@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import {
   LoginAsDto,
@@ -13,6 +13,8 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RolesGuard } from './guards/roles.guard';
 import { Roles } from './decorators/roles.decorator';
 import { UsersService } from '../users/users.service';
+import { GetCurrentUser } from './decorators/current-user.decorator';
+import { CurrentUser } from '@app/shared';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -35,10 +37,9 @@ export class AuthController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Get('profile')
-  async getProfile(@Req() req: any): Promise<UserDto> {
-    const userId = req.user.sub;
-    const user = await this.usersService.findOne(userId);
-    const { password, ...result } = user;
+  async getProfile(@GetCurrentUser() user: CurrentUser): Promise<UserDto> {
+    const fullUser = await this.usersService.findOne(user.id);
+    const { password, ...result } = fullUser;
     return result;
   }
 
@@ -48,9 +49,8 @@ export class AuthController {
   @Roles(UserRole.ADMIN)
   async loginAs(
     @Body() loginAsDto: LoginAsDto,
-    @Req() req: any,
+    @GetCurrentUser() user: CurrentUser,
   ): Promise<TokenDto> {
-    const adminId = req.user.sub;
-    return this.authService.loginAs(loginAsDto.userId, adminId);
+    return this.authService.loginAs(loginAsDto.userId, user.id);
   }
 }

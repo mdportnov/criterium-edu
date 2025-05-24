@@ -106,7 +106,7 @@ export class BulkOperationsService {
       metadata: { taskIds: [...new Set(solutionsData.map((s) => s.taskId))] },
     });
 
-    this.processSolutionsAsync(operation.id, solutionsData);
+    await this.processSolutionsAsync(operation.id, solutionsData);
 
     return this.mapOperationToDto(operation);
   }
@@ -139,7 +139,7 @@ export class BulkOperationsService {
 
           const createdSolution = await this.taskSolutionsService.create(
             createSolutionDto,
-            user,
+            { id: user.id, role: user.role },
           );
           results.push(createdSolution);
         } catch (error) {
@@ -257,7 +257,7 @@ export class BulkOperationsService {
       },
     });
 
-    this.processLLMAssessmentAsync(operation.id, data);
+    await this.processLLMAssessmentAsync(operation.id, data);
 
     return this.mapOperationToDto(operation);
   }
@@ -446,7 +446,7 @@ export class BulkOperationsService {
           sessionDescription: operation.metadata.sessionDescription,
         };
 
-        this.processLLMAssessmentAsync(operationId, restartData);
+        await this.processLLMAssessmentAsync(operationId, restartData);
       } catch (error) {
         await this.updateOperationStatus(
           operationId,

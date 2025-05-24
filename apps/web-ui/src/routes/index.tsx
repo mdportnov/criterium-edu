@@ -5,7 +5,6 @@ import {
   RouterProvider,
 } from 'react-router-dom';
 import ProtectedRoute from '@/components/router/ProtectedRoute';
-import { UserRole } from '@/types';
 
 // Layouts
 import MainLayout from '@/layouts/MainLayout';
@@ -43,6 +42,7 @@ import ProcessingOperationPage from '@/features/reviews/pages/ProcessingOperatio
 import LLMProcessingPage from '@/features/reviews/pages/LLMProcessingPage';
 import ReviewApprovalDashboard from '@/features/reviews/pages/ReviewApprovalDashboard';
 import ProcessingStatusPage from '@/features/reviews/pages/ProcessingStatusPage';
+import { UserRole } from '@app/shared';
 
 // Dashboard pages (protected routes under /dashboard)
 const dashboardPages: RouteObject[] = [
