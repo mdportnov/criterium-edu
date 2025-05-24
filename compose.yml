@@ -70,7 +70,7 @@ services:
       - criterium-network
     volumes:
       - /var/www/frontend/data:/var/www/frontend/data
-      - ./default.conf.template:/etc/nginx/conf.d/default.conf.template:ro
+      - ./apps/nginx/nginx.config:/etc/nginx/conf.d/default.conf:ro
 #    command: >
 #      /bin/sh -c '
 #        envsubst \
