@@ -76,7 +76,7 @@ jobs:
             sudo mkdir -p /var/www/criterium
             sudo chown -R ${{ secrets.SSH_USER }}:${{ secrets.SSH_USER }} /var/www/criterium
             
-            cp -f ~/criterium/docker-compose.yml /var/www/criterium/
+            cp -f ~/criterium/compose.yml /var/www/criterium/
             cp -f ~/criterium/.env.example /var/www/criterium/
             
             cd /var/www/criterium
