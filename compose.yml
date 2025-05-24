@@ -68,9 +68,9 @@ services:
     restart: always
     networks:
       - criterium-network
-    volumes:
-      - /var/www/frontend/data:/var/www/frontend/data
-      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+#    volumes:
+#      - /var/www/frontend/data:/var/www/frontend/data
+#      - ./nginx.conf:/etc/nginx/conf.d/default.conf
 #    command: >
 #      /bin/sh -c '
 #        envsubst \
