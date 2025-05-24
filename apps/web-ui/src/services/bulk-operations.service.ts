@@ -1,10 +1,10 @@
 import { apiRequest } from './api';
-import type { 
-  BulkImportResponse, 
-  BulkOperationStatus, 
+import type {
+  BulkImportResponse,
+  BulkOperationStatus,
   BulkImportSolution,
   ProcessingOperation,
-  LLMAssessmentRequest
+  LLMAssessmentRequest,
 } from '@/types';
 
 export const BulkOperationsService = {
@@ -43,7 +43,9 @@ export const BulkOperationsService = {
     });
   },
 
-  async importSolutions(solutions: BulkImportSolution[]): Promise<ProcessingOperation> {
+  async importSolutions(
+    solutions: BulkImportSolution[],
+  ): Promise<ProcessingOperation> {
     return apiRequest<ProcessingOperation>({
       method: 'POST',
       url: '/bulk-operations/solutions/import/json',
@@ -51,7 +53,9 @@ export const BulkOperationsService = {
     });
   },
 
-  async startLLMAssessment(request: LLMAssessmentRequest): Promise<ProcessingOperation> {
+  async startLLMAssessment(
+    request: LLMAssessmentRequest,
+  ): Promise<ProcessingOperation> {
     return apiRequest<ProcessingOperation>({
       method: 'POST',
       url: '/bulk-operations/solutions/assess-llm',
@@ -66,7 +70,9 @@ export const BulkOperationsService = {
     });
   },
 
-  async getProcessingOperationStatus(operationId: string): Promise<ProcessingOperation> {
+  async getProcessingOperationStatus(
+    operationId: string,
+  ): Promise<ProcessingOperation> {
     return apiRequest<ProcessingOperation>({
       method: 'GET',
       url: `/bulk-operations/operations/${operationId}/status`,

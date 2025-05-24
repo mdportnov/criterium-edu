@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Param, Post, Put, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Put,
+  UseGuards,
+} from '@nestjs/common';
 import { UserRole } from '@app/shared';
 import { ApiTags } from '@nestjs/swagger';
 import {
@@ -74,10 +82,12 @@ export class AutoAssessmentController {
   @Roles(UserRole.REVIEWER, UserRole.ADMIN)
   async processSession(@Param('id') sessionId: number) {
     // Process the session asynchronously
-    this.assessmentService.processAssessmentSession(sessionId).catch(error => {
-      console.error('Error processing assessment session:', error);
-    });
-    
+    this.assessmentService
+      .processAssessmentSession(sessionId)
+      .catch((error) => {
+        console.error('Error processing assessment session:', error);
+      });
+
     // Return immediately with session info
     return this.assessmentService.getAssessmentSession(sessionId);
   }

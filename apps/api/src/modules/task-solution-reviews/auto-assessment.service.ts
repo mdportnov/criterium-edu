@@ -3,7 +3,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import { AutoAssessment } from './entities/auto-assessment.entity';
-import { AssessmentSession, AssessmentSessionStatus } from './entities/assessment-session.entity';
+import {
+  AssessmentSession,
+  AssessmentSessionStatus,
+} from './entities/assessment-session.entity';
 import { TaskSolution } from '../task-solutions/entities/task-solution.entity';
 import { Task } from '../tasks/entities/task.entity';
 import { User } from '../users/entities/user.entity';
@@ -169,7 +172,8 @@ export class AutoAssessmentService {
           await this.sessionRepository.update(sessionId, {
             processedSolutions: session.processedSolutions + 1,
             successfulAssessments: session.successfulAssessments + 1,
-            progress: ((session.processedSolutions + 1) / session.totalSolutions) * 100,
+            progress:
+              ((session.processedSolutions + 1) / session.totalSolutions) * 100,
           });
 
           session.processedSolutions++;
@@ -185,7 +189,8 @@ export class AutoAssessmentService {
           await this.sessionRepository.update(sessionId, {
             processedSolutions: session.processedSolutions + 1,
             failedAssessments: session.failedAssessments + 1,
-            progress: ((session.processedSolutions + 1) / session.totalSolutions) * 100,
+            progress:
+              ((session.processedSolutions + 1) / session.totalSolutions) * 100,
           });
 
           session.processedSolutions++;
@@ -202,7 +207,9 @@ export class AutoAssessmentService {
         progress: 100,
         statistics: {
           averageProcessingTime: totalTime / session.totalSolutions,
-          averageScore: results.reduce((sum, r) => sum + r.totalScore, 0) / results.length || 0,
+          averageScore:
+            results.reduce((sum, r) => sum + r.totalScore, 0) /
+              results.length || 0,
           modelUsage: {
             promptTokens: 0,
             completionTokens: 0,
@@ -223,7 +230,10 @@ export class AutoAssessmentService {
         status: AssessmentSessionStatus.FAILED,
         completedAt: new Date(),
         errorMessage: (error as Error).message,
-        errors: [...errors, { error: (error as Error).message, timestamp: new Date() }],
+        errors: [
+          ...errors,
+          { error: (error as Error).message, timestamp: new Date() },
+        ],
       });
       throw error;
     }
