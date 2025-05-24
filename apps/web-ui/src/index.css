@@ -149,11 +149,9 @@
   }
   
   .nav-user-dropdown {
+    @apply absolute right-0 top-full mt-2 w-56 border dark:border-gray-700 rounded-lg shadow-xl overflow-hidden;
+    margin-top: 20px;
     background: hsl(var(--background));
-    border: 1px solid hsl(var(--border));
-    border-radius: 0.5rem;
-    box-shadow: 0 10px 25px -5px hsl(var(--foreground) / 0.1), 0 8px 10px -6px hsl(var(--foreground) / 0.1);
-    overflow: hidden;
   }
   
   .nav-user-info {
