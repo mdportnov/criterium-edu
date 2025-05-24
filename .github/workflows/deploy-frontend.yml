@@ -61,7 +61,7 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           passphrase: ${{ secrets.PASSPHRASE }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "compose.yml,.env.example"
+          source: "compose.yml,.env.example, ./apps/nginx/nginx.conf"
           target: "~/criterium/"
 
       - name: "Deploy to server"
