@@ -168,6 +168,12 @@ const ReviewsPage: React.FC = () => {
         {canCreateReview && (
           <div className="flex flex-wrap gap-2">
             <Button asChild>
+              <Link to="/dashboard/reviews/create">
+                <Plus className="w-4 h-4 mr-2" />
+                Create Review
+              </Link>
+            </Button>
+            <Button variant="outline" asChild>
               <Link to="/dashboard/reviews/bulk-upload">
                 <Upload className="w-4 h-4 mr-2" />
                 Bulk Upload
@@ -183,12 +189,6 @@ const ReviewsPage: React.FC = () => {
               <Link to="/dashboard/reviews/approval-dashboard">
                 <CheckCircle className="w-4 h-4 mr-2" />
                 Approvals
-              </Link>
-            </Button>
-            <Button variant="secondary" asChild>
-              <Link to="/dashboard/reviews/create">
-                <Plus className="w-4 h-4 mr-2" />
-                Manual Review
               </Link>
             </Button>
           </div>
@@ -207,7 +207,7 @@ const ReviewsPage: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <Button
                 variant="ghost"
-                className="h-auto p-4 flex flex-col items-center gap-2"
+                className="h-auto p-4 flex flex-col items-center gap-2 transition-all duration-200 hover:scale-105 hover:shadow-md hover:bg-accent/50"
                 asChild
               >
                 <Link to="/dashboard/reviews/processing-status">
@@ -222,11 +222,11 @@ const ReviewsPage: React.FC = () => {
               </Button>
               <Button
                 variant="ghost"
-                className="h-auto p-4 flex flex-col items-center gap-2"
+                className="h-auto p-4 flex flex-col items-center gap-2 transition-all duration-200 hover:scale-105 hover:shadow-md hover:bg-accent/50 group"
                 asChild
               >
                 <Link to="/dashboard/reviews/approval-dashboard">
-                  <CheckCircle className="w-6 h-6" />
+                  <CheckCircle className="w-6 h-6 transition-transform duration-200 group-hover:scale-110" />
                   <div className="text-center">
                     <div className="font-medium">Pending Approvals</div>
                     <div className="text-xs text-muted-foreground">
@@ -237,11 +237,11 @@ const ReviewsPage: React.FC = () => {
               </Button>
               <Button
                 variant="ghost"
-                className="h-auto p-4 flex flex-col items-center gap-2"
+                className="h-auto p-4 flex flex-col items-center gap-2 transition-all duration-200 hover:scale-105 hover:shadow-md hover:bg-accent/50 group"
                 asChild
               >
                 <Link to="/dashboard/reviews/bulk-upload">
-                  <Upload className="w-6 h-6" />
+                  <Upload className="w-6 h-6 transition-transform duration-200 group-hover:-translate-y-1" />
                   <div className="text-center">
                     <div className="font-medium">Import Solutions</div>
                     <div className="text-xs text-muted-foreground">
@@ -252,11 +252,11 @@ const ReviewsPage: React.FC = () => {
               </Button>
               <Button
                 variant="ghost"
-                className="h-auto p-4 flex flex-col items-center gap-2"
+                className="h-auto p-4 flex flex-col items-center gap-2 transition-all duration-200 hover:scale-105 hover:shadow-md hover:bg-accent/50 group"
                 asChild
               >
                 <Link to="/dashboard/reviews/llm-processing">
-                  <Brain className="w-6 h-6" />
+                  <Brain className="w-6 h-6 transition-transform duration-200 group-hover:pulse" />
                   <div className="text-center">
                     <div className="font-medium">AI Assessment</div>
                     <div className="text-xs text-muted-foreground">

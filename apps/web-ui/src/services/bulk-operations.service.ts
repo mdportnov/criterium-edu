@@ -92,4 +92,11 @@ export const BulkOperationsService = {
       url: `/bulk-operations/operations/${operationId}/restart`,
     });
   },
+
+  async deleteOperation(operationId: string): Promise<void> {
+    return apiRequest<void>({
+      method: 'DELETE',
+      url: `/bulk-operations/operations/${operationId}`,
+    });
+  },
 };

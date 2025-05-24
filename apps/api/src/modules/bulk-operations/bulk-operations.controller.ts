@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Post,
@@ -149,5 +150,15 @@ export class BulkOperationsController {
   @ApiResponse({ status: 400, description: 'Cannot restart operation' })
   async restartOperation(@Param('id') operationId: string) {
     return this.bulkOperationsService.restartOperation(operationId);
+  }
+
+  @Delete('operations/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.REVIEWER)
+  @ApiOperation({ summary: 'Delete a processing operation' })
+  @ApiResponse({ status: 200, description: 'Operation deleted successfully' })
+  @ApiResponse({ status: 404, description: 'Operation not found' })
+  async deleteOperation(@Param('id') operationId: string) {
+    return this.bulkOperationsService.deleteOperation(operationId);
   }
 }
