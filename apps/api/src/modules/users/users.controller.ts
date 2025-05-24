@@ -14,6 +14,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { User } from './entities/user.entity';
 
 @ApiTags('users')
 @ApiBearerAuth()
@@ -59,7 +60,7 @@ export class UsersController {
     await this.usersService.remove(id);
   }
 
-  private mapToDto(user: any): UserDto {
+  private mapToDto(user: User): UserDto {
     const { password, ...userDto } = user;
     return userDto;
   }

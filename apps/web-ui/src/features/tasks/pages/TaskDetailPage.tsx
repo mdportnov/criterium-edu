@@ -2,8 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { type Task, type TaskSolution, UserRole } from '@/types';
+import { type Task, type TaskSolution } from '@/types';
 import { TaskService, TaskSolutionService } from '@/services';
+import { UserRole } from '@app/shared';
 
 const TaskDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();

@@ -37,4 +37,47 @@ export class OpenAIService {
       throw error;
     }
   }
+
+  async createCompletionWithMetrics(
+    prompt: string,
+    model: string = 'gpt-4o',
+    temperature: number = 0.2,
+    maxTokens: number = 2000,
+    systemPrompt?: string,
+  ): Promise<{
+    content: any;
+    usage: any;
+    model: string;
+    finishReason: string;
+  }> {
+    try {
+      const response = await this.openai.chat.completions.create({
+        model,
+        messages: [
+          {
+            role: 'system',
+            content:
+              systemPrompt ||
+              'You are an expert educator and assessor. Return assessments in valid JSON format.',
+          },
+          {
+            role: 'user',
+            content: prompt,
+          },
+        ],
+        temperature,
+        max_tokens: maxTokens,
+      });
+
+      return {
+        content: response,
+        usage: response.usage,
+        model: response.model,
+        finishReason: response.choices[0]?.finish_reason || 'unknown',
+      };
+    } catch (error) {
+      console.error('Error calling OpenAI API with metrics:', error);
+      throw error;
+    }
+  }
 }

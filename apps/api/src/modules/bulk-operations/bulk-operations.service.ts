@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { TasksService } from '../tasks/tasks.service';
 import { TaskSolutionsService } from '../task-solutions/task-solutions.service';
 import { UsersService } from '../users/users.service';
+import { AutoAssessmentService } from '../task-solution-reviews/auto-assessment.service';
 import {
   BulkImportTaskDto,
   CreateTaskDto,
@@ -26,6 +27,7 @@ export class BulkOperationsService {
     private readonly tasksService: TasksService,
     private readonly taskSolutionsService: TaskSolutionsService,
     private readonly usersService: UsersService,
+    private readonly autoAssessmentService: AutoAssessmentService,
     @InjectRepository(ProcessingOperation)
     private readonly processingOperationRepository: Repository<ProcessingOperation>,
   ) {}
@@ -101,10 +103,10 @@ export class BulkOperationsService {
     const operation = await this.createProcessingOperation({
       type: OperationType.BULK_SOLUTION_IMPORT,
       totalItems: solutionsData.length,
-      metadata: { taskIds: [...new Set(solutionsData.map(s => s.taskId))] },
+      metadata: { taskIds: [...new Set(solutionsData.map((s) => s.taskId))] },
     });
 
-    this.processSolutionsAsync(operation.id, solutionsData);
+    await this.processSolutionsAsync(operation.id, solutionsData);
 
     return this.mapOperationToDto(operation);
   }
@@ -114,7 +116,10 @@ export class BulkOperationsService {
     solutionsData: BulkImportSolutionDto[],
   ): Promise<void> {
     try {
-      await this.updateOperationStatus(operationId, ProcessingStatus.IN_PROGRESS);
+      await this.updateOperationStatus(
+        operationId,
+        ProcessingStatus.IN_PROGRESS,
+      );
 
       const results = [];
       const errors = [];
@@ -122,8 +127,11 @@ export class BulkOperationsService {
       for (let i = 0; i < solutionsData.length; i++) {
         const solution = solutionsData[i];
         try {
-          const user = await this.findOrCreateUser(solution.studentName, solution.studentId);
-          
+          const user = await this.findOrCreateUser(
+            solution.studentName,
+            solution.studentId,
+          );
+
           const createSolutionDto: CreateTaskSolutionDto = {
             taskId: parseInt(solution.taskId, 10),
             solutionText: solution.solutionContent,
@@ -131,7 +139,7 @@ export class BulkOperationsService {
 
           const createdSolution = await this.taskSolutionsService.create(
             createSolutionDto,
-            user,
+            { id: user.id, role: user.role },
           );
           results.push(createdSolution);
         } catch (error) {
@@ -142,20 +150,24 @@ export class BulkOperationsService {
           });
         }
 
-        await this.updateOperationProgress(operationId, i + 1, solutionsData.length);
+        await this.updateOperationProgress(
+          operationId,
+          i + 1,
+          solutionsData.length,
+        );
       }
 
       await this.updateOperationStatus(
         operationId,
         ProcessingStatus.COMPLETED,
-        { successfullyImported: results.length, errors }
+        { successfullyImported: results.length, errors },
       );
     } catch (error) {
       await this.updateOperationStatus(
         operationId,
         ProcessingStatus.FAILED,
         undefined,
-        error.message
+        error.message,
       );
     }
   }
@@ -206,10 +218,12 @@ export class BulkOperationsService {
       take: 50, // Limit to last 50 operations
     });
 
-    return operations.map(operation => this.mapOperationToDto(operation));
+    return operations.map((operation) => this.mapOperationToDto(operation));
   }
 
-  async getOperationStatus(operationId: string): Promise<ProcessingOperationDto> {
+  async getOperationStatus(
+    operationId: string,
+  ): Promise<ProcessingOperationDto> {
     const operation = await this.processingOperationRepository.findOne({
       where: { id: operationId },
     });
@@ -226,69 +240,113 @@ export class BulkOperationsService {
     llmModel?: string;
     taskId?: string;
     systemPrompt?: string;
+    userId: number;
+    sessionName?: string;
+    sessionDescription?: string;
   }): Promise<ProcessingOperationDto> {
     const operation = await this.createProcessingOperation({
       type: OperationType.LLM_ASSESSMENT,
       totalItems: data.solutionIds.length,
-      metadata: { 
+      metadata: {
         llmModel: data.llmModel,
         taskId: data.taskId,
         systemPrompt: data.systemPrompt,
+        userId: data.userId,
+        sessionName: data.sessionName,
+        sessionDescription: data.sessionDescription,
       },
     });
 
-    this.processLLMAssessmentAsync(operation.id, data);
+    await this.processLLMAssessmentAsync(operation.id, data);
 
     return this.mapOperationToDto(operation);
   }
 
   private async processLLMAssessmentAsync(
     operationId: string,
-    data: { solutionIds: string[]; llmModel?: string; taskId?: string; systemPrompt?: string; }
+    data: {
+      solutionIds: string[];
+      llmModel?: string;
+      taskId?: string;
+      systemPrompt?: string;
+      userId: number;
+      sessionName?: string;
+      sessionDescription?: string;
+    },
   ): Promise<void> {
     try {
-      await this.updateOperationStatus(operationId, ProcessingStatus.IN_PROGRESS);
+      await this.updateOperationStatus(
+        operationId,
+        ProcessingStatus.IN_PROGRESS,
+      );
 
-      const results = [];
-      const errors = [];
+      // Create assessment session with comprehensive logging
+      const session = await this.autoAssessmentService.createAssessmentSession({
+        name: data.sessionName || `Assessment Session ${operationId}`,
+        description:
+          data.sessionDescription ||
+          `Bulk assessment for operation ${operationId}`,
+        solutionIds: data.solutionIds.map((id) => parseInt(id, 10)),
+        llmModel: data.llmModel,
+        systemPrompt: data.systemPrompt,
+        userId: data.userId,
+      });
 
-      for (let i = 0; i < data.solutionIds.length; i++) {
-        const solutionId = data.solutionIds[i];
-        try {
-          // Here we would call the auto-assessment service or implement similar logic
-          // For now, we'll simulate the processing
-          await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate processing time
-          results.push({ solutionId, status: 'processed' });
-        } catch (error) {
-          errors.push({
-            solutionId,
-            error: error.message,
-          });
-        }
+      // Update operation metadata with session info
+      await this.updateOperationStatus(
+        operationId,
+        ProcessingStatus.IN_PROGRESS,
+        {
+          assessmentSessionId: session.id,
+          llmModel: data.llmModel,
+          taskId: data.taskId,
+          systemPrompt: data.systemPrompt,
+          sessionStartTime: new Date(),
+        },
+      );
 
-        await this.updateOperationProgress(operationId, i + 1, data.solutionIds.length);
-      }
+      // Process the assessment session
+      const completedSession =
+        await this.autoAssessmentService.processAssessmentSession(session.id);
 
+      // Update operation with final results
       await this.updateOperationStatus(
         operationId,
         ProcessingStatus.COMPLETED,
-        { successfullyProcessed: results.length, errors }
+        {
+          assessmentSessionId: completedSession.id,
+          sessionStatus: completedSession.status,
+          totalSolutions: completedSession.totalSolutions,
+          successfulAssessments: completedSession.successfulAssessments,
+          failedAssessments: completedSession.failedAssessments,
+          totalTokens:
+            completedSession.statistics?.modelUsage?.totalTokens || 0,
+          totalCost:
+            completedSession.statistics?.modelUsage?.estimatedCost || 0,
+          averageScore: completedSession.statistics?.averageScore || 0,
+          sessionCompletionTime: completedSession.completedAt || new Date(),
+          totalProcessingTime:
+            completedSession.statistics?.averageProcessingTime || 0,
+        },
       );
     } catch (error) {
       await this.updateOperationStatus(
         operationId,
         ProcessingStatus.FAILED,
         undefined,
-        error.message
+        (error as Error).message,
       );
     }
   }
 
-  private async findOrCreateUser(studentName: string, studentId: string): Promise<User> {
+  private async findOrCreateUser(
+    studentName: string,
+    studentId: string,
+  ): Promise<User> {
     const email = `${studentId}@student.local`;
-    
+
     let user = await this.usersService.findByEmail(email);
-    
+
     if (!user) {
       const createUserDto: CreateUserDto = {
         email,
@@ -297,14 +355,114 @@ export class BulkOperationsService {
         firstName: studentName.split(' ')[0] || studentName,
         lastName: studentName.split(' ').slice(1).join(' ') || 'Student',
       };
-      
+
       user = await this.usersService.create(createUserDto);
     }
-    
+
     return user;
   }
 
-  private mapOperationToDto(operation: ProcessingOperation): ProcessingOperationDto {
+  async stopOperation(operationId: string): Promise<ProcessingOperationDto> {
+    const operation = await this.processingOperationRepository.findOne({
+      where: { id: operationId },
+    });
+
+    if (!operation) {
+      throw new BadRequestException('Operation not found');
+    }
+
+    if (
+      operation.status === ProcessingStatus.COMPLETED ||
+      operation.status === ProcessingStatus.FAILED
+    ) {
+      throw new BadRequestException(
+        `Cannot stop ${operation.status} operation`,
+      );
+    }
+
+    // If it's an LLM assessment operation, also stop the assessment session
+    if (
+      operation.type === OperationType.LLM_ASSESSMENT &&
+      operation.metadata?.assessmentSessionId
+    ) {
+      try {
+        await this.autoAssessmentService.stopSession(
+          operation.metadata.assessmentSessionId,
+        );
+      } catch (error) {
+        console.error('Error stopping assessment session:', error);
+      }
+    }
+
+    await this.updateOperationStatus(
+      operationId,
+      ProcessingStatus.FAILED,
+      { ...operation.metadata, stoppedByUser: true },
+      'Operation stopped by user',
+    );
+
+    return this.getOperationStatus(operationId);
+  }
+
+  async restartOperation(operationId: string): Promise<ProcessingOperationDto> {
+    const operation = await this.processingOperationRepository.findOne({
+      where: { id: operationId },
+    });
+
+    if (!operation) {
+      throw new BadRequestException('Operation not found');
+    }
+
+    if (operation.status !== ProcessingStatus.FAILED) {
+      throw new BadRequestException('Only failed operations can be restarted');
+    }
+
+    // Reset operation to initial state
+    await this.processingOperationRepository.update(operationId, {
+      status: ProcessingStatus.PENDING,
+      processedItems: 0,
+      progress: 0,
+      errorMessage: null,
+    });
+
+    // If it's an LLM assessment operation, restart the assessment session and reprocess
+    if (
+      operation.type === OperationType.LLM_ASSESSMENT &&
+      operation.metadata?.assessmentSessionId
+    ) {
+      try {
+        await this.autoAssessmentService.restartSession(
+          operation.metadata.assessmentSessionId,
+        );
+
+        // Restart the processing
+        const restartData = {
+          solutionIds: operation.metadata.solutionIds || [],
+          llmModel: operation.metadata.llmModel,
+          taskId: operation.metadata.taskId,
+          systemPrompt: operation.metadata.systemPrompt,
+          userId: operation.metadata.userId,
+          sessionName: operation.metadata.sessionName,
+          sessionDescription: operation.metadata.sessionDescription,
+        };
+
+        await this.processLLMAssessmentAsync(operationId, restartData);
+      } catch (error) {
+        await this.updateOperationStatus(
+          operationId,
+          ProcessingStatus.FAILED,
+          operation.metadata,
+          `Restart failed: ${error.message}`,
+        );
+      }
+    }
+
+    return this.getOperationStatus(operationId);
+  }
+
+  private mapOperationToDto(
+    operation: ProcessingOperation,
+  ): ProcessingOperationDto {
     return {
       id: operation.id,
       type: operation.type,

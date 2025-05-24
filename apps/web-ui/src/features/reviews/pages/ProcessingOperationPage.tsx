@@ -29,6 +29,8 @@ import {
   FileText,
   Users,
   Zap,
+  Square,
+  RotateCcw,
 } from 'lucide-react';
 
 const ProcessingOperationPage = () => {
@@ -37,6 +39,8 @@ const ProcessingOperationPage = () => {
   const [operation, setOperation] = useState<ProcessingOperation | null>(null);
   const [error, setError] = useState<string>('');
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isStoppingOperation, setIsStoppingOperation] = useState(false);
+  const [isRestartingOperation, setIsRestartingOperation] = useState(false);
 
   useEffect(() => {
     if (!operationId) return;
@@ -94,6 +98,44 @@ const ProcessingOperationPage = () => {
       }
     };
     fetchOperation();
+  };
+
+  const handleStopOperation = async () => {
+    if (!operationId) return;
+    
+    try {
+      setIsStoppingOperation(true);
+      await BulkOperationsService.stopOperation(operationId);
+      // Refresh the operation status
+      handleManualRefresh();
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Failed to stop operation',
+      );
+    } finally {
+      setIsStoppingOperation(false);
+    }
+  };
+
+  const handleRestartOperation = async () => {
+    if (!operationId) return;
+    
+    try {
+      setIsRestartingOperation(true);
+      await BulkOperationsService.restartOperation(operationId);
+      // Refresh the operation status
+      handleManualRefresh();
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Failed to restart operation',
+      );
+    } finally {
+      setIsRestartingOperation(false);
+    }
   };
 
   const getStatusColor = (status: ProcessingStatus) => {
@@ -297,15 +339,44 @@ const ProcessingOperationPage = () => {
             </p>
           </div>
         </div>
-        <Button
-          variant="outline"
-          onClick={handleManualRefresh}
-          disabled={isRefreshing}
-          className="gap-2"
-        >
-          <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-          Refresh
-        </Button>
+        <div className="flex gap-2">
+          {/* Stop Button - Show only for running operations */}
+          {(operation.status === ProcessingStatus.PENDING || 
+            operation.status === ProcessingStatus.IN_PROGRESS) && (
+            <Button
+              variant="destructive"
+              onClick={handleStopOperation}
+              disabled={isStoppingOperation}
+              className="gap-2"
+            >
+              <Square className={`w-4 h-4 ${isStoppingOperation ? 'animate-pulse' : ''}`} />
+              {isStoppingOperation ? 'Stopping...' : 'Stop'}
+            </Button>
+          )}
+          
+          {/* Restart Button - Show only for failed operations */}
+          {operation.status === ProcessingStatus.FAILED && (
+            <Button
+              variant="outline"
+              onClick={handleRestartOperation}
+              disabled={isRestartingOperation}
+              className="gap-2"
+            >
+              <RotateCcw className={`w-4 h-4 ${isRestartingOperation ? 'animate-spin' : ''}`} />
+              {isRestartingOperation ? 'Restarting...' : 'Restart'}
+            </Button>
+          )}
+
+          <Button
+            variant="outline"
+            onClick={handleManualRefresh}
+            disabled={isRefreshing}
+            className="gap-2"
+          >
+            <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
@@ -492,9 +563,20 @@ const ProcessingOperationPage = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button onClick={() => navigate('/dashboard/reviews')}>
-              Back to Reviews
-            </Button>
+            <div className="flex gap-4">
+              <Button
+                variant="outline"
+                onClick={handleRestartOperation}
+                disabled={isRestartingOperation}
+                className="gap-2"
+              >
+                <RotateCcw className={`w-4 h-4 ${isRestartingOperation ? 'animate-spin' : ''}`} />
+                {isRestartingOperation ? 'Restarting...' : 'Restart Operation'}
+              </Button>
+              <Button onClick={() => navigate('/dashboard/reviews')}>
+                Back to Reviews
+              </Button>
+            </div>
           </CardContent>
         </Card>
       )}

@@ -42,7 +42,9 @@ export class TaskSolutionReviewsService {
       taskSolutionId: review.taskSolutionId,
       reviewerId: review.reviewerId,
       criteriaScores: review.criteriaScores
-        ? review.criteriaScores.map(this.mapCriterionScoreToDto)
+        ? review.criteriaScores.map((score) =>
+            this.mapCriterionScoreToDto(score),
+          )
         : [],
       totalScore: review.totalScore,
       feedbackToStudent: review.feedbackToStudent,
@@ -77,7 +79,7 @@ export class TaskSolutionReviewsService {
         'criteriaScores',
       ],
     });
-    return reviews.map(this.mapReviewToDto);
+    return reviews.map((review) => this.mapReviewToDto(review));
   }
 
   async findByTaskSolution(
@@ -255,7 +257,7 @@ export class TaskSolutionReviewsService {
       } catch (error) {
         errors.push({
           reviewId,
-          error: error.message,
+          error: (error as Error).message,
         });
       }
     }
@@ -289,7 +291,7 @@ export class TaskSolutionReviewsService {
       } catch (error) {
         errors.push({
           reviewId,
-          error: error.message,
+          error: (error as Error).message,
         });
       }
     }

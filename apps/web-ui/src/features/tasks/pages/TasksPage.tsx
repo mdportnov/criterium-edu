@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { type Task, UserRole } from '@/types';
+import { type Task } from '@/types';
 import { TaskService } from '@/services';
 import {
   Search,
@@ -18,6 +18,7 @@ import {
   AlertCircle,
   Upload,
 } from 'lucide-react';
+import { UserRole } from '@app/shared';
 
 const TasksPage: React.FC = () => {
   const { hasRole } = useAuth();

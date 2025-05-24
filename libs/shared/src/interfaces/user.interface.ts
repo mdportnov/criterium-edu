@@ -10,6 +10,6 @@ export interface User {
   firstName: string;
   lastName: string;
   role: UserRole;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: string;
+  updatedAt: string;
 }

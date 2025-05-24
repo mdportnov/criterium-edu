@@ -1,10 +1,10 @@
 import React from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { UserRole } from '@/types'; 
+import { UserRole } from '@app/shared';
 
 interface ProtectedRouteProps {
-  allowedRoles?: UserRole[]; 
+  allowedRoles?: UserRole[];
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ allowedRoles }) => {
@@ -24,7 +24,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ allowedRoles }) => {
     }
   }
 
-  return <Outlet />; 
+  return <Outlet />;
 };
 
 export default ProtectedRoute;

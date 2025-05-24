@@ -2,6 +2,7 @@ import axios, {
   type AxiosInstance,
   type AxiosRequestConfig,
   type AxiosResponse,
+  type AxiosError,
 } from 'axios';
 
 // Create a base API instance
@@ -29,7 +30,7 @@ api.interceptors.request.use(
 // Add response interceptor to handle common errors
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
+  (error: AxiosError) => {
     // Handle 401 Unauthorized errors (token expired or invalid)
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
@@ -41,10 +42,6 @@ api.interceptors.response.use(
 
 // Generic API request function
 export const apiRequest = async <T>(config: AxiosRequestConfig): Promise<T> => {
-  try {
-    const response: AxiosResponse<T> = await api(config);
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
+  const response: AxiosResponse<T> = await api(config);
+  return response.data;
 };

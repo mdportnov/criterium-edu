@@ -1,14 +1,26 @@
-import { Body, Controller, Get, Post, Res, Param } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import { BulkOperationsService } from './bulk-operations.service';
 import {
-  ApiTags,
-  ApiOperation,
-  ApiConsumes,
   ApiBody,
+  ApiConsumes,
+  ApiOperation,
   ApiResponse,
+  ApiTags,
 } from '@nestjs/swagger';
 import { Response } from 'express';
-import { BulkImportTaskDto, BulkImportSolutionDto } from '@app/shared/dto';
+import { BulkImportSolutionDto, BulkImportTaskDto } from '@app/shared/dto';
+import { UserRole } from '@app/shared/interfaces';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
 
 @ApiTags('Bulk Operations')
 @Controller('bulk-operations')
@@ -102,12 +114,40 @@ export class BulkOperationsController {
   })
   @ApiResponse({ status: 201, description: 'LLM assessment started' })
   @ApiResponse({ status: 400, description: 'Invalid request data' })
-  async startLLMAssessment(@Body() requestData: {
-    solutionIds: string[];
-    llmModel?: string;
-    taskId?: string;
-    systemPrompt?: string;
-  }) {
-    return this.bulkOperationsService.startLLMAssessment(requestData);
+  async startLLMAssessment(
+    @Body()
+    requestData: {
+      solutionIds: string[];
+      llmModel?: string;
+      taskId?: string;
+      systemPrompt?: string;
+    },
+  ) {
+    // TODO: Get actual user from JWT token
+    const userId = 1; // Placeholder
+    return this.bulkOperationsService.startLLMAssessment({
+      ...requestData,
+      userId,
+    });
+  }
+
+  @Post('operations/:id/stop')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.REVIEWER)
+  @ApiOperation({ summary: 'Stop a running operation' })
+  @ApiResponse({ status: 200, description: 'Operation stopped successfully' })
+  @ApiResponse({ status: 400, description: 'Cannot stop operation' })
+  async stopOperation(@Param('id') operationId: string) {
+    return this.bulkOperationsService.stopOperation(operationId);
+  }
+
+  @Post('operations/:id/restart')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.REVIEWER)
+  @ApiOperation({ summary: 'Restart a failed operation' })
+  @ApiResponse({ status: 200, description: 'Operation restarted successfully' })
+  @ApiResponse({ status: 400, description: 'Cannot restart operation' })
+  async restartOperation(@Param('id') operationId: string) {
+    return this.bulkOperationsService.restartOperation(operationId);
   }
 }

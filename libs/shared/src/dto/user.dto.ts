@@ -52,11 +52,11 @@ export class UpdateUserDto {
 }
 
 export class UserDto {
-  id: number;
-  email: string;
-  firstName: string;
-  lastName: string;
-  role: UserRole;
-  createdAt: Date;
-  updatedAt: Date;
+  id!: number;
+  email!: string;
+  firstName!: string;
+  lastName!: string;
+  role!: UserRole;
+  createdAt!: Date;
+  updatedAt!: Date;
 }
