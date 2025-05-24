@@ -25,11 +25,13 @@ services:
   backend:
     image: ghcr.io/mdportnov/criterium-edu-backend:latest
     container_name: criterium-edu-backend
+    env_file: .env.example
     environment:
       NODE_ENV: ${NODE_ENV:-production}
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-criterium}
       JWT_SECRET: ${JWT_SECRET:-your-secret-key}
       PORT: ${BACKEND_PORT:-3000}
+      BACKEND_PORT: ${BACKEND_PORT:-3000}
     depends_on:
       postgres:
         condition: service_healthy
@@ -43,6 +45,7 @@ services:
   frontend:
     image: ghcr.io/mdportnov/criterium-edu-frontend:latest
     container_name: criterium-edu-frontend
+    env_file: .env.example
     expose:
       - "${FRONTEND_PORT:-3001}"
     restart: always
@@ -55,6 +58,7 @@ services:
   nginx:
     image: ghcr.io/mdportnov/criterium-edu-nginx:latest
     container_name: criterium-edu-nginx
+    env_file: .env.example
     environment:
       - BACKEND_PORT=${BACKEND_PORT:-3000}
       - FRONTEND_PORT=${FRONTEND_PORT:-3001}
@@ -65,6 +69,17 @@ services:
       - criterium-network
     volumes:
       - /var/www/frontend/data:/var/www/frontend/data
+      - ./default.conf.template:/etc/nginx/conf.d/default.conf.template:ro
+    command: >
+      /bin/sh -c "
+        envsubst '$$BACKEND_PORT $$FRONTEND_PORT' \
+          < /etc/nginx/conf.d/default.conf.template \
+          > /etc/nginx/conf.d/default.conf &&
+        nginx -g 'daemon off;'
+      "
+    depends_on:
+      - backend
+      - frontend
 
 networks:
   criterium-network:
