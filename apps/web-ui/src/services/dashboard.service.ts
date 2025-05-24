@@ -81,17 +81,25 @@ export const dashboardService = {
   },
 
   async getTaskStatistics(period: string = '7d'): Promise<TaskStatistics> {
-    const { data } = await api.get(`/dashboard/task-statistics?period=${period}`);
+    const { data } = await api.get(
+      `/dashboard/task-statistics?period=${period}`,
+    );
     return data;
   },
 
-  async getSolutionStatistics(period: string = '7d'): Promise<SolutionStatistics> {
-    const { data } = await api.get(`/dashboard/solution-statistics?period=${period}`);
+  async getSolutionStatistics(
+    period: string = '7d',
+  ): Promise<SolutionStatistics> {
+    const { data } = await api.get(
+      `/dashboard/solution-statistics?period=${period}`,
+    );
     return data;
   },
 
   async getReviewStatistics(period: string = '7d'): Promise<ReviewStatistics> {
-    const { data } = await api.get(`/dashboard/review-statistics?period=${period}`);
+    const { data } = await api.get(
+      `/dashboard/review-statistics?period=${period}`,
+    );
     return data;
   },
 
@@ -100,8 +108,12 @@ export const dashboardService = {
     return data;
   },
 
-  async getPerformanceMetrics(period: string = '30d'): Promise<PerformanceMetrics> {
-    const { data } = await api.get(`/dashboard/performance-metrics?period=${period}`);
+  async getPerformanceMetrics(
+    period: string = '30d',
+  ): Promise<PerformanceMetrics> {
+    const { data } = await api.get(
+      `/dashboard/performance-metrics?period=${period}`,
+    );
     return data;
   },
 };

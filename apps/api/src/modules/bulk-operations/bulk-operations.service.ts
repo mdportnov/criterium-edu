@@ -103,7 +103,7 @@ export class BulkOperationsService {
     const operation = await this.createProcessingOperation({
       type: OperationType.BULK_SOLUTION_IMPORT,
       totalItems: solutionsData.length,
-      metadata: { taskIds: [...new Set(solutionsData.map(s => s.taskId))] },
+      metadata: { taskIds: [...new Set(solutionsData.map((s) => s.taskId))] },
     });
 
     this.processSolutionsAsync(operation.id, solutionsData);
@@ -116,7 +116,10 @@ export class BulkOperationsService {
     solutionsData: BulkImportSolutionDto[],
   ): Promise<void> {
     try {
-      await this.updateOperationStatus(operationId, ProcessingStatus.IN_PROGRESS);
+      await this.updateOperationStatus(
+        operationId,
+        ProcessingStatus.IN_PROGRESS,
+      );
 
       const results = [];
       const errors = [];
@@ -124,8 +127,11 @@ export class BulkOperationsService {
       for (let i = 0; i < solutionsData.length; i++) {
         const solution = solutionsData[i];
         try {
-          const user = await this.findOrCreateUser(solution.studentName, solution.studentId);
-          
+          const user = await this.findOrCreateUser(
+            solution.studentName,
+            solution.studentId,
+          );
+
           const createSolutionDto: CreateTaskSolutionDto = {
             taskId: parseInt(solution.taskId, 10),
             solutionText: solution.solutionContent,
@@ -144,20 +150,24 @@ export class BulkOperationsService {
           });
         }
 
-        await this.updateOperationProgress(operationId, i + 1, solutionsData.length);
+        await this.updateOperationProgress(
+          operationId,
+          i + 1,
+          solutionsData.length,
+        );
       }
 
       await this.updateOperationStatus(
         operationId,
         ProcessingStatus.COMPLETED,
-        { successfullyImported: results.length, errors }
+        { successfullyImported: results.length, errors },
       );
     } catch (error) {
       await this.updateOperationStatus(
         operationId,
         ProcessingStatus.FAILED,
         undefined,
-        error.message
+        error.message,
       );
     }
   }
@@ -208,10 +218,12 @@ export class BulkOperationsService {
       take: 50, // Limit to last 50 operations
     });
 
-    return operations.map(operation => this.mapOperationToDto(operation));
+    return operations.map((operation) => this.mapOperationToDto(operation));
   }
 
-  async getOperationStatus(operationId: string): Promise<ProcessingOperationDto> {
+  async getOperationStatus(
+    operationId: string,
+  ): Promise<ProcessingOperationDto> {
     const operation = await this.processingOperationRepository.findOne({
       where: { id: operationId },
     });
@@ -235,7 +247,7 @@ export class BulkOperationsService {
     const operation = await this.createProcessingOperation({
       type: OperationType.LLM_ASSESSMENT,
       totalItems: data.solutionIds.length,
-      metadata: { 
+      metadata: {
         llmModel: data.llmModel,
         taskId: data.taskId,
         systemPrompt: data.systemPrompt,
@@ -298,18 +310,25 @@ export class BulkOperationsService {
         await this.autoAssessmentService.processAssessmentSession(session.id);
 
       // Update operation with final results
-      await this.updateOperationStatus(operationId, ProcessingStatus.COMPLETED, {
-        assessmentSessionId: completedSession.id,
-        sessionStatus: completedSession.status,
-        totalSolutions: completedSession.totalSolutions,
-        successfulAssessments: completedSession.successfulAssessments,
-        failedAssessments: completedSession.failedAssessments,
-        totalTokens: completedSession.statistics?.modelUsage?.totalTokens || 0,
-        totalCost: completedSession.statistics?.modelUsage?.estimatedCost || 0,
-        averageScore: completedSession.statistics?.averageScore || 0,
-        sessionCompletionTime: completedSession.completedAt || new Date(),
-        totalProcessingTime: completedSession.statistics?.averageProcessingTime || 0,
-      });
+      await this.updateOperationStatus(
+        operationId,
+        ProcessingStatus.COMPLETED,
+        {
+          assessmentSessionId: completedSession.id,
+          sessionStatus: completedSession.status,
+          totalSolutions: completedSession.totalSolutions,
+          successfulAssessments: completedSession.successfulAssessments,
+          failedAssessments: completedSession.failedAssessments,
+          totalTokens:
+            completedSession.statistics?.modelUsage?.totalTokens || 0,
+          totalCost:
+            completedSession.statistics?.modelUsage?.estimatedCost || 0,
+          averageScore: completedSession.statistics?.averageScore || 0,
+          sessionCompletionTime: completedSession.completedAt || new Date(),
+          totalProcessingTime:
+            completedSession.statistics?.averageProcessingTime || 0,
+        },
+      );
     } catch (error) {
       await this.updateOperationStatus(
         operationId,
@@ -352,15 +371,24 @@ export class BulkOperationsService {
       throw new BadRequestException('Operation not found');
     }
 
-    if (operation.status === ProcessingStatus.COMPLETED || 
-        operation.status === ProcessingStatus.FAILED) {
-      throw new BadRequestException(`Cannot stop ${operation.status} operation`);
+    if (
+      operation.status === ProcessingStatus.COMPLETED ||
+      operation.status === ProcessingStatus.FAILED
+    ) {
+      throw new BadRequestException(
+        `Cannot stop ${operation.status} operation`,
+      );
     }
 
     // If it's an LLM assessment operation, also stop the assessment session
-    if (operation.type === OperationType.LLM_ASSESSMENT && operation.metadata?.assessmentSessionId) {
+    if (
+      operation.type === OperationType.LLM_ASSESSMENT &&
+      operation.metadata?.assessmentSessionId
+    ) {
       try {
-        await this.autoAssessmentService.stopSession(operation.metadata.assessmentSessionId);
+        await this.autoAssessmentService.stopSession(
+          operation.metadata.assessmentSessionId,
+        );
       } catch (error) {
         console.error('Error stopping assessment session:', error);
       }
@@ -370,7 +398,7 @@ export class BulkOperationsService {
       operationId,
       ProcessingStatus.FAILED,
       { ...operation.metadata, stoppedByUser: true },
-      'Operation stopped by user'
+      'Operation stopped by user',
     );
 
     return this.getOperationStatus(operationId);
@@ -398,10 +426,15 @@ export class BulkOperationsService {
     });
 
     // If it's an LLM assessment operation, restart the assessment session and reprocess
-    if (operation.type === OperationType.LLM_ASSESSMENT && operation.metadata?.assessmentSessionId) {
+    if (
+      operation.type === OperationType.LLM_ASSESSMENT &&
+      operation.metadata?.assessmentSessionId
+    ) {
       try {
-        await this.autoAssessmentService.restartSession(operation.metadata.assessmentSessionId);
-        
+        await this.autoAssessmentService.restartSession(
+          operation.metadata.assessmentSessionId,
+        );
+
         // Restart the processing
         const restartData = {
           solutionIds: operation.metadata.solutionIds || [],
@@ -419,7 +452,7 @@ export class BulkOperationsService {
           operationId,
           ProcessingStatus.FAILED,
           operation.metadata,
-          `Restart failed: ${error.message}`
+          `Restart failed: ${error.message}`,
         );
       }
     }
