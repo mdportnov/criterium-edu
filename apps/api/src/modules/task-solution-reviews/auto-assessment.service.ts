@@ -7,6 +7,8 @@ import {
   AssessmentSession,
   AssessmentSessionStatus,
 } from './entities/assessment-session.entity';
+import { TaskSolutionReview } from './entities/task-solution-review.entity';
+import { CriterionScore } from './entities/criterion-score.entity';
 import { TaskSolution } from '../task-solutions/entities/task-solution.entity';
 import { Task } from '../tasks/entities/task.entity';
 import { User } from '../users/entities/user.entity';
@@ -15,6 +17,7 @@ import {
   SourceAutoAssessRequestDto,
   TaskAutoAssessRequestDto,
 } from '../task-solutions/entities/solution-import.dto';
+import { ReviewSource } from '@app/shared';
 import { OpenAIService } from '../shared/services/openai.service';
 
 interface AssessmentResult {
@@ -43,6 +46,10 @@ export class AutoAssessmentService {
     private readonly assessmentRepository: Repository<AutoAssessment>,
     @InjectRepository(AssessmentSession)
     private readonly sessionRepository: Repository<AssessmentSession>,
+    @InjectRepository(TaskSolutionReview)
+    private readonly reviewRepository: Repository<TaskSolutionReview>,
+    @InjectRepository(CriterionScore)
+    private readonly criterionScoreRepository: Repository<CriterionScore>,
     @InjectRepository(TaskSolution)
     private readonly solutionRepository: Repository<TaskSolution>,
     @InjectRepository(Task)
@@ -343,22 +350,26 @@ export class AutoAssessmentService {
     }
 
     // Create the prompt for assessment
-    const prompt =
-      customSystemPrompt || this.createAssessmentPrompt(task, solution);
+    const assessmentPrompt = this.createAssessmentPrompt(task, solution);
     const startTime = Date.now();
+
+    console.log('Assessment prompt being sent to OpenAI:', assessmentPrompt);
+    console.log('Solution content:', solution.content);
+    console.log('Task description:', task.description);
 
     // Call OpenAI API with metrics tracking
     const response = await this.openaiService.createCompletionWithMetrics(
-      prompt,
+      assessmentPrompt,
       model,
       0.2,
       2000,
-      customSystemPrompt,
+      customSystemPrompt ||
+        'You are an expert educator and assessor. Return assessments in valid JSON format only. Do not include any explanatory text before or after the JSON.',
     );
     const processingTime = Date.now() - startTime;
 
     // Parse the response
-    const assessment = this.parseAssessmentResponse(response.content);
+    const assessment = this.parseAssessmentResponse(response);
 
     // Save the assessment with metrics
     const newAssessment = this.assessmentRepository.create({
@@ -367,7 +378,7 @@ export class AutoAssessmentService {
       comments: assessment.comments,
       totalScore: assessment.totalScore,
       llmModel: model,
-      promptUsed: prompt,
+      promptUsed: assessmentPrompt,
       rawResponse: response.content,
       tokenUsage: response.usage?.total_tokens || 0,
       cost: this.calculateCost(response.usage, model),
@@ -375,7 +386,15 @@ export class AutoAssessmentService {
       sessionId,
     });
 
-    return this.assessmentRepository.save(newAssessment);
+    const savedAssessment = await this.assessmentRepository.save(newAssessment);
+
+    // Create corresponding TaskSolutionReview for the UI
+    await this.createTaskSolutionReviewFromAssessment(
+      savedAssessment,
+      solution,
+    );
+
+    return savedAssessment;
   }
 
   private async assessSolution(
@@ -427,7 +446,7 @@ export class AutoAssessmentService {
 
   private createAssessmentPrompt(task: Task, solution: TaskSolution): string {
     // Get task details
-    const taskDescription = task.description;
+    const taskDescription = task.description || 'No task description provided';
     const taskCriteriaString = task.criteria
       ? task.criteria
           .map(
@@ -436,9 +455,9 @@ export class AutoAssessmentService {
           .join('\n')
       : 'No specific criteria provided';
     const idealSolution = task.authorSolution || 'No ideal solution provided';
+    const studentSolution = solution.content || 'No solution content provided';
 
-    return `
-You are an experienced educator tasked with evaluating a student's solution to a programming or technical task.
+    return `You are an experienced educator tasked with evaluating a student's solution to a programming or technical task.
 
 ## Task Description:
 ${taskDescription}
@@ -450,85 +469,91 @@ ${taskCriteriaString}
 ${idealSolution}
 
 ## Student Solution to Evaluate:
-${solution.content}
+${studentSolution}
 
 Evaluate the student's solution based on the criteria provided. Your evaluation should be objective, fair, and constructive.
 
-Respond in the following JSON format:
+You MUST respond with ONLY valid JSON in the following format (no other text):
 {
   "criteriaScores": {
     "criteria1Name": score,
-    "criteria2Name": score,
-    ... (scores should be between 0-10)
+    "criteria2Name": score
   },
   "comments": "Detailed feedback about the solution, highlighting strengths and areas for improvement",
-  "totalScore": overallScore (between 0-10)
+  "totalScore": overallScore
 }
 
-Please extract criteria names from the evaluation criteria section. If no specific criteria are given, use general categories like "correctness", "efficiency", "style", etc.
-`;
+Important:
+- Scores should be numbers between 0-10
+- Extract criteria names from the evaluation criteria section
+- If no specific criteria are given, use general categories like "correctness", "efficiency", "style"
+- Return ONLY the JSON object, no other text or explanations`;
   }
 
   private parseAssessmentResponse(response: any): AssessmentResult {
     // Parse the JSON response from OpenAI
     try {
-      // If the response is already an object, use it directly
-      if (
-        typeof response === 'object' &&
-        response.criteriaScores &&
-        response.comments &&
-        response.totalScore
-      ) {
-        return response;
-      }
+      let contentStr = '';
 
-      // If the response is a string, extract the JSON part
-      let jsonStr = '';
+      // Handle different response formats
       if (typeof response === 'string') {
-        // Try to extract JSON from the response
-        const jsonMatch = response.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          jsonStr = jsonMatch[0];
-        } else {
-          throw new Error('No valid JSON found in the response');
-        }
-      } else if (
-        response.choices &&
-        response.choices[0] &&
-        response.choices[0].message
-      ) {
+        contentStr = response;
+      } else if (response.choices && response.choices[0]?.message?.content) {
         // OpenAI API response format
-        jsonStr = response.choices[0].message.content;
-        const jsonMatch = jsonStr.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          jsonStr = jsonMatch[0];
+        contentStr = response.choices[0].message.content;
+      } else if (response.content && typeof response.content === 'string') {
+        // If content is already extracted
+        contentStr = response.content;
+      } else if (
+        response.content &&
+        response.content.choices &&
+        response.content.choices[0]?.message?.content
+      ) {
+        // Nested content structure from createCompletionWithMetrics
+        contentStr = response.content.choices[0].message.content;
+      } else {
+        console.error('Unexpected response format:', JSON.stringify(response, null, 2));
+        throw new Error('Unexpected response format');
+      }
+
+      console.log('Content to parse:', contentStr);
+
+      // Try to extract JSON from the content string
+      let jsonMatch = contentStr.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        // If no JSON found, try to extract from response without curly braces
+        const lines = contentStr.split('\n').filter(line => line.trim());
+        const jsonLine = lines.find(line => line.includes('{') && line.includes('}'));
+        if (jsonLine) {
+          jsonMatch = jsonLine.match(/\{[\s\S]*\}/);
         }
       }
 
-      const parsedResult = JSON.parse(jsonStr);
-
-      // Ensure the result has the expected properties
-      if (
-        !parsedResult.criteriaScores ||
-        !parsedResult.comments ||
-        typeof parsedResult.totalScore !== 'number'
-      ) {
-        throw new Error('Invalid response format');
+      if (!jsonMatch) {
+        console.error('No valid JSON found in response content:', contentStr);
+        throw new Error('No valid JSON found in the response');
       }
+
+      const parsedResult = JSON.parse(jsonMatch[0]);
+
+      // Validate and provide defaults if needed
+      const criteriaScores = parsedResult.criteriaScores || { general: 5 };
+      const comments = parsedResult.comments || 'Assessment completed with default values due to parsing issues.';
+      const totalScore = typeof parsedResult.totalScore === 'number' ? parsedResult.totalScore : 5;
 
       return {
-        criteriaScores: parsedResult.criteriaScores,
-        comments: parsedResult.comments,
-        totalScore: parsedResult.totalScore,
+        criteriaScores,
+        comments,
+        totalScore,
       };
     } catch (error) {
       console.error('Error parsing assessment response:', error);
+      console.error('Full response object:', JSON.stringify(response, null, 2));
 
-      // Return a default assessment
+      // Return a default assessment with more helpful error information
       return {
-        criteriaScores: { error: 0 },
-        comments:
-          'Error processing the assessment. The LLM response could not be parsed correctly.',
+        criteriaScores: { general: 0 },
+        comments: `Error processing the assessment: ${error.message}. The LLM response could not be parsed correctly.`,
         totalScore: 0,
       };
     }
@@ -635,6 +660,70 @@ Please extract criteria names from the evaluation criteria section. If no specif
 
   async cancelSession(sessionId: number): Promise<AssessmentSession> {
     return this.stopSession(sessionId);
+  }
+
+  private async createTaskSolutionReviewFromAssessment(
+    assessment: AutoAssessment,
+    solution: TaskSolution,
+  ): Promise<TaskSolutionReview> {
+    // Check if review already exists for this solution
+    const existingReview = await this.reviewRepository.findOne({
+      where: {
+        taskSolutionId: solution.id,
+        source: ReviewSource.AUTO,
+      },
+    });
+
+    if (existingReview) {
+      return existingReview;
+    }
+
+    // Create TaskSolutionReview
+    const review = this.reviewRepository.create({
+      taskSolutionId: solution.id,
+      reviewerId: null, // Auto review has no human reviewer
+      totalScore: Number(assessment.totalScore),
+      feedbackToStudent: assessment.comments,
+      reviewerComment: `Automated assessment using ${assessment.llmModel}`,
+      source: ReviewSource.AUTO,
+    });
+
+    const savedReview = await this.reviewRepository.save(review);
+
+    // Load task with criteria to get proper criterion IDs
+    const taskWithCriteria = await this.solutionRepository.findOne({
+      where: { id: solution.id },
+      relations: ['task', 'task.criteria'],
+    });
+
+    if (taskWithCriteria?.task?.criteria) {
+      // Create CriterionScores mapped to actual task criteria
+      const criterionScores = [];
+      for (const [criterionName, score] of Object.entries(
+        assessment.criteriaScores,
+      )) {
+        // Try to find matching criterion by name
+        const matchingCriterion = taskWithCriteria.task.criteria.find(
+          (c) => c.name.toLowerCase() === criterionName.toLowerCase(),
+        );
+
+        if (matchingCriterion) {
+          const criterionScore = this.criterionScoreRepository.create({
+            reviewId: savedReview.id,
+            criterionId: matchingCriterion.id,
+            score: Number(score),
+            comment: `${criterionName}: ${score} points`,
+          });
+          criterionScores.push(criterionScore);
+        }
+      }
+
+      if (criterionScores.length > 0) {
+        await this.criterionScoreRepository.save(criterionScores);
+      }
+    }
+
+    return savedReview;
   }
 
   private calculateCost(usage: any, model: string): number {

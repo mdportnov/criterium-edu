@@ -254,6 +254,7 @@ export class BulkOperationsService {
         userId: data.userId,
         sessionName: data.sessionName,
         sessionDescription: data.sessionDescription,
+        solutionIds: data.solutionIds, // Store for restart capability
       },
     });
 
