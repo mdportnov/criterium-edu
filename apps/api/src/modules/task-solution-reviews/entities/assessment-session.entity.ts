@@ -105,6 +105,7 @@ export class AssessmentSession {
 
   @Column({ type: 'json', nullable: true })
   statistics?: {
+    totalTime?: number;
     averageProcessingTime?: number;
     averageScore?: number;
     modelUsage?: {
@@ -114,6 +115,10 @@ export class AssessmentSession {
       estimatedCost?: number;
     };
     criteriaDistribution?: Record<string, number>;
+    processingTimes?: number[];
+    totalAssessments?: number;
+    successfulAssessments?: number;
+    failedAssessments?: number;
   };
 
   @Column({ type: 'json', nullable: true })
