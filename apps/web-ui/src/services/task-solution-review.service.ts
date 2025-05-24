@@ -72,10 +72,10 @@ export const TaskSolutionReviewService = {
   },
 
   async getPendingAutoReviews(taskId?: number): Promise<TaskSolutionReview[]> {
-    const url = taskId 
+    const url = taskId
       ? `/task-solution-reviews/pending-auto?taskId=${taskId}`
       : '/task-solution-reviews/pending-auto';
-    
+
     return apiRequest<TaskSolutionReview[]>({
       method: 'GET',
       url,
@@ -89,7 +89,9 @@ export const TaskSolutionReviewService = {
     });
   },
 
-  async batchApproveReviews(reviewIds: number[]): Promise<{ approvedCount: number; errors: any[] }> {
+  async batchApproveReviews(
+    reviewIds: number[],
+  ): Promise<{ approvedCount: number; errors: any[] }> {
     return apiRequest<{ approvedCount: number; errors: any[] }>({
       method: 'POST',
       url: '/task-solution-reviews/batch-approve',
@@ -97,7 +99,9 @@ export const TaskSolutionReviewService = {
     });
   },
 
-  async batchRejectReviews(reviewIds: number[]): Promise<{ rejectedCount: number; errors: any[] }> {
+  async batchRejectReviews(
+    reviewIds: number[],
+  ): Promise<{ rejectedCount: number; errors: any[] }> {
     return apiRequest<{ rejectedCount: number; errors: any[] }>({
       method: 'POST',
       url: '/task-solution-reviews/batch-reject',

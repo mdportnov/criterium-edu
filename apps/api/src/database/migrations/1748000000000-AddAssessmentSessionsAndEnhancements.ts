@@ -1,6 +1,8 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class AddAssessmentSessionsAndEnhancements1748000000000 implements MigrationInterface {
+export class AddAssessmentSessionsAndEnhancements1748000000000
+  implements MigrationInterface
+{
   name = 'AddAssessmentSessionsAndEnhancements1748000000000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
@@ -52,11 +54,11 @@ export class AddAssessmentSessionsAndEnhancements1748000000000 implements Migrat
     await queryRunner.query(`
       CREATE INDEX "IDX_assessment_sessions_status" ON "assessment_sessions" ("status")
     `);
-    
+
     await queryRunner.query(`
       CREATE INDEX "IDX_assessment_sessions_initiated_by" ON "assessment_sessions" ("initiated_by_id")
     `);
-    
+
     await queryRunner.query(`
       CREATE INDEX "IDX_auto_assessments_session" ON "auto_assessments" ("session_id")
     `);
@@ -65,7 +67,9 @@ export class AddAssessmentSessionsAndEnhancements1748000000000 implements Migrat
   public async down(queryRunner: QueryRunner): Promise<void> {
     // Drop indexes
     await queryRunner.query(`DROP INDEX "IDX_auto_assessments_session"`);
-    await queryRunner.query(`DROP INDEX "IDX_assessment_sessions_initiated_by"`);
+    await queryRunner.query(
+      `DROP INDEX "IDX_assessment_sessions_initiated_by"`,
+    );
     await queryRunner.query(`DROP INDEX "IDX_assessment_sessions_status"`);
 
     // Remove columns from auto_assessments

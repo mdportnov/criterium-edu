@@ -44,14 +44,20 @@ export class OpenAIService {
     temperature: number = 0.2,
     maxTokens: number = 2000,
     systemPrompt?: string,
-  ): Promise<{ content: any; usage: any; model: string; finishReason: string }> {
+  ): Promise<{
+    content: any;
+    usage: any;
+    model: string;
+    finishReason: string;
+  }> {
     try {
       const response = await this.openai.chat.completions.create({
         model,
         messages: [
           {
             role: 'system',
-            content: systemPrompt || 
+            content:
+              systemPrompt ||
               'You are an expert educator and assessor. Return assessments in valid JSON format.',
           },
           {
