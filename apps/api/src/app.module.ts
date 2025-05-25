@@ -18,6 +18,7 @@ import { OpenaiModule } from './modules/openai/openai.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { AuditModule } from './modules/audit/audit.module';
 import { AdminModule } from './modules/admin/admin.module';
+import { SettingsModule } from './modules/settings/settings.module';
 import { AuditMiddleware } from './modules/audit/audit.middleware';
 
 @Module({
@@ -82,6 +83,7 @@ import { AuditMiddleware } from './modules/audit/audit.middleware';
     DashboardModule,
     AuditModule,
     AdminModule,
+    SettingsModule,
   ],
 })
 export class AppModule implements NestModule {

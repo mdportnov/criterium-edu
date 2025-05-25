@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Users, Activity, Shield, BarChart3 } from 'lucide-react';
 import { UsersTab } from '../components/UsersTab';
 import { AuditLogsTab } from '../components/AuditLogsTab';
+import { SettingsTab } from '../components/SettingsTab';
 
 const AdminPanelPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState('users');
@@ -105,9 +106,7 @@ const AdminPanelPage: React.FC = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-12 text-muted-foreground">
-                Admin settings panel coming soon...
-              </div>
+              <SettingsTab />
             </CardContent>
           </Card>
         </TabsContent>
