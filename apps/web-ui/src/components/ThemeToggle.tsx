@@ -38,7 +38,7 @@ export const ThemeToggle: React.FC = () => {
         <Button
           variant="ghost"
           size="icon"
-          className="h-9 w-9 text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white transition-all duration-200"
+          className="h-9 w-9 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white transition-all duration-200"
         >
           <CurrentIcon className="h-4 w-4" />
           <span className="sr-only">Toggle theme</span>

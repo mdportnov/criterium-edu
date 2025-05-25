@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, MiddlewareConsumer, NestModule } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { LoggerModule } from 'nestjs-pino';
@@ -16,6 +16,9 @@ import { CheckerModule } from './modules/checker/checker.module';
 import { BulkOperationsModule } from './modules/bulk-operations/bulk-operations.module';
 import { OpenaiModule } from './modules/openai/openai.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
+import { AuditModule } from './modules/audit/audit.module';
+import { AdminModule } from './modules/admin/admin.module';
+import { AuditMiddleware } from './modules/audit/audit.middleware';
 
 @Module({
   imports: [
@@ -77,6 +80,12 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
     BulkOperationsModule,
     OpenaiModule,
     DashboardModule,
+    AuditModule,
+    AdminModule,
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(AuditMiddleware).forRoutes('*');
+  }
+}

@@ -7,3 +7,4 @@ export * from './user.service';
 export * from './bulk-operations.service';
 export * from './checker.service';
 export * from './dashboard.service';
+export * from './admin.service';
