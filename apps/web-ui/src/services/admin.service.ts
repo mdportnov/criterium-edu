@@ -12,9 +12,11 @@ import type {
 } from '@/types/admin';
 
 class AdminService {
-  async getUsers(params: GetUsersParams = {}): Promise<PaginatedResponse<AdminUser>> {
+  async getUsers(
+    params: GetUsersParams = {},
+  ): Promise<PaginatedResponse<AdminUser>> {
     const searchParams = new URLSearchParams();
-    
+
     if (params.page) searchParams.append('page', params.page.toString());
     if (params.limit) searchParams.append('limit', params.limit.toString());
     if (params.search) searchParams.append('search', params.search);
@@ -30,29 +32,36 @@ class AdminService {
     params: GetUserActivityParams = {},
   ): Promise<PaginatedResponse<AuditLog>> {
     const searchParams = new URLSearchParams();
-    
+
     if (params.page) searchParams.append('page', params.page.toString());
     if (params.limit) searchParams.append('limit', params.limit.toString());
     if (params.action) searchParams.append('action', params.action);
     if (params.startDate) searchParams.append('startDate', params.startDate);
     if (params.endDate) searchParams.append('endDate', params.endDate);
 
-    const response = await api.get(`/admin/users/${userId}/activity?${searchParams.toString()}`);
+    const response = await api.get(
+      `/admin/users/${userId}/activity?${searchParams.toString()}`,
+    );
     return response.data;
   }
 
-  async getAuditLogs(params: GetAuditLogsParams = {}): Promise<PaginatedResponse<AuditLog>> {
+  async getAuditLogs(
+    params: GetAuditLogsParams = {},
+  ): Promise<PaginatedResponse<AuditLog>> {
     const searchParams = new URLSearchParams();
-    
+
     if (params.page) searchParams.append('page', params.page.toString());
     if (params.limit) searchParams.append('limit', params.limit.toString());
     if (params.userId) searchParams.append('userId', params.userId);
     if (params.action) searchParams.append('action', params.action);
-    if (params.resourceType) searchParams.append('resourceType', params.resourceType);
+    if (params.resourceType)
+      searchParams.append('resourceType', params.resourceType);
     if (params.startDate) searchParams.append('startDate', params.startDate);
     if (params.endDate) searchParams.append('endDate', params.endDate);
 
-    const response = await api.get(`/admin/audit-logs?${searchParams.toString()}`);
+    const response = await api.get(
+      `/admin/audit-logs?${searchParams.toString()}`,
+    );
     return response.data;
   }
 
