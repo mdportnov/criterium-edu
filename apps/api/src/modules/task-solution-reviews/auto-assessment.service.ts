@@ -512,7 +512,10 @@ Important:
         // Nested content structure from createCompletionWithMetrics
         contentStr = response.content.choices[0].message.content;
       } else {
-        console.error('Unexpected response format:', JSON.stringify(response, null, 2));
+        console.error(
+          'Unexpected response format:',
+          JSON.stringify(response, null, 2),
+        );
         throw new Error('Unexpected response format');
       }
 
@@ -522,8 +525,10 @@ Important:
       let jsonMatch = contentStr.match(/\{[\s\S]*\}/);
       if (!jsonMatch) {
         // If no JSON found, try to extract from response without curly braces
-        const lines = contentStr.split('\n').filter(line => line.trim());
-        const jsonLine = lines.find(line => line.includes('{') && line.includes('}'));
+        const lines = contentStr.split('\n').filter((line) => line.trim());
+        const jsonLine = lines.find(
+          (line) => line.includes('{') && line.includes('}'),
+        );
         if (jsonLine) {
           jsonMatch = jsonLine.match(/\{[\s\S]*\}/);
         }
@@ -538,8 +543,13 @@ Important:
 
       // Validate and provide defaults if needed
       const criteriaScores = parsedResult.criteriaScores || { general: 5 };
-      const comments = parsedResult.comments || 'Assessment completed with default values due to parsing issues.';
-      const totalScore = typeof parsedResult.totalScore === 'number' ? parsedResult.totalScore : 5;
+      const comments =
+        parsedResult.comments ||
+        'Assessment completed with default values due to parsing issues.';
+      const totalScore =
+        typeof parsedResult.totalScore === 'number'
+          ? parsedResult.totalScore
+          : 5;
 
       return {
         criteriaScores,

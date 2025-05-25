@@ -98,7 +98,7 @@ export const DropdownMenuContent: React.FC<DropdownMenuContentProps> = ({
 
   return (
     <div
-      data-dropdown-content
+      data-dropdown-content=""
       className={cn(
         'absolute top-full mt-2 z-50 min-w-[8rem] overflow-hidden rounded-md border border-border bg-background p-1 text-foreground shadow-lg animate-in fade-in-0 zoom-in-95',
         alignmentClasses[align],
