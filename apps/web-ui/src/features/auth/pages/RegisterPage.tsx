@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/contexts/AuthContext';
+import { settingsService } from '@/services/settings.service';
 import {
   AlertCircle,
   CheckCircle2,
@@ -13,6 +14,7 @@ import {
   Lock,
   Mail,
   User,
+  Info,
 } from 'lucide-react';
 
 const RegisterPage: React.FC = () => {
@@ -27,8 +29,26 @@ const RegisterPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [registrationEnabled, setRegistrationEnabled] = useState<boolean | null>(null);
+  const [loadingSettings, setLoadingSettings] = useState(true);
   const { register } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const checkRegistrationStatus = async () => {
+      try {
+        const response = await settingsService.getPublicSettings();
+        setRegistrationEnabled(response.data.registration_enabled);
+      } catch (err) {
+        console.error('Failed to fetch registration status:', err);
+        setRegistrationEnabled(false);
+      } finally {
+        setLoadingSettings(false);
+      }
+    };
+
+    checkRegistrationStatus();
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -87,6 +107,55 @@ const RegisterPage: React.FC = () => {
     'bg-yellow-500',
     'bg-green-500',
   ];
+
+  if (loadingSettings) {
+    return (
+      <div className="space-y-6">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold tracking-tight">
+            Create your account
+          </h2>
+          <p className="text-muted-foreground mt-2">
+            Join Criterium EDU to get started
+          </p>
+        </div>
+        <div className="flex justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (registrationEnabled === false) {
+    return (
+      <div className="space-y-6">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold tracking-tight">
+            Registration Disabled
+          </h2>
+          <p className="text-muted-foreground mt-2">
+            Account registration is currently disabled
+          </p>
+        </div>
+
+        <Alert>
+          <Info className="h-4 w-4" />
+          <AlertDescription>
+            New user registration is not available now. Please contact support if you need access.
+          </AlertDescription>
+        </Alert>
+
+        <div className="text-center">
+          <Link
+            to="/login"
+            className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 w-full"
+          >
+            Sign in instead
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

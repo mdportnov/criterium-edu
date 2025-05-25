@@ -1,6 +1,11 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
+import { SettingsService } from '../settings/settings.service';
 import { LoginDto, RegisterDto, TokenDto, UserRole } from '@app/shared';
 import * as bcrypt from 'bcrypt';
 
@@ -9,6 +14,7 @@ export class AuthService {
   constructor(
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
+    private readonly settingsService: SettingsService,
   ) {}
 
   async login(loginDto: LoginDto): Promise<TokenDto> {
@@ -28,6 +34,12 @@ export class AuthService {
   }
 
   async register(registerDto: RegisterDto): Promise<TokenDto> {
+    const isRegistrationEnabled =
+      await this.settingsService.isRegistrationEnabled();
+    if (!isRegistrationEnabled) {
+      throw new ForbiddenException('Registration is currently disabled');
+    }
+
     const existingUser = await this.usersService.findByEmail(registerDto.email);
     if (existingUser) {
       throw new UnauthorizedException('Email already exists');

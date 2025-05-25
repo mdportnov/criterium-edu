@@ -1,31 +1,18 @@
 import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import OpenAI from 'openai';
+import { SettingsService } from '../../settings/settings.service';
 
 @Injectable()
 export class OpenaiApiService implements OnModuleInit {
   private openai: OpenAI;
   private readonly logger = new Logger(OpenaiApiService.name);
 
-  constructor(private readonly configService: ConfigService) {}
+  constructor(private readonly settingsService: SettingsService) {}
 
-  onModuleInit() {
-    const apiKey = this.configService.get<string>('openaiApiKey');
-    if (!apiKey) {
-      this.logger.error(
-        'OpenAI API key is not configured. Please set OPENAI_API_KEY in your environment variables.',
-      );
-      throw new Error('OpenAI API key is not configured.');
-    }
-    try {
-      this.openai = new OpenAI({
-        apiKey: apiKey,
-      });
-      this.logger.log('OpenAI client initialized successfully.');
-    } catch (error) {
-      this.logger.error('Failed to initialize OpenAI client:', error);
-      throw error;
-    }
+  async onModuleInit() {
+    this.logger.log(
+      'OpenAI service initialized. API key will be checked when service is used.',
+    );
   }
 
   /**
@@ -40,10 +27,22 @@ export class OpenaiApiService implements OnModuleInit {
     model: string = 'gpt-3.5-turbo',
   ): Promise<string | null> {
     if (!this.openai) {
-      this.logger.error(
-        'OpenAI client is not initialized. Cannot get chat completion.',
-      );
-      throw new Error('OpenAI client is not initialized.');
+      const apiKey = await this.settingsService.getOpenAIApiKey();
+      if (!apiKey) {
+        this.logger.error(
+          'OpenAI API key is not configured. Please set it in the application settings.',
+        );
+        throw new Error('OpenAI API key is not configured.');
+      }
+      try {
+        this.openai = new OpenAI({
+          apiKey: apiKey,
+        });
+        this.logger.log('OpenAI client initialized successfully.');
+      } catch (error) {
+        this.logger.error('Failed to initialize OpenAI client:', error);
+        throw error;
+      }
     }
 
     this.logger.debug(

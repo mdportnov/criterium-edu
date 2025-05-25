@@ -42,6 +42,7 @@ import ProcessingOperationPage from '@/features/reviews/pages/ProcessingOperatio
 import LLMProcessingPage from '@/features/reviews/pages/LLMProcessingPage';
 import ReviewApprovalDashboard from '@/features/reviews/pages/ReviewApprovalDashboard';
 import ProcessingStatusPage from '@/features/reviews/pages/ProcessingStatusPage';
+import { AdminPanelPage } from '@/features/admin';
 import { UserRole } from '@app/shared';
 
 // Dashboard pages (protected routes under /dashboard)
@@ -65,6 +66,11 @@ const dashboardPages: RouteObject[] = [
   { path: 'tasks/create', element: <CreateTaskPage /> }, // /dashboard/tasks/create
   { path: 'tasks/:id/edit', element: <EditTaskPage /> }, // /dashboard/tasks/:id/edit
   { path: 'solutions/:solutionId/review', element: <ReviewSolutionPage /> }, // /dashboard/solutions/:solutionId/review
+];
+
+// Admin pages (protected routes under /admin, admin only)
+const adminPages: RouteObject[] = [
+  { index: true, element: <AdminPanelPage /> }, // /admin
 ];
 
 // Router Configuration
@@ -103,6 +109,19 @@ const router = createBrowserRouter([
       {
         element: <MainLayout />,
         children: dashboardPages,
+      },
+    ],
+  },
+  // Admin Protected Routes (admin only)
+  {
+    path: '/admin',
+    element: (
+      <ProtectedRoute allowedRoles={[UserRole.ADMIN]} />
+    ),
+    children: [
+      {
+        element: <MainLayout />,
+        children: adminPages,
       },
     ],
   },

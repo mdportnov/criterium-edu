@@ -16,6 +16,7 @@ import {
   Home,
   ListTodo,
   LogOut,
+  Shield,
   User,
   Users,
   X,
@@ -90,7 +91,13 @@ const MainLayout: React.FC = () => {
       ]
     : [];
 
-  const allNavItems = [...navItems, ...studentItems, ...adminItems];
+  const superAdminItems = hasRole([UserRole.ADMIN])
+    ? [
+        { path: '/admin', label: 'Admin Panel', icon: Shield },
+      ]
+    : [];
+
+  const allNavItems = [...navItems, ...studentItems, ...adminItems, ...superAdminItems];
 
   return (
     <div className="min-h-screen flex flex-col bg-background">

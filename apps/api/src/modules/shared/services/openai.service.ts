@@ -6,16 +6,19 @@ import OpenAI from 'openai';
 export class OpenAIService {
   private openai: OpenAI;
 
-  constructor(private readonly configService: ConfigService) {
-    this.openai = new OpenAI({
-      apiKey: this.configService.get<string>('OPENAI_API_KEY'),
-    });
-  }
+  constructor(private readonly configService: ConfigService) {}
 
   async createCompletion(
     prompt: string,
     model: string = 'gpt-4o',
   ): Promise<any> {
+    if (!this.openai) {
+      const apiKey = this.configService.get<string>('OPENAI_API_KEY');
+      if (!apiKey) {
+        throw new Error('OpenAI API key is not configured.');
+      }
+      this.openai = new OpenAI({ apiKey });
+    }
     try {
       return await this.openai.chat.completions.create({
         model,
@@ -50,6 +53,13 @@ export class OpenAIService {
     model: string;
     finishReason: string;
   }> {
+    if (!this.openai) {
+      const apiKey = this.configService.get<string>('OPENAI_API_KEY');
+      if (!apiKey) {
+        throw new Error('OpenAI API key is not configured.');
+      }
+      this.openai = new OpenAI({ apiKey });
+    }
     try {
       const response = await this.openai.chat.completions.create({
         model,
