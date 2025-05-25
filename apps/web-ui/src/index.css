@@ -1,5 +1,12 @@
 @import "tailwindcss";
 
+@theme {
+  --default-transition-duration: 300ms;
+  --default-transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@variant dark (@media (prefers-color-scheme: dark) or .dark);
+
 @layer base {
   :root {
     --background: 0 0% 100%;

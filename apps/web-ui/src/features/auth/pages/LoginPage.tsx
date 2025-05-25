@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/contexts/AuthContext';
 import { AlertCircle, Eye, EyeOff, Lock, Mail } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -74,12 +75,22 @@ const LoginPage: React.FC = () => {
             <Label htmlFor="password" className="text-sm font-medium">
               Password
             </Label>
-            <Link
-              to="/forgot-password"
-              className="text-sm text-primary hover:underline transition-colors"
-            >
-              Forgot password?
-            </Link>
+            <TooltipProvider delayDuration={100}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link
+                    to="#"
+                    onClick={(e) => e.preventDefault()}
+                    className="text-sm text-primary hover:underline transition-colors"
+                  >
+                    Forgot password?
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent side="top">
+                  <p>This feature is not implemented yet</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
           <div className="relative">
             <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />

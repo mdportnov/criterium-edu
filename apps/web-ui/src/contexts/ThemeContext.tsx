@@ -54,6 +54,8 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     const root = document.documentElement;
     root.classList.remove('light', 'dark');
     root.classList.add(resolved);
+    
+    console.log('Theme updated:', { newTheme, resolved, classes: root.className });
 
     // Save to localStorage
     localStorage.setItem('theme', newTheme);

@@ -43,6 +43,11 @@ services:
   frontend:
     image: ghcr.io/mdportnov/criterium-edu-frontend:latest
     container_name: criterium-edu-frontend
+    build:
+      context: .
+      dockerfile: frontend.Dockerfile
+      args:
+        VITE_API_URL: https://criterium.command.mephi.ru/api
     expose:
       - "${FRONTEND_PORT:-3001}"
     restart: always
