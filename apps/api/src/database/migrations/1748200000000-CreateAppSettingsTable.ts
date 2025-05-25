@@ -1,4 +1,4 @@
-import { MigrationInterface, QueryRunner, Table, Index } from 'typeorm';
+import { MigrationInterface, QueryRunner, Table, TableIndex } from 'typeorm';
 
 export class CreateAppSettingsTable1748200000000 implements MigrationInterface {
   name = 'CreateAppSettingsTable1748200000000';
@@ -43,11 +43,6 @@ export class CreateAppSettingsTable1748200000000 implements MigrationInterface {
         ],
       }),
       true,
-    );
-
-    await queryRunner.createIndex(
-      'app_settings',
-      new Index('IDX_app_settings_key', ['key']),
     );
 
     // Insert default settings

@@ -4,7 +4,6 @@ services:
     image: postgres:17-alpine
     container_name: criterium-postgres
     env_file:
-      - .env.example
       - .env.production
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
@@ -29,7 +28,6 @@ services:
     image: ghcr.io/mdportnov/criterium-edu-backend:latest
     container_name: criterium-edu-backend
     env_file:
-      - .env.example
       - .env.production
     environment:
       NODE_ENV: ${NODE_ENV:-production}
@@ -48,7 +46,6 @@ services:
     image: ghcr.io/mdportnov/criterium-edu-frontend:latest
     container_name: criterium-edu-frontend
     env_file:
-      - .env.example
       - .env.production
     ports:
       - "80:80"
