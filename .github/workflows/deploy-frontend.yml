@@ -51,7 +51,7 @@ jobs:
           push: true
           tags: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ github.sha }},${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest
           build-args: |
-            VITE_API_URL=${{ secrets.VITE_API_URL }}
+            VITE_API_URL=${{ secrets.VITE_API_URL }}/api
 
       - name: "Copy docker-compose.prod.yml files to server"
         uses: appleboy/scp-action@v0.1.7
