@@ -34,7 +34,7 @@ async function bootstrap() {
     }
 
     // Disable CORS TODO enable later
-    app.enableCors(false);
+    // app.enableCors();
 
     // Enable validation
     app.useGlobalPipes(
