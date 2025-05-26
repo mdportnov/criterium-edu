@@ -50,10 +50,62 @@ services:
     ports:
       - "80:80"
     restart: always
-    depends_on:
-      - backend
     networks:
       - criterium-network
+
+
+  ## Monitoring
+  node-exporter:
+    image: prom/node-exporter:v1.3.1
+    env_file: ./deploy/env/.env.monitoring
+    command:
+      - --path.procfs=/host/proc
+      - --path.rootfs=/rootfs
+      - --path.sysfs=/host/sys
+      - --collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)
+    network_mode: "host"
+    restart: on-failure
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    logging:
+      options:
+        max-size: 10m
+
+  promtail:
+    image: ghcr.io/mdportnov/criterium-edu-promtail:latest
+    user: "0:0"
+    env_file: ./deploy/env/.env.monitoring
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/log:/var/log:ro
+      - ./deploy/monitoring/config/promtail/promtail.yml:/etc/promtail/orig.yml
+    networks:
+      - criterium-network
+    restart: on-failure
+    logging:
+      options:
+        max-size: 10m
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.46.0
+    env_file: ./deploy/env/.env.monitoring
+    privileged: true
+    network_mode: "host"
+    restart: always
+    devices:
+      - /dev/kmsg:/dev/kmsg
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker:/var/lib/docker:ro
+    labels:
+      org.label-schema.group: "monitoring"
+    logging:
+      options:
+        max-size: 10m
 
 networks:
   criterium-network:

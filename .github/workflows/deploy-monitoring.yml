@@ -1,4 +1,4 @@
-name: Deploy Frontend
+name: Deploy Monitoring
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
     paths:
       - 'apps/web-ui/**'
       - 'libs/**'
-      - '.github/workflows/deploy-frontend.yml'
+      - '.github/workflows/deploy-monitoring.yml'
   workflow_dispatch:
 
 jobs:
@@ -17,9 +17,9 @@ jobs:
       packages: write
 
     env:
-      IMAGE_NAME: criterium-edu-frontend
-      NGINX_IMAGE_NAME: criterium-edu-nginx
+      PROMTAIL_IMAGE_NAME: criterium-edu-promtail
       REGISTRY: ghcr.io
+      PROJECT_NAME: criterium
 
     steps:
       - name: "Checkout repository"
@@ -35,25 +35,15 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: "Build and push Nginx Docker image"
+      - name: "Build and push Promtail Docker image"
         uses: docker/build-push-action@v4
         with:
           context: .
-          file: nginx.Dockerfile
+          file: ./deploy/monitoring/build/runPromtail.Dockerfile
           push: true
-          tags: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.NGINX_IMAGE_NAME }}:${{ github.sha }},${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.NGINX_IMAGE_NAME }}:latest
+          tags: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.PROMTAIL_IMAGE_NAME }}:${{ github.sha }},${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.PROMTAIL_IMAGE_NAME }}:latest
 
-      - name: "Build and push Frontend Docker image"
-        uses: docker/build-push-action@v4
-        with:
-          context: .
-          file: frontend.Dockerfile
-          push: true
-          tags: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ github.sha }},${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest
-          build-args: |
-            VITE_API_URL=${{ secrets.VITE_API_URL }}/api
-
-      - name: "Copy docker-compose.prod.yml files to server"
+      - name: "Copy deploy files to server"
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -61,7 +51,7 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           passphrase: ${{ secrets.PASSPHRASE }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "docker-compose.prod.yml, ./apps/web-ui/.env.production, ./apps/nginx/nginx.conf"
+          source: "./deploy, docker-compose.prod.yml"
           target: "~/criterium/"
 
       - name: "Deploy to server"
@@ -76,8 +66,8 @@ jobs:
             sudo mkdir -p /var/www/criterium
             sudo chown -R ${{ secrets.SSH_USER }}:${{ secrets.SSH_USER }} /var/www/criterium
             
+            sudo cp -r ~/criterium/deploy /var/www/criterium/
             cp -f ~/criterium/docker-compose.prod.yml /var/www/criterium/
-            cp -f ~/criterium/apps/web-ui/.env.production /var/www/criterium/
             
             cd /var/www/criterium
             
@@ -87,5 +77,5 @@ jobs:
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             
             docker compose -f docker-compose.prod.yml pull
-            docker compose -f docker-compose.prod.yml up -d frontend
+            docker compose -f docker-compose.prod.yml up -d node-exporter cadvisor promtail
             docker system prune -af
