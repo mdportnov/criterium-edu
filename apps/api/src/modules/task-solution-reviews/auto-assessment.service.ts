@@ -19,6 +19,7 @@ import {
 } from '../task-solutions/entities/solution-import.dto';
 import { ReviewSource } from '@app/shared';
 import { OpenAIService } from '../shared/services/openai.service';
+import { Logger } from 'nestjs-pino';
 
 interface AssessmentResult {
   criteriaScores: Record<string, number>;
@@ -58,6 +59,7 @@ export class AutoAssessmentService {
     private readonly userRepository: Repository<User>,
     private readonly openaiService: OpenAIService,
     private readonly configService: ConfigService,
+    private readonly logger: Logger,
   ) {
     this.defaultModel = this.configService.get<string>(
       'OPENAI_DEFAULT_MODEL',
@@ -188,7 +190,16 @@ export class AutoAssessmentService {
           session.processedSolutions++;
           session.successfulAssessments++;
         } catch (error) {
-          console.error(`Error assessing solution ${solutionId}:`, error);
+          this.logger.error(
+            {
+              message: `Error assessing solution ${solutionId}`,
+              error: error instanceof Error ? error.message : String(error),
+              solutionId,
+              sessionId,
+            },
+            AutoAssessmentService.name,
+          );
+
           errors.push({
             solutionId,
             error: (error as Error).message,
@@ -275,7 +286,14 @@ export class AutoAssessmentService {
         const assessment = await this.assessSolution(solutionId, model);
         results.push(assessment);
       } catch (error) {
-        console.error(`Error assessing solution ${solutionId}:`, error);
+        this.logger.error(
+          {
+            message: `Error assessing solution ${solutionId}`,
+            error: error instanceof Error ? error.message : String(error),
+            solutionId,
+          },
+          AutoAssessmentService.name,
+        );
         // Continue with next solution
       }
     }
@@ -289,7 +307,7 @@ export class AutoAssessmentService {
     const model = dto.llmModel || this.defaultModel;
     const solutions = await this.solutionRepository.find({
       where: { task: { id: dto.taskId } },
-      relations: ['task', 'user', 'source'],
+      relations: ['task', 'user'],
     });
 
     if (!solutions.length) {
@@ -309,7 +327,7 @@ export class AutoAssessmentService {
     const model = dto.llmModel || this.defaultModel;
     const solutions = await this.solutionRepository.find({
       where: { source: { id: dto.sourceId } },
-      relations: ['task', 'user', 'source'],
+      relations: ['task', 'user'],
     });
 
     if (!solutions.length) {
@@ -353,9 +371,15 @@ export class AutoAssessmentService {
     const assessmentPrompt = this.createAssessmentPrompt(task, solution);
     const startTime = Date.now();
 
-    console.log('Assessment prompt being sent to OpenAI:', assessmentPrompt);
-    console.log('Solution content:', solution.content);
-    console.log('Task description:', task.description);
+    this.logger.log(
+      {
+        message: 'Assessment prompt being sent to OpenAI',
+        prompt: assessmentPrompt,
+        solutionId,
+        sessionId,
+      },
+      AutoAssessmentService.name,
+    );
 
     // Call OpenAI API with metrics tracking
     const response = await this.openaiService.createCompletionWithMetrics(
@@ -512,14 +536,23 @@ Important:
         // Nested content structure from createCompletionWithMetrics
         contentStr = response.content.choices[0].message.content;
       } else {
-        console.error(
-          'Unexpected response format:',
-          JSON.stringify(response, null, 2),
+        this.logger.error(
+          {
+            message: 'Unexpected response format',
+            response: JSON.stringify(response, null, 2),
+          },
+          AutoAssessmentService.name,
         );
         throw new Error('Unexpected response format');
       }
 
-      console.log('Content to parse:', contentStr);
+      this.logger.log(
+        {
+          message: 'Content to parse',
+          content: contentStr,
+        },
+        AutoAssessmentService.name,
+      );
 
       // Try to extract JSON from the content string
       let jsonMatch = contentStr.match(/\{[\s\S]*\}/);
@@ -535,7 +568,13 @@ Important:
       }
 
       if (!jsonMatch) {
-        console.error('No valid JSON found in response content:', contentStr);
+        this.logger.error(
+          {
+            message: 'No valid JSON found in response content',
+            content: contentStr,
+          },
+          AutoAssessmentService.name,
+        );
         throw new Error('No valid JSON found in the response');
       }
 
@@ -557,8 +596,14 @@ Important:
         totalScore,
       };
     } catch (error) {
-      console.error('Error parsing assessment response:', error);
-      console.error('Full response object:', JSON.stringify(response, null, 2));
+      this.logger.error(
+        {
+          message: 'Error parsing assessment response',
+          error: error instanceof Error ? error.message : String(error),
+          response: JSON.stringify(response, null, 2),
+        },
+        AutoAssessmentService.name,
+      );
 
       // Return a default assessment with more helpful error information
       return {

@@ -1,25 +1,27 @@
 import {
+  ForbiddenException,
   Injectable,
   NotFoundException,
-  ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { TaskSolution } from './entities/task-solution.entity';
 import {
   CreateTaskSolutionDto,
+  CurrentUser,
+  TaskSolutionDto,
   TaskSolutionStatus,
   UpdateTaskSolutionDto,
   UserRole,
-  TaskSolutionDto,
-  CurrentUser,
 } from '@app/shared';
+import { Logger } from 'nestjs-pino';
 
 @Injectable()
 export class TaskSolutionsService {
   constructor(
     @InjectRepository(TaskSolution)
     private readonly taskSolutionsRepository: Repository<TaskSolution>,
+    private readonly logger: Logger,
   ) {}
 
   // Helper to map TaskSolution entity to TaskSolutionDto
@@ -39,23 +41,52 @@ export class TaskSolutionsService {
   }
 
   async findAll(): Promise<TaskSolution[]> {
-    return this.taskSolutionsRepository.find({
+    const solutions = await this.taskSolutionsRepository.find({
       relations: ['task', 'user'],
     });
+
+    this.logger.debug(
+      { message: 'Found task solutions', count: solutions.length },
+      TaskSolutionsService.name,
+    );
+
+    return solutions;
   }
 
   async findByStudent(studentId: number): Promise<TaskSolution[]> {
-    return this.taskSolutionsRepository.find({
+    const solutions = await this.taskSolutionsRepository.find({
       where: { user: { id: studentId } },
       relations: ['task'],
     });
+
+    this.logger.debug(
+      {
+        message: 'Found student task solutions',
+        studentId,
+        count: solutions.length,
+      },
+      TaskSolutionsService.name,
+    );
+
+    return solutions;
   }
 
   async findByTask(taskId: number): Promise<TaskSolution[]> {
-    return this.taskSolutionsRepository.find({
+    const solutions = await this.taskSolutionsRepository.find({
       where: { task: { id: taskId } },
       relations: ['user'],
     });
+
+    this.logger.debug(
+      {
+        message: 'Found task solutions for task',
+        taskId,
+        count: solutions.length,
+      },
+      TaskSolutionsService.name,
+    );
+
+    return solutions;
   }
 
   async findOne(id: number, user?: CurrentUser): Promise<TaskSolution> {
@@ -65,6 +96,10 @@ export class TaskSolutionsService {
     });
 
     if (!taskSolution) {
+      this.logger.error(
+        { message: 'Task solution not found', solutionId: id },
+        TaskSolutionsService.name,
+      );
       throw new NotFoundException(`Task solution with ID ${id} not found`);
     }
 
@@ -73,8 +108,28 @@ export class TaskSolutionsService {
       user.role === UserRole.STUDENT &&
       taskSolution.user?.id !== user.id
     ) {
+      this.logger.warn(
+        {
+          message: 'Access denied to task solution',
+          solutionId: id,
+          userId: user.id,
+          solutionOwnerId: taskSolution.user?.id,
+        },
+        TaskSolutionsService.name,
+      );
       throw new ForbiddenException('You can only view your own solutions');
     }
+
+    this.logger.debug(
+      {
+        message: 'Found task solution',
+        solutionId: id,
+        taskId: taskSolution.task?.id,
+        studentId: taskSolution.user?.id,
+        status: taskSolution.status,
+      },
+      TaskSolutionsService.name,
+    );
 
     return taskSolution;
   }
@@ -98,7 +153,19 @@ export class TaskSolutionsService {
       status: TaskSolutionStatus.SUBMITTED,
     });
 
-    return this.taskSolutionsRepository.save(taskSolution);
+    const savedSolution = await this.taskSolutionsRepository.save(taskSolution);
+
+    this.logger.debug(
+      {
+        message: 'Task solution created successfully',
+        solutionId: savedSolution.id,
+        taskId: createTaskSolutionDto.taskId,
+        userId: user.id,
+      },
+      TaskSolutionsService.name,
+    );
+
+    return savedSolution;
   }
 
   async update(
@@ -112,10 +179,28 @@ export class TaskSolutionsService {
     // Students can only update their own solutions and can't change the status
     if (userRole === UserRole.STUDENT) {
       if (taskSolution.user.id !== userId) {
+        this.logger.warn(
+          {
+            message: "Student attempted to update another user's solution",
+            solutionId: id,
+            userId,
+            solutionOwnerId: taskSolution.user.id,
+          },
+          TaskSolutionsService.name,
+        );
         throw new ForbiddenException('You can only update your own solutions');
       }
 
       if (updateTaskSolutionDto.status) {
+        this.logger.warn(
+          {
+            message: 'Student attempted to change solution status',
+            solutionId: id,
+            userId,
+            attemptedStatus: updateTaskSolutionDto.status,
+          },
+          TaskSolutionsService.name,
+        );
         throw new ForbiddenException(
           'Students cannot change the status of a solution',
         );
@@ -126,6 +211,15 @@ export class TaskSolutionsService {
         taskSolution.status !== TaskSolutionStatus.SUBMITTED &&
         taskSolution.user?.id === userId
       ) {
+        this.logger.warn(
+          {
+            message: 'Student attempted to update solution under review',
+            solutionId: id,
+            userId,
+            currentStatus: taskSolution.status,
+          },
+          TaskSolutionsService.name,
+        );
         throw new ForbiddenException(
           'You cannot update a solution that is already under review or reviewed',
         );
@@ -139,7 +233,19 @@ export class TaskSolutionsService {
     }
 
     this.taskSolutionsRepository.merge(taskSolution, entityUpdates);
-    return this.taskSolutionsRepository.save(taskSolution);
+    const updatedSolution =
+      await this.taskSolutionsRepository.save(taskSolution);
+
+    this.logger.debug(
+      {
+        message: 'Task solution updated successfully',
+        solutionId: id,
+        newStatus: updatedSolution.status,
+      },
+      TaskSolutionsService.name,
+    );
+
+    return updatedSolution;
   }
 
   async remove(id: number, userId: number, userRole: UserRole): Promise<void> {
@@ -148,10 +254,28 @@ export class TaskSolutionsService {
     // Students can only delete their own solutions that haven't been reviewed
     if (userRole === UserRole.STUDENT) {
       if (taskSolution.user.id !== userId) {
+        this.logger.warn(
+          {
+            message: "Student attempted to delete another user's solution",
+            solutionId: id,
+            userId,
+            solutionOwnerId: taskSolution.user.id,
+          },
+          TaskSolutionsService.name,
+        );
         throw new ForbiddenException('You can only delete your own solutions');
       }
 
       if (taskSolution.status !== TaskSolutionStatus.SUBMITTED) {
+        this.logger.warn(
+          {
+            message: 'Student attempted to delete solution under review',
+            solutionId: id,
+            userId,
+            currentStatus: taskSolution.status,
+          },
+          TaskSolutionsService.name,
+        );
         throw new ForbiddenException(
           'You cannot delete a solution that is under review or already reviewed',
         );
@@ -159,5 +283,13 @@ export class TaskSolutionsService {
     }
 
     await this.taskSolutionsRepository.remove(taskSolution);
+
+    this.logger.debug(
+      {
+        message: 'Task solution removed successfully',
+        solutionId: id,
+      },
+      TaskSolutionsService.name,
+    );
   }
 }

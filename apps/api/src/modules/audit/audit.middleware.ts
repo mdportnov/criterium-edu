@@ -1,6 +1,7 @@
 import { Injectable, NestMiddleware } from '@nestjs/common';
 import { NextFunction, Request, Response } from 'express';
 import { AuditService } from './audit.service';
+import { Logger } from 'nestjs-pino';
 
 interface RequestWithUser extends Request {
   user?: {
@@ -12,7 +13,10 @@ interface RequestWithUser extends Request {
 
 @Injectable()
 export class AuditMiddleware implements NestMiddleware {
-  constructor(private readonly auditService: AuditService) {}
+  constructor(
+    private readonly auditService: AuditService,
+    private readonly logger: Logger,
+  ) {}
 
   use(req: RequestWithUser, res: Response, next: NextFunction): void {
     // Only log POST, PUT, PATCH requests
@@ -70,7 +74,17 @@ export class AuditMiddleware implements NestMiddleware {
           durationMs: duration,
         });
       } catch (error) {
-        console.error('Failed to create audit log:', error);
+        this.logger.error(
+          {
+            message: 'Failed to create audit log',
+            error: error instanceof Error ? error.message : String(error),
+            method: req.method,
+            url: req.originalUrl,
+            statusCode: res.statusCode,
+            userId: req.user?.id,
+          },
+          AuditMiddleware.name,
+        );
       }
     });
 

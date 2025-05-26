@@ -1,6 +1,6 @@
 import {
-  Injectable,
   BadRequestException,
+  Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -10,20 +10,21 @@ import { TaskSolutionsService } from '../task-solutions/task-solutions.service';
 import { UsersService } from '../users/users.service';
 import { AutoAssessmentService } from '../task-solution-reviews/auto-assessment.service';
 import {
+  BulkImportSolutionDto,
   BulkImportTaskDto,
   CreateTaskDto,
-  TaskCriterionDto,
-  TaskDto,
-  BulkImportSolutionDto,
-  ProcessingOperationDto,
-  ProcessingStatus,
-  OperationType,
   CreateTaskSolutionDto,
   CreateUserDto,
+  OperationType,
+  ProcessingOperationDto,
+  ProcessingStatus,
+  TaskCriterionDto,
+  TaskDto,
 } from '@app/shared/dto';
 import { UserRole } from '@app/shared/interfaces';
 import { ProcessingOperation } from './entities/processing-operation.entity';
 import { User } from '../users/entities/user.entity';
+import { Logger } from 'nestjs-pino';
 
 @Injectable()
 export class BulkOperationsService {
@@ -34,6 +35,7 @@ export class BulkOperationsService {
     private readonly autoAssessmentService: AutoAssessmentService,
     @InjectRepository(ProcessingOperation)
     private readonly processingOperationRepository: Repository<ProcessingOperation>,
+    private readonly logger: Logger,
   ) {}
 
   async importTasksJson(
@@ -49,6 +51,15 @@ export class BulkOperationsService {
         'Invalid JSON data: Expected an array of tasks.',
       );
     }
+
+    this.logger.log(
+      {
+        message: 'Starting bulk task import',
+        totalTasks: tasksData.length,
+        userId,
+      },
+      BulkOperationsService.name,
+    );
 
     const results: TaskDto[] = [];
     const errors = [];
@@ -79,9 +90,27 @@ export class BulkOperationsService {
         );
         results.push(createdTask);
       } catch (error) {
+        this.logger.error(
+          {
+            message: 'Error importing task',
+            taskTitle: bulkTask.title,
+            error: error instanceof Error ? error.message : String(error),
+          },
+          BulkOperationsService.name,
+        );
         errors.push({ taskTitle: bulkTask.title, error: error.message });
       }
     }
+
+    this.logger.log(
+      {
+        message: 'Bulk task import completed',
+        successfullyImported: results.length,
+        totalTasks: tasksData.length,
+        errorCount: errors.length,
+      },
+      BulkOperationsService.name,
+    );
 
     return {
       successfullyImported: results.length,
@@ -103,6 +132,15 @@ export class BulkOperationsService {
         'Invalid JSON data: Expected an array of solutions.',
       );
     }
+
+    this.logger.log(
+      {
+        message: 'Starting bulk solution import',
+        totalSolutions: solutionsData.length,
+        taskIds: [...new Set(solutionsData.map((s) => s.taskId))],
+      },
+      BulkOperationsService.name,
+    );
 
     const operation = await this.createProcessingOperation({
       type: OperationType.BULK_SOLUTION_IMPORT,
@@ -146,7 +184,30 @@ export class BulkOperationsService {
             { id: user.id, role: user.role },
           );
           results.push(createdSolution);
+
+          this.logger.debug(
+            {
+              message: 'Solution imported successfully',
+              solutionId: createdSolution.id,
+              taskId: solution.taskId,
+              studentId: solution.studentId,
+              progress: `${i + 1}/${solutionsData.length}`,
+            },
+            BulkOperationsService.name,
+          );
         } catch (error) {
+          this.logger.error(
+            {
+              message: 'Error importing solution',
+              studentName: solution.studentName,
+              studentId: solution.studentId,
+              taskId: solution.taskId,
+              error: error instanceof Error ? error.message : String(error),
+              progress: `${i + 1}/${solutionsData.length}`,
+            },
+            BulkOperationsService.name,
+          );
+
           errors.push({
             studentName: solution.studentName,
             studentId: solution.studentId,
@@ -161,12 +222,31 @@ export class BulkOperationsService {
         );
       }
 
+      this.logger.log(
+        {
+          message: 'Solution import completed',
+          operationId,
+          successfullyImported: results.length,
+          errorCount: errors.length,
+        },
+        BulkOperationsService.name,
+      );
+
       await this.updateOperationStatus(
         operationId,
         ProcessingStatus.COMPLETED,
         { successfullyImported: results.length, errors },
       );
     } catch (error) {
+      this.logger.error(
+        {
+          message: 'Solution import process failed',
+          operationId,
+          error: error instanceof Error ? error.message : String(error),
+        },
+        BulkOperationsService.name,
+      );
+
       await this.updateOperationStatus(
         operationId,
         ProcessingStatus.FAILED,
@@ -210,6 +290,7 @@ export class BulkOperationsService {
     totalItems: number,
   ): Promise<void> {
     const progress = Math.round((processedItems / totalItems) * 100);
+
     await this.processingOperationRepository.update(operationId, {
       processedItems,
       progress,
@@ -233,6 +314,13 @@ export class BulkOperationsService {
     });
 
     if (!operation) {
+      this.logger.error(
+        {
+          message: 'Operation not found',
+          operationId,
+        },
+        BulkOperationsService.name,
+      );
       throw new BadRequestException('Operation not found');
     }
 
@@ -248,6 +336,17 @@ export class BulkOperationsService {
     sessionName?: string;
     sessionDescription?: string;
   }): Promise<ProcessingOperationDto> {
+    this.logger.log(
+      {
+        message: 'Starting LLM assessment',
+        solutionCount: data.solutionIds.length,
+        llmModel: data.llmModel,
+        taskId: data.taskId,
+        userId: data.userId,
+      },
+      BulkOperationsService.name,
+    );
+
     const operation = await this.createProcessingOperation({
       type: OperationType.LLM_ASSESSMENT,
       totalItems: data.solutionIds.length,
@@ -258,7 +357,6 @@ export class BulkOperationsService {
         userId: data.userId,
         sessionName: data.sessionName,
         sessionDescription: data.sessionDescription,
-        solutionIds: data.solutionIds, // Store for restart capability
       },
     });
 
@@ -283,6 +381,15 @@ export class BulkOperationsService {
       await this.updateOperationStatus(
         operationId,
         ProcessingStatus.IN_PROGRESS,
+      );
+
+      this.logger.debug(
+        {
+          message: 'Processing LLM assessment asynchronously',
+          operationId,
+          totalSolutions: data.solutionIds.length,
+        },
+        BulkOperationsService.name,
       );
 
       // Create assessment session with comprehensive logging
@@ -336,16 +443,25 @@ export class BulkOperationsService {
         },
       );
     } catch (error) {
+      this.logger.error(
+        {
+          message: 'LLM assessment process failed',
+          operationId,
+          error: error instanceof Error ? error.message : String(error),
+        },
+        BulkOperationsService.name,
+      );
+
       await this.updateOperationStatus(
         operationId,
         ProcessingStatus.FAILED,
         undefined,
-        (error as Error).message,
+        error.message,
       );
     }
   }
 
-  private async findOrCreateUser(
+  async findOrCreateUser(
     studentName: string,
     studentId: string,
   ): Promise<User> {
@@ -361,6 +477,16 @@ export class BulkOperationsService {
         firstName: studentName.split(' ')[0] || studentName,
         lastName: studentName.split(' ').slice(1).join(' ') || 'Student',
       };
+
+      this.logger.debug(
+        {
+          message: 'Creating new user for imported solution',
+          studentName,
+          studentId,
+          email: createUserDto.email,
+        },
+        BulkOperationsService.name,
+      );
 
       user = await this.usersService.create(createUserDto);
     }
@@ -386,25 +512,13 @@ export class BulkOperationsService {
       );
     }
 
-    // If it's an LLM assessment operation, also stop the assessment session
-    if (
-      operation.type === OperationType.LLM_ASSESSMENT &&
-      operation.metadata?.assessmentSessionId
-    ) {
-      try {
-        await this.autoAssessmentService.stopSession(
-          operation.metadata.assessmentSessionId,
-        );
-      } catch (error) {
-        console.error('Error stopping assessment session:', error);
-      }
-    }
-
-    await this.updateOperationStatus(
-      operationId,
-      ProcessingStatus.FAILED,
-      { ...operation.metadata, stoppedByUser: true },
-      'Operation stopped by user',
+    this.logger.log(
+      {
+        message: 'Stopping operation',
+        operationId,
+        currentStatus: operation.status,
+      },
+      BulkOperationsService.name,
     );
 
     return this.getOperationStatus(operationId);
@@ -419,14 +533,15 @@ export class BulkOperationsService {
       throw new BadRequestException('Operation not found');
     }
 
-    if (
-      operation.status !== ProcessingStatus.FAILED &&
-      operation.status !== ProcessingStatus.COMPLETED
-    ) {
-      throw new BadRequestException(
-        'Only failed or completed operations can be restarted',
-      );
-    }
+    this.logger.log(
+      {
+        message: 'Restarting operation',
+        operationId,
+        type: operation.type,
+        currentStatus: operation.status,
+      },
+      BulkOperationsService.name,
+    );
 
     // Create a new operation object with updated metadata
     if (operation.metadata) {
@@ -446,10 +561,7 @@ export class BulkOperationsService {
     operation.progress = 0;
     operation.errorMessage = null;
 
-    // Save the updated entity
-    await this.processingOperationRepository.save(operation);
-
-    // Handle different operation types
+    // Re-process based on operation type
     if (operation.type === OperationType.LLM_ASSESSMENT) {
       try {
         // For LLM assessments, we can restart with the stored metadata
@@ -519,11 +631,11 @@ export class BulkOperationsService {
       id: operation.id,
       type: operation.type,
       status: operation.status,
-      progress: operation.progress,
       totalItems: operation.totalItems,
       processedItems: operation.processedItems,
-      errorMessage: operation.errorMessage,
+      progress: operation.progress,
       metadata: operation.metadata,
+      errorMessage: operation.errorMessage,
       createdAt: operation.createdAt,
       updatedAt: operation.updatedAt,
     };

@@ -1,12 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import OpenAI from 'openai';
+import { Logger } from 'nestjs-pino';
 
 @Injectable()
 export class OpenAIService {
   private openai: OpenAI;
 
-  constructor(private readonly configService: ConfigService) {}
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly logger: Logger,
+  ) {}
 
   async createCompletion(
     prompt: string,
@@ -36,7 +40,14 @@ export class OpenAIService {
         temperature: 0.2, // Lower temperature for more consistent results
       });
     } catch (error) {
-      console.error('Error calling OpenAI API:', error);
+      this.logger.error(
+        {
+          message: 'Error calling OpenAI API',
+          error: error instanceof Error ? error.message : String(error),
+          model,
+        },
+        OpenAIService.name,
+      );
       throw error;
     }
   }
@@ -61,6 +72,17 @@ export class OpenAIService {
       this.openai = new OpenAI({ apiKey });
     }
     try {
+      this.logger.log(
+        {
+          message: 'Calling OpenAI API',
+          model,
+          temperature,
+          maxTokens,
+          promptLength: prompt.length,
+        },
+        OpenAIService.name,
+      );
+
       const response = await this.openai.chat.completions.create({
         model,
         messages: [
@@ -79,6 +101,18 @@ export class OpenAIService {
         max_tokens: maxTokens,
       });
 
+      this.logger.log(
+        {
+          message: 'OpenAI API response received',
+          model: response.model,
+          finishReason: response.choices[0]?.finish_reason || 'unknown',
+          promptTokens: response.usage?.prompt_tokens,
+          completionTokens: response.usage?.completion_tokens,
+          totalTokens: response.usage?.total_tokens,
+        },
+        OpenAIService.name,
+      );
+
       return {
         content: response,
         usage: response.usage,
@@ -86,7 +120,16 @@ export class OpenAIService {
         finishReason: response.choices[0]?.finish_reason || 'unknown',
       };
     } catch (error) {
-      console.error('Error calling OpenAI API with metrics:', error);
+      this.logger.error(
+        {
+          message: 'Error calling OpenAI API with metrics',
+          error: error instanceof Error ? error.message : String(error),
+          model,
+          temperature,
+          maxTokens,
+        },
+        OpenAIService.name,
+      );
       throw error;
     }
   }

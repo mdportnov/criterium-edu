@@ -10,7 +10,7 @@ if (process.env.NODE_ENV === 'production') {
   if (!dbHost || dbHost.toLowerCase() === 'localhost') {
     throw new Error(
       'PRODUCTION Critical Error: DB_HOST environment variable is missing or configured as "localhost". ' +
-      'For production, DB_HOST must be explicitly set to the remote database server address.'
+        'For production, DB_HOST must be explicitly set to the remote database server address.',
     );
   }
 }
@@ -25,7 +25,7 @@ export const dataSourceOptions: DataSourceOptions = {
   entities: [join(__dirname, '../**/*.entity{.ts,.js}')],
   migrations: [join(__dirname, './migrations/*{.ts,.js}')],
   synchronize: process.env.NODE_ENV === 'development',
-  logging: process.env.NODE_ENV === 'development',
+  logging: true,
 };
 
 const dataSource = new DataSource(dataSourceOptions);
