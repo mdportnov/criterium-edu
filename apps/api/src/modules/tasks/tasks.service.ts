@@ -9,6 +9,7 @@ import {
   TaskDto,
   UpdateTaskDto,
 } from '@app/shared';
+import { Logger } from 'nestjs-pino';
 
 @Injectable()
 export class TasksService {
@@ -17,6 +18,7 @@ export class TasksService {
     private readonly tasksRepository: Repository<Task>,
     @InjectRepository(TaskCriterion)
     private readonly criteriaRepository: Repository<TaskCriterion>,
+    private readonly logger: Logger,
   ) {}
 
   private mapTaskCriterionToDto = (
@@ -51,22 +53,48 @@ export class TasksService {
     const tasks = await this.tasksRepository.find({
       relations: ['criteria', 'creator'], // Eager load criteria and creator
     });
+
+    this.logger.debug(
+      { message: 'Found tasks', count: tasks.length },
+      TasksService.name,
+    );
+
     return tasks.map((task) => this.mapTaskToDto(task));
   }
 
   async findOne(id: number): Promise<TaskDto> {
+    this.logger.debug(
+      { message: 'Finding task by ID', taskId: id },
+      TasksService.name,
+    );
+
     const task = await this.tasksRepository.findOne({
       where: { id },
       relations: ['criteria', 'creator'], // Eager load criteria and creator
     });
 
     if (!task) {
+      this.logger.error(
+        { message: 'Task not found', taskId: id },
+        TasksService.name,
+      );
       throw new NotFoundException(`Task with ID ${id} not found`);
     }
+
     return this.mapTaskToDto(task);
   }
 
   async create(createTaskDto: CreateTaskDto, userId: number): Promise<TaskDto> {
+    this.logger.log(
+      {
+        message: 'Creating new task',
+        title: createTaskDto.title,
+        userId,
+        criteriaCount: createTaskDto.criteria?.length || 0,
+      },
+      TasksService.name,
+    );
+
     const {
       criteria: criteriaDto,
       categories,
@@ -88,6 +116,16 @@ export class TasksService {
     });
 
     const savedTask = await this.tasksRepository.save(newTask);
+
+    this.logger.log(
+      {
+        message: 'Task created successfully',
+        taskId: savedTask.id,
+        title: savedTask.title,
+      },
+      TasksService.name,
+    );
+
     // Fetch the saved task with relations to ensure all data is present for DTO mapping
     const fullSavedTask = await this.tasksRepository.findOne({
       where: { id: savedTask.id },
@@ -97,6 +135,15 @@ export class TasksService {
   }
 
   async update(id: number, updateTaskDto: UpdateTaskDto): Promise<TaskDto> {
+    this.logger.debug(
+      {
+        message: 'Updating task',
+        taskId: id,
+        fieldsToUpdate: Object.keys(updateTaskDto),
+      },
+      TasksService.name,
+    );
+
     const {
       criteria: criteriaDto,
       categories,
@@ -110,6 +157,10 @@ export class TasksService {
     });
 
     if (!task) {
+      this.logger.error(
+        { message: 'Task not found for update', taskId: id },
+        TasksService.name,
+      );
       throw new NotFoundException(`Task with ID ${id} not found`);
     }
 
@@ -124,6 +175,16 @@ export class TasksService {
 
     // Handle criteria update
     if (criteriaDto) {
+      this.logger.debug(
+        {
+          message: 'Updating task criteria',
+          taskId: id,
+          oldCriteriaCount: task.criteria?.length || 0,
+          newCriteriaCount: criteriaDto.length,
+        },
+        TasksService.name,
+      );
+
       // Remove old criteria associated with this task
       await this.criteriaRepository.delete({ task: { id: task.id } });
       // Add new criteria
@@ -135,6 +196,14 @@ export class TasksService {
       Object.prototype.hasOwnProperty.call(updateTaskDto, 'criteria') &&
       criteriaDto === null
     ) {
+      this.logger.debug(
+        {
+          message: 'Removing all task criteria',
+          taskId: id,
+        },
+        TasksService.name,
+      );
+
       // If 'criteria' was explicitly passed as null (or empty array which becomes criteriaDto = null if not handled earlier)
       // This handles the case where the client wants to remove all criteria
       await this.criteriaRepository.delete({ task: { id: task.id } });
@@ -142,6 +211,15 @@ export class TasksService {
     }
 
     const updatedTask = await this.tasksRepository.save(task);
+
+    this.logger.log(
+      {
+        message: 'Task updated successfully',
+        taskId: id,
+      },
+      TasksService.name,
+    );
+
     // Fetch the updated task with relations for DTO mapping
     const fullUpdatedTask = await this.tasksRepository.findOne({
       where: { id: updatedTask.id },
@@ -154,11 +232,21 @@ export class TasksService {
     // Ensure task exists before attempting to remove
     const task = await this.tasksRepository.findOne({ where: { id } });
     if (!task) {
+      this.logger.error(
+        { message: 'Task not found for removal', taskId: id },
+        TasksService.name,
+      );
       throw new NotFoundException(`Task with ID ${id} not found`);
     }
+
     // Cascading delete for criteria should be handled by TypeORM if set up in entity
     // or explicitly delete criteria first if not.
     // Assuming Task entity has cascade:true for criteria, this is sufficient.
     await this.tasksRepository.remove(task);
+
+    this.logger.debug(
+      { message: 'Task removed successfully', taskId: id },
+      TasksService.name,
+    );
   }
 }

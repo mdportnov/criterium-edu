@@ -1,4 +1,4 @@
-import { MigrationInterface, QueryRunner, Table, Index } from 'typeorm';
+import { MigrationInterface, QueryRunner, Table, TableIndex } from 'typeorm';
 
 export class CreateAuditLogsTable1748100000000 implements MigrationInterface {
   name = 'CreateAuditLogsTable1748100000000';
@@ -104,27 +104,42 @@ export class CreateAuditLogsTable1748100000000 implements MigrationInterface {
     // Create indexes for better query performance
     await queryRunner.createIndex(
       'audit_logs',
-      new Index('IDX_AUDIT_LOGS_USER_ID', ['user_id']),
+      new TableIndex({
+        name: 'IDX_AUDIT_LOGS_USER_ID',
+        columnNames: ['user_id'],
+      }),
     );
 
     await queryRunner.createIndex(
       'audit_logs',
-      new Index('IDX_AUDIT_LOGS_ACTION', ['action']),
+      new TableIndex({
+        name: 'IDX_AUDIT_LOGS_ACTION',
+        columnNames: ['action'],
+      }),
     );
 
     await queryRunner.createIndex(
       'audit_logs',
-      new Index('IDX_AUDIT_LOGS_RESOURCE', ['resource_type', 'resource_id']),
+      new TableIndex({
+        name: 'IDX_AUDIT_LOGS_RESOURCE',
+        columnNames: ['resource_type', 'resource_id'],
+      }),
     );
 
     await queryRunner.createIndex(
       'audit_logs',
-      new Index('IDX_AUDIT_LOGS_CREATED_AT', ['created_at']),
+      new TableIndex({
+        name: 'IDX_AUDIT_LOGS_CREATED_AT',
+        columnNames: ['created_at'],
+      }),
     );
 
     await queryRunner.createIndex(
       'audit_logs',
-      new Index('IDX_AUDIT_LOGS_USER_CREATED', ['user_id', 'created_at']),
+      new TableIndex({
+        name: 'IDX_AUDIT_LOGS_USER_CREATED',
+        columnNames: ['user_id', 'created_at'],
+      }),
     );
   }
 

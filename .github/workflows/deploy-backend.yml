@@ -54,7 +54,7 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           passphrase: ${{ secrets.PASSPHRASE }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "docker-compose.prod.yml,.env.example, ./apps/web-ui/.env.production"
+          source: "docker-compose.prod.yml, ./apps/api/.env.production"
           target: "~/criterium/"
 
       - name: "Deploy to server"
@@ -70,8 +70,7 @@ jobs:
             sudo chown -R ${{ secrets.SSH_USER }}:${{ secrets.SSH_USER }} /var/www/criterium
             
             cp -f ~/criterium/docker-compose.prod.yml /var/www/criterium/
-            cp -f ~/criterium/.env.example /var/www/criterium/
-            cp -f ~/criterium/apps/web-ui/.env.production /var/www/criterium/
+            cp -f ~/criterium/apps/api/.env.production /var/www/criterium/
             
             cd /var/www/criterium
             

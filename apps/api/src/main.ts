@@ -5,6 +5,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Logger } from 'nestjs-pino';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import dataSource from './database/data-source';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
@@ -24,8 +25,9 @@ async function bootstrap() {
     const port = configService.get<number>('port') || 3000;
 
     // Use Pino logger - wrap in try/catch in case it's not available
+    let logger: Logger;
     try {
-      const logger = app.get(Logger);
+      logger = app.get(Logger);
       if (logger) {
         app.useLogger(logger);
       }
@@ -33,8 +35,15 @@ async function bootstrap() {
       console.warn('Logger not available, using default logger');
     }
 
-    // Enable CORS
-    app.enableCors();
+    app.enableCors({
+      origin: ['https://criterium.command.mephi.ru', 'http://localhost:3000'],
+      methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+      allowedHeaders:
+        'Content-Type,Authorization,Accept,Origin,X-Requested-With',
+      credentials: true,
+      preflightContinue: false, // Ensure preflight requests are not passed to route handlers
+      optionsSuccessStatus: 204, // Standard success status for OPTIONS requests
+    });
 
     // Enable validation
     app.useGlobalPipes(
@@ -59,9 +68,64 @@ async function bootstrap() {
     const document = SwaggerModule.createDocument(app, swaggerConfig);
     SwaggerModule.setup('api/docs', app, document);
 
+    // Run migrations in production before starting the server
+    if (process.env.NODE_ENV === 'production') {
+      logger.log({
+        message:
+          'Production environment detected. Checking and running database migrations.',
+        context: 'DB Migration',
+      });
+
+      try {
+        if (!dataSource.isInitialized) {
+          logger.log({
+            message: 'Initializing data source for migrations.',
+            context: 'DB Migration',
+          });
+
+          await dataSource.initialize();
+
+          logger.log({
+            message: 'Data source initialized successfully.',
+            context: 'DB Migration',
+          });
+        }
+
+        logger.log({
+          message: 'Running pending migrations.',
+          context: 'DB Migration',
+        });
+
+        const migrationsRun = await dataSource.runMigrations();
+
+        if (migrationsRun.length > 0) {
+          logger.log({
+            message: `Successfully ran ${migrationsRun.length} migration(s).`,
+            migrations: migrationsRun.map((m) => m.name),
+            context: 'DB Migration',
+          });
+        } else {
+          logger.log({
+            message:
+              'No pending migrations to run. Database schema is up to date.',
+            context: 'DB Migration',
+          });
+        }
+      } catch (migrationError) {
+        logger.error({
+          message: 'CRITICAL: Failed to run database migrations.',
+          error: migrationError.message,
+          stack: migrationError.stack,
+          context: 'DB Migration',
+        });
+
+        process.exit(1); // Exit if migrations fail in production
+      }
+    }
+
     // Start server
     await app.listen(port);
-    console.log(`Application is running on: http://localhost:${port}`);
+    logger.log(`Application is running on: http://localhost:${port}`);
   } catch (error) {
     console.error('Failed to start application:', error);
     process.exit(1);
