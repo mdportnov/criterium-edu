@@ -34,7 +34,19 @@ async function bootstrap() {
     }
 
     // Enable CORS
-    app.enableCors();
+    app.enableCors({
+      origin: [
+        'https://criterium.command.mephi.ru',
+        'http://localhost:3000', // For the API itself, useful in some setups
+        'http://localhost:3001', // Common port for local frontend development
+        'http://localhost:5173', // Another common port for Vite-based frontend development
+      ],
+      methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+      allowedHeaders: 'Content-Type,Authorization,Accept,Origin,X-Requested-With',
+      credentials: true,
+      preflightContinue: false, // Ensure preflight requests are not passed to route handlers
+      optionsSuccessStatus: 204 // Standard success status for OPTIONS requests
+    });
 
     // Enable validation
     app.useGlobalPipes(
