@@ -50,8 +50,6 @@ services:
     ports:
       - "80:80"
     restart: always
-    depends_on:
-      - backend
     networks:
       - criterium-network
 
