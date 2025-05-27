@@ -1,11 +1,23 @@
 import { apiRequest } from './api';
-import type { CreateTaskRequest, Task, UpdateTaskRequest } from '@/types';
+import type {
+  CreateTaskRequest,
+  PaginatedResponse,
+  PaginationParams,
+  Task,
+  UpdateTaskRequest,
+} from '@/types';
 
 export const TaskService = {
-  async getTasks(): Promise<Task[]> {
-    return apiRequest<Task[]>({
+  async getTasks(
+    pagination?: PaginationParams,
+  ): Promise<PaginatedResponse<Task>> {
+    const params = pagination
+      ? { page: pagination.page, size: pagination.size }
+      : {};
+    return apiRequest<PaginatedResponse<Task>>({
       method: 'GET',
       url: '/tasks',
+      params,
     });
   },
 

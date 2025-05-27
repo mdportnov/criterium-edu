@@ -1,10 +1,12 @@
 import { apiRequest } from './api';
 import type {
   BulkImportResponse,
-  BulkOperationStatus,
   BulkImportSolution,
-  ProcessingOperation,
+  BulkOperationStatus,
   LLMAssessmentRequest,
+  PaginatedResponse,
+  PaginationParams,
+  ProcessingOperation,
 } from '@/types';
 
 export const BulkOperationsService = {
@@ -26,10 +28,15 @@ export const BulkOperationsService = {
     });
   },
 
-  async getAllOperations(): Promise<BulkOperationStatus[]> {
-    return apiRequest<BulkOperationStatus[]>({
+  async getAllOperations(
+    pagination?: PaginationParams,
+  ): Promise<BulkOperationStatus[] | PaginatedResponse<BulkOperationStatus>> {
+    return apiRequest<
+      BulkOperationStatus[] | PaginatedResponse<BulkOperationStatus>
+    >({
       method: 'GET',
       url: '/bulk-operations',
+      params: pagination,
     });
   },
 
@@ -63,10 +70,13 @@ export const BulkOperationsService = {
     });
   },
 
-  async getAllProcessingOperations(): Promise<ProcessingOperation[]> {
-    return apiRequest<ProcessingOperation[]>({
+  async getAllProcessingOperations(
+    pagination?: PaginationParams,
+  ): Promise<PaginatedResponse<ProcessingOperation>> {
+    return apiRequest<PaginatedResponse<ProcessingOperation>>({
       method: 'GET',
       url: '/bulk-operations/operations',
+      params: pagination,
     });
   },
 

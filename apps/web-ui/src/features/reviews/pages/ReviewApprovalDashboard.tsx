@@ -17,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Pagination } from '@/components/ui/pagination';
 import { TaskSolutionReviewService } from '@/services/task-solution-review.service';
 import { TaskService } from '@/services/task.service';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -33,20 +34,33 @@ const ReviewApprovalDashboard = () => {
     type: 'success' | 'error';
     text: string;
   } | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
-  const { data: tasks = [] } = useQuery({
+  const { data: tasksData } = useQuery({
     queryKey: ['tasks'],
-    queryFn: TaskService.getTasks,
+    queryFn: () => TaskService.getTasks({ page: 1, size: 100 }),
   });
 
-  const { data: pendingReviews = [], refetch } = useQuery({
-    queryKey: ['pending-auto-reviews', selectedTaskId],
+  const { data: pendingReviewsData, refetch } = useQuery({
+    queryKey: ['pending-auto-reviews', selectedTaskId, currentPage, pageSize],
     queryFn: () =>
       TaskSolutionReviewService.getPendingAutoReviews(
         selectedTaskId === 'all' ? undefined : Number(selectedTaskId),
+        { page: currentPage, size: pageSize }
       ),
     refetchInterval: 15000, // Refresh every 15 seconds
   });
+
+  const tasks = tasksData?.data || [];
+  const pendingReviews = pendingReviewsData?.data || [];
+  const totalPages = pendingReviewsData?.totalPages || 0;
+  const total = pendingReviewsData?.total || 0;
+
+  const handlePageSizeChange = (newSize: number) => {
+    setPageSize(newSize);
+    setCurrentPage(1);
+  };
 
   const handleSelectAll = () => {
     if (selectedReviews.length === pendingReviews.length) {
@@ -360,6 +374,19 @@ const ReviewApprovalDashboard = () => {
                     </div>
                   </div>
                 ))}
+              </div>
+            )}
+
+            {totalPages > 1 && (
+              <div className="mt-6">
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  pageSize={pageSize}
+                  total={total}
+                  onPageChange={setCurrentPage}
+                  onPageSizeChange={handlePageSizeChange}
+                />
               </div>
             )}
           </CardContent>

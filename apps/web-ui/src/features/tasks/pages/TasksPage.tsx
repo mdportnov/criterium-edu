@@ -3,19 +3,20 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { type Task } from '@/types';
+import { Pagination } from '@/components/ui/pagination';
+import { type PaginationParams, type Task } from '@/types';
 import { TaskService } from '@/services';
 import {
-  Search,
-  Filter,
-  Plus,
-  BookOpen,
-  Tag,
-  Folder,
-  ArrowRight,
-  Edit3,
-  Play,
   AlertCircle,
+  ArrowRight,
+  BookOpen,
+  Edit3,
+  Filter,
+  Folder,
+  Play,
+  Plus,
+  Search,
+  Tag,
   Upload,
 } from 'lucide-react';
 import { UserRole } from '@app/shared';
@@ -29,6 +30,14 @@ const TasksPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [selectedTag, setSelectedTag] = useState<string>('');
+  const [pagination, setPagination] = useState<PaginationParams>({
+    page: 1,
+    size: 12,
+  });
+  const [paginationMeta, setPaginationMeta] = useState({
+    total: 0,
+    totalPages: 0,
+  });
 
   const isAdminOrReviewer = hasRole([UserRole.ADMIN, UserRole.REVIEWER]);
 
@@ -43,9 +52,13 @@ const TasksPage: React.FC = () => {
       setError('');
 
       try {
-        const tasksData = await TaskService.getTasks();
-        setTasks(tasksData);
-        setFilteredTasks(tasksData);
+        const response = await TaskService.getTasks(pagination);
+        setTasks(response.data);
+        setFilteredTasks(response.data);
+        setPaginationMeta({
+          total: response.total,
+          totalPages: response.totalPages,
+        });
       } catch (err) {
         console.error('Error fetching tasks:', err);
         setError('Failed to load tasks. Please try again later.');
@@ -55,7 +68,7 @@ const TasksPage: React.FC = () => {
     };
 
     fetchTasks();
-  }, []);
+  }, [pagination]);
 
   // Filter tasks based on search term, category, and tag
   useEffect(() => {
@@ -119,19 +132,26 @@ const TasksPage: React.FC = () => {
             Tasks Library
           </h1>
           <p className="text-muted-foreground mt-1">
-            {tasks.length} tasks available to practice
+            {paginationMeta.total} tasks available to practice
           </p>
         </div>
 
         {isAdminOrReviewer && (
           <div className="flex gap-2">
-            <Button asChild variant="outline" className="transition-all duration-200 hover:shadow-lg">
+            <Button
+              asChild
+              variant="outline"
+              className="transition-all duration-200 hover:shadow-lg"
+            >
               <Link to="/dashboard/bulk-import">
                 <Upload className="w-4 h-4 mr-2" />
                 Bulk Import
               </Link>
             </Button>
-            <Button asChild className="transition-all duration-200 hover:shadow-lg">
+            <Button
+              asChild
+              className="transition-all duration-200 hover:shadow-lg"
+            >
               <Link to="/dashboard/tasks/create">
                 <Plus className="w-4 h-4 mr-2" />
                 Create Task
@@ -147,7 +167,7 @@ const TasksPage: React.FC = () => {
           <Filter className="w-5 h-5 text-primary" />
           <h2 className="font-semibold">Filters</h2>
         </div>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="space-y-2">
             <label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
@@ -262,7 +282,10 @@ const TasksPage: React.FC = () => {
               <div className="p-6 flex-grow space-y-4">
                 <div>
                   <h2 className="text-xl font-semibold mb-2 group-hover:text-primary transition-colors">
-                    <Link to={`/dashboard/tasks/${task.id}`} className="hover:underline">
+                    <Link
+                      to={`/dashboard/tasks/${task.id}`}
+                      className="hover:underline"
+                    >
                       {task.title}
                     </Link>
                   </h2>
@@ -320,7 +343,9 @@ const TasksPage: React.FC = () => {
 
                     {hasRole(UserRole.STUDENT) && (
                       <Button asChild size="sm" className="gap-1">
-                        <Link to={`/dashboard/tasks/${task.id}/submit-solution`}>
+                        <Link
+                          to={`/dashboard/tasks/${task.id}/submit-solution`}
+                        >
                           <Play className="w-4 h-4" />
                           Solve
                         </Link>
@@ -328,7 +353,12 @@ const TasksPage: React.FC = () => {
                     )}
 
                     {isAdminOrReviewer && (
-                      <Button asChild variant="outline" size="sm" className="gap-1">
+                      <Button
+                        asChild
+                        variant="outline"
+                        size="sm"
+                        className="gap-1"
+                      >
                         <Link to={`/dashboard/tasks/${task.id}/edit`}>
                           <Edit3 className="w-4 h-4" />
                           Edit
@@ -341,6 +371,20 @@ const TasksPage: React.FC = () => {
             </div>
           ))}
         </div>
+      )}
+
+      {/* Pagination */}
+      {filteredTasks.length > 0 && (
+        <Pagination
+          currentPage={pagination.page || 1}
+          totalPages={paginationMeta.totalPages}
+          pageSize={pagination.size || 12}
+          total={paginationMeta.total}
+          onPageChange={(page) => setPagination((prev) => ({ ...prev, page }))}
+          onPageSizeChange={(size) =>
+            setPagination((prev) => ({ ...prev, size, page: 1 }))
+          }
+        />
       )}
     </div>
   );

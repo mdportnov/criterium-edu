@@ -3,19 +3,19 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import type { TaskSolution } from '@/types';
+import { Pagination } from '@/components/ui/pagination';
+import type { TaskSolution, PaginatedResponse } from '@/types';
 import { TaskSolutionService } from '@/services';
 
 const MySubmissionsPage: React.FC = () => {
   const { user } = useAuth();
-  const [solutions, setSolutions] = useState<TaskSolution[]>([]);
-  const [filteredSolutions, setFilteredSolutions] = useState<TaskSolution[]>(
-    [],
-  );
+  const [paginatedData, setPaginatedData] = useState<PaginatedResponse<TaskSolution> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   useEffect(() => {
     const fetchSolutions = async () => {
@@ -25,10 +25,11 @@ const MySubmissionsPage: React.FC = () => {
       setError('');
 
       try {
-        const solutionsData =
-          await TaskSolutionService.getTaskSolutionsByStudentId(user.id);
-        setSolutions(solutionsData);
-        setFilteredSolutions(solutionsData);
+        const data = await TaskSolutionService.getMyTaskSolutions({
+          page: currentPage,
+          size: pageSize,
+        });
+        setPaginatedData(data);
       } catch (err) {
         console.error('Error fetching solutions:', err);
         setError('Failed to load your submissions. Please try again later.');
@@ -38,25 +39,16 @@ const MySubmissionsPage: React.FC = () => {
     };
 
     fetchSolutions();
-  }, [user]);
+  }, [user, currentPage, pageSize]);
 
-  // Filter solutions based on search term and status
-  useEffect(() => {
-    let result = solutions;
+  const solutions = paginatedData?.data || [];
+  const totalPages = paginatedData?.totalPages || 0;
+  const total = paginatedData?.total || 0;
 
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase();
-      result = result.filter((solution) =>
-        solution.taskTitle.toLowerCase().includes(term),
-      );
-    }
-
-    if (statusFilter) {
-      result = result.filter((solution) => solution.status === statusFilter);
-    }
-
-    setFilteredSolutions(result);
-  }, [searchTerm, statusFilter, solutions]);
+  const handlePageSizeChange = (newSize: number) => {
+    setPageSize(newSize);
+    setCurrentPage(1);
+  };
 
   if (isLoading) {
     return (
@@ -111,7 +103,7 @@ const MySubmissionsPage: React.FC = () => {
         </div>
       </div>
 
-      {filteredSolutions.length === 0 ? (
+      {solutions.length === 0 ? (
         <div className="text-center py-12">
           <h3 className="text-lg font-medium">No submissions found</h3>
           <p className="text-muted-foreground mt-2">
@@ -127,8 +119,9 @@ const MySubmissionsPage: React.FC = () => {
           )}
         </div>
       ) : (
-        <div className="space-y-6">
-          {filteredSolutions.map((solution) => (
+        <>
+          <div className="space-y-6">
+            {solutions.map((solution) => (
             <div
               key={solution.id}
               className="bg-card rounded-lg shadow-sm border border-border overflow-hidden"
@@ -141,7 +134,7 @@ const MySubmissionsPage: React.FC = () => {
                         to={`/dashboard/tasks/${solution.taskId}`}
                         className="hover:text-primary transition-colors"
                       >
-                        {solution.taskTitle}
+                        Task #{solution.taskId}
                       </Link>
                     </h2>
                     <p className="text-sm text-muted-foreground">
@@ -162,19 +155,12 @@ const MySubmissionsPage: React.FC = () => {
                     >
                       {solution.status.replace('_', ' ')}
                     </span>
-
-                    {solution.score !== undefined &&
-                      solution.score !== null && (
-                        <span className="text-sm font-medium px-2 py-1 rounded-full bg-primary/10 text-primary">
-                          Score: {solution.score}%
-                        </span>
-                      )}
                   </div>
                 </div>
 
                 <div className="bg-muted p-4 rounded-md overflow-x-auto mb-4">
                   <pre className="text-xs font-mono line-clamp-3">
-                    <code>{solution.solution}</code>
+                    <code>{solution.solutionText}</code>
                   </pre>
                 </div>
 
@@ -185,8 +171,22 @@ const MySubmissionsPage: React.FC = () => {
                 </div>
               </div>
             </div>
-          ))}
-        </div>
+            ))}
+          </div>
+          
+          {totalPages > 1 && (
+            <div className="mt-8">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                pageSize={pageSize}
+                total={total}
+                onPageChange={setCurrentPage}
+                onPageSizeChange={handlePageSizeChange}
+              />
+            </div>
+          )}
+        </>
       )}
     </div>
   );

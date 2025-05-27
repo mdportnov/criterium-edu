@@ -7,6 +7,7 @@ import {
   AssessmentSession,
   AssessmentSessionStatus,
 } from './entities/assessment-session.entity';
+import { PaginatedResponse, PaginationDto, ReviewSource } from '@app/shared';
 import { TaskSolutionReview } from './entities/task-solution-review.entity';
 import { CriterionScore } from './entities/criterion-score.entity';
 import { TaskSolution } from '../task-solutions/entities/task-solution.entity';
@@ -17,7 +18,6 @@ import {
   SourceAutoAssessRequestDto,
   TaskAutoAssessRequestDto,
 } from '../task-solutions/entities/solution-import.dto';
-import { ReviewSource } from '@app/shared';
 import { OpenAIService } from '../shared/services/openai.service';
 import { Logger } from 'nestjs-pino';
 
@@ -649,19 +649,69 @@ Important:
     return session;
   }
 
-  async getAllSessions(): Promise<AssessmentSession[]> {
-    return this.sessionRepository.find({
+  async getAllSessions(
+    paginationDto?: PaginationDto,
+  ): Promise<PaginatedResponse<AssessmentSession> | AssessmentSession[]> {
+    if (!paginationDto) {
+      return this.sessionRepository.find({
+        relations: ['initiatedBy'],
+        order: { startedAt: 'DESC' },
+      });
+    }
+
+    const { page = 1, size = 10 } = paginationDto;
+    const skip = (page - 1) * size;
+
+    const [sessions, total] = await this.sessionRepository.findAndCount({
       relations: ['initiatedBy'],
+      skip,
+      take: size,
       order: { startedAt: 'DESC' },
     });
+
+    const totalPages = Math.ceil(total / size);
+
+    return {
+      data: sessions,
+      total,
+      page,
+      size,
+      totalPages,
+    };
   }
 
-  async getSessionsByUser(userId: number): Promise<AssessmentSession[]> {
-    return this.sessionRepository.find({
+  async getSessionsByUser(
+    userId: number,
+    paginationDto?: PaginationDto,
+  ): Promise<PaginatedResponse<AssessmentSession> | AssessmentSession[]> {
+    if (!paginationDto) {
+      return this.sessionRepository.find({
+        where: { initiatedBy: { id: userId } },
+        relations: ['initiatedBy'],
+        order: { startedAt: 'DESC' },
+      });
+    }
+
+    const { page = 1, size = 10 } = paginationDto;
+    const skip = (page - 1) * size;
+
+    const [sessions, total] = await this.sessionRepository.findAndCount({
       where: { initiatedBy: { id: userId } },
       relations: ['initiatedBy'],
+      skip,
+      take: size,
       order: { startedAt: 'DESC' },
     });
+
+    const totalPages = Math.ceil(total / size);
+
+    return {
+      data: sessions,
+      total,
+      page,
+      size,
+      totalPages,
+    };
   }
 
   async stopSession(sessionId: number): Promise<AssessmentSession> {

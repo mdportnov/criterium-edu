@@ -6,10 +6,18 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { CreateUserDto, UpdateUserDto, UserDto, UserRole } from '@app/shared';
+import {
+  CreateUserDto,
+  PaginatedResponse,
+  PaginationDto,
+  UpdateUserDto,
+  UserDto,
+  UserRole,
+} from '@app/shared';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -25,9 +33,14 @@ export class UsersController {
 
   @Get()
   @Roles(UserRole.ADMIN)
-  async findAll(): Promise<UserDto[]> {
-    const users = await this.usersService.findAll();
-    return users.map((user) => this.mapToDto(user));
+  async findAll(
+    @Query() paginationDto: PaginationDto,
+  ): Promise<PaginatedResponse<UserDto>> {
+    const result = await this.usersService.findAll(paginationDto);
+    return {
+      ...result,
+      data: result.data.map((user) => this.mapToDto(user)),
+    };
   }
 
   @Get(':id')

@@ -9,6 +9,8 @@ import { TaskSolution } from './entities/task-solution.entity';
 import {
   CreateTaskSolutionDto,
   CurrentUser,
+  PaginatedResponse,
+  PaginationDto,
   TaskSolutionDto,
   TaskSolutionStatus,
   UpdateTaskSolutionDto,
@@ -40,53 +42,164 @@ export class TaskSolutionsService {
     };
   }
 
-  async findAll(): Promise<TaskSolution[]> {
-    const solutions = await this.taskSolutionsRepository.find({
+  async findAll(
+    paginationDto?: PaginationDto,
+  ): Promise<PaginatedResponse<TaskSolution> | TaskSolution[]> {
+    if (!paginationDto) {
+      const solutions = await this.taskSolutionsRepository.find({
+        relations: ['task', 'user'],
+      });
+
+      this.logger.debug(
+        { message: 'Found task solutions', count: solutions.length },
+        TaskSolutionsService.name,
+      );
+
+      return solutions;
+    }
+
+    const { page = 1, size = 10 } = paginationDto;
+    const skip = (page - 1) * size;
+
+    const [solutions, total] = await this.taskSolutionsRepository.findAndCount({
       relations: ['task', 'user'],
+      skip,
+      take: size,
+      order: { createdAt: 'DESC' },
     });
 
+    const totalPages = Math.ceil(total / size);
+
     this.logger.debug(
-      { message: 'Found task solutions', count: solutions.length },
+      {
+        message: 'Found paginated task solutions',
+        total,
+        page,
+        size,
+        totalPages,
+      },
       TaskSolutionsService.name,
     );
 
-    return solutions;
+    return {
+      data: solutions,
+      total,
+      page,
+      size,
+      totalPages,
+    };
   }
 
-  async findByStudent(studentId: number): Promise<TaskSolution[]> {
-    const solutions = await this.taskSolutionsRepository.find({
+  async findByStudent(
+    studentId: number,
+    paginationDto?: PaginationDto,
+  ): Promise<PaginatedResponse<TaskSolution> | TaskSolution[]> {
+    if (!paginationDto) {
+      const solutions = await this.taskSolutionsRepository.find({
+        where: { user: { id: studentId } },
+        relations: ['task'],
+      });
+
+      this.logger.debug(
+        {
+          message: 'Found student task solutions',
+          studentId,
+          count: solutions.length,
+        },
+        TaskSolutionsService.name,
+      );
+
+      return solutions;
+    }
+
+    const { page = 1, size = 10 } = paginationDto;
+    const skip = (page - 1) * size;
+
+    const [solutions, total] = await this.taskSolutionsRepository.findAndCount({
       where: { user: { id: studentId } },
       relations: ['task'],
+      skip,
+      take: size,
+      order: { createdAt: 'DESC' },
     });
+
+    const totalPages = Math.ceil(total / size);
 
     this.logger.debug(
       {
-        message: 'Found student task solutions',
+        message: 'Found paginated student task solutions',
         studentId,
-        count: solutions.length,
+        total,
+        page,
+        size,
+        totalPages,
       },
       TaskSolutionsService.name,
     );
 
-    return solutions;
+    return {
+      data: solutions,
+      total,
+      page,
+      size,
+      totalPages,
+    };
   }
 
-  async findByTask(taskId: number): Promise<TaskSolution[]> {
-    const solutions = await this.taskSolutionsRepository.find({
+  async findByTask(
+    taskId: number,
+    paginationDto?: PaginationDto,
+  ): Promise<PaginatedResponse<TaskSolution> | TaskSolution[]> {
+    if (!paginationDto) {
+      const solutions = await this.taskSolutionsRepository.find({
+        where: { task: { id: taskId } },
+        relations: ['user'],
+      });
+
+      this.logger.debug(
+        {
+          message: 'Found task solutions for task',
+          taskId,
+          count: solutions.length,
+        },
+        TaskSolutionsService.name,
+      );
+
+      return solutions;
+    }
+
+    const { page = 1, size = 10 } = paginationDto;
+    const skip = (page - 1) * size;
+
+    const [solutions, total] = await this.taskSolutionsRepository.findAndCount({
       where: { task: { id: taskId } },
       relations: ['user'],
+      skip,
+      take: size,
+      order: { createdAt: 'DESC' },
     });
+
+    const totalPages = Math.ceil(total / size);
 
     this.logger.debug(
       {
-        message: 'Found task solutions for task',
+        message: 'Found paginated task solutions for task',
         taskId,
-        count: solutions.length,
+        total,
+        page,
+        size,
+        totalPages,
       },
       TaskSolutionsService.name,
     );
 
-    return solutions;
+    return {
+      data: solutions,
+      total,
+      page,
+      size,
+      totalPages,
+    };
   }
 
   async findOne(id: number, user?: CurrentUser): Promise<TaskSolution> {

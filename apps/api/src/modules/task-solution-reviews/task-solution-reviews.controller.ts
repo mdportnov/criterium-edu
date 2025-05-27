@@ -12,6 +12,9 @@ import {
 import { TaskSolutionReviewsService } from './task-solution-reviews.service';
 import {
   CreateTaskSolutionReviewDto,
+  CurrentUser,
+  PaginatedResponse,
+  PaginationDto,
   ReviewSource,
   TaskSolutionReviewDto,
   UpdateTaskSolutionReviewDto,
@@ -22,7 +25,6 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { GetCurrentUser } from '../auth/decorators/current-user.decorator';
-import { CurrentUser } from '@app/shared';
 
 @ApiTags('task-solution-reviews')
 @ApiBearerAuth()
@@ -36,25 +38,25 @@ export class TaskSolutionReviewsController {
   @ApiQuery({ name: 'taskSolutionId', required: false })
   @ApiQuery({ name: 'taskId', required: false })
   async findAll(
+    @Query() paginationDto: PaginationDto,
     @Query('taskSolutionId') taskSolutionId?: number,
     @Query('taskId') taskId?: number,
-  ): Promise<TaskSolutionReviewDto[]> {
-    if (taskId) {
-      return this.reviewsService.findByTask(taskId);
-    } else if (taskSolutionId) {
-      return this.reviewsService.findByTaskSolution(taskSolutionId);
-    }
-
-    return this.reviewsService.findAll();
+  ): Promise<PaginatedResponse<TaskSolutionReviewDto>> {
+    return await this.reviewsService.findAll(
+      paginationDto,
+      taskId,
+      taskSolutionId,
+    );
   }
 
   @Get('pending-auto')
   @Roles(UserRole.ADMIN, UserRole.REVIEWER)
   @ApiQuery({ name: 'taskId', required: false })
   async findPendingAutoReviews(
+    @Query() paginationDto: PaginationDto,
     @Query('taskId') taskId?: number,
-  ): Promise<TaskSolutionReviewDto[]> {
-    return this.reviewsService.findPendingAutoReviews(taskId);
+  ): Promise<PaginatedResponse<TaskSolutionReviewDto>> {
+    return this.reviewsService.findPendingAutoReviews(paginationDto, taskId);
   }
 
   @Get(':id')

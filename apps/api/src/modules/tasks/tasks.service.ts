@@ -5,6 +5,8 @@ import { Task } from './entities/task.entity';
 import { TaskCriterion } from './entities/task-criterion.entity';
 import {
   CreateTaskDto,
+  PaginatedResponse,
+  PaginationDto,
   TaskCriterionDto,
   TaskDto,
   UpdateTaskDto,
@@ -49,17 +51,30 @@ export class TasksService {
     };
   };
 
-  async findAll(): Promise<TaskDto[]> {
-    const tasks = await this.tasksRepository.find({
-      relations: ['criteria', 'creator'], // Eager load criteria and creator
+  async findAll(
+    paginationDto?: PaginationDto,
+  ): Promise<PaginatedResponse<TaskDto>> {
+    const { page = 1, size = 10 } = paginationDto || {};
+    const skip = (page - 1) * size;
+
+    const [tasks, total] = await this.tasksRepository.findAndCount({
+      relations: ['criteria', 'creator'],
+      skip,
+      take: size,
     });
 
     this.logger.debug(
-      { message: 'Found tasks', count: tasks.length },
+      { message: 'Found tasks', count: tasks.length, total },
       TasksService.name,
     );
 
-    return tasks.map((task) => this.mapTaskToDto(task));
+    return {
+      data: tasks.map((task) => this.mapTaskToDto(task)),
+      total,
+      page,
+      size,
+      totalPages: Math.ceil(total / size),
+    };
   }
 
   async findOne(id: number): Promise<TaskDto> {

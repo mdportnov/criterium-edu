@@ -16,6 +16,8 @@ import {
   CreateTaskSolutionDto,
   CreateUserDto,
   OperationType,
+  PaginatedResponse,
+  PaginationDto,
   ProcessingOperationDto,
   ProcessingStatus,
   TaskCriterionDto,
@@ -297,13 +299,39 @@ export class BulkOperationsService {
     });
   }
 
-  async getAllOperations(): Promise<ProcessingOperationDto[]> {
-    const operations = await this.processingOperationRepository.find({
-      order: { createdAt: 'DESC' },
-      take: 50, // Limit to last 50 operations
-    });
+  async getAllOperations(
+    paginationDto?: PaginationDto,
+  ): Promise<
+    PaginatedResponse<ProcessingOperationDto> | ProcessingOperationDto[]
+  > {
+    if (!paginationDto) {
+      const operations = await this.processingOperationRepository.find({
+        order: { createdAt: 'DESC' },
+        take: 50, // Limit to last 50 operations
+      });
 
-    return operations.map((operation) => this.mapOperationToDto(operation));
+      return operations.map((operation) => this.mapOperationToDto(operation));
+    }
+
+    const { page = 1, size = 10 } = paginationDto;
+    const skip = (page - 1) * size;
+
+    const [operations, total] =
+      await this.processingOperationRepository.findAndCount({
+        skip,
+        take: size,
+        order: { createdAt: 'DESC' },
+      });
+
+    const totalPages = Math.ceil(total / size);
+
+    return {
+      data: operations.map((operation) => this.mapOperationToDto(operation)),
+      total,
+      page,
+      size,
+      totalPages,
+    };
   }
 
   async getOperationStatus(

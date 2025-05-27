@@ -12,7 +12,7 @@ const envSchema = z.object({
   DB_NAME: z.string(),
   JWT_SECRET: z.string(),
   JWT_EXPIRATION_TIME: z.string(),
-  OPENAI_API_KEY: z.string(),
+  OPENAI_API_KEY: z.string().optional(),
   LOG_LEVEL: z.string().default('info'),
 });
 
@@ -44,6 +44,6 @@ export default () => {
     logging: {
       level: result.data.LOG_LEVEL,
     },
-    openaiApiKey: result.data.OPENAI_API_KEY,
+    openaiApiKey: result.data.OPENAI_API_KEY || '',
   };
 };

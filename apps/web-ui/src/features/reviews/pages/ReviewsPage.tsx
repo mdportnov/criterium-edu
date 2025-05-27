@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,9 +12,10 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
+import { Pagination } from '@/components/ui/pagination';
 import { TaskSolutionReviewService } from '@/services';
 import { useAuth } from '@/contexts/AuthContext';
-import type { ReviewSource, TaskSolutionReview } from '@/types';
+import type { PaginatedResponse, ReviewSource, TaskSolutionReview } from '@/types';
 import {
   Activity,
   AlertCircle,
@@ -31,92 +32,59 @@ import {
 } from 'lucide-react';
 
 const ReviewsPage: React.FC = () => {
-  const [reviews, setReviews] = useState<TaskSolutionReview[]>([]);
-  const [filteredReviews, setFilteredReviews] = useState<TaskSolutionReview[]>(
-    [],
-  );
+  const [paginatedData, setPaginatedData] = useState<PaginatedResponse<TaskSolutionReview> | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [sourceFilter, setSourceFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('newest');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
 
-  useEffect(() => {
-    fetchReviews();
-  }, []);
-
-  useEffect(() => {
-    filterAndSortReviews();
-  }, [reviews, searchTerm, sourceFilter, sortBy]);
-
-  const fetchReviews = async () => {
+  const fetchReviews = useCallback(async () => {
     try {
       setLoading(true);
       const taskId = searchParams.get('taskId');
       const taskSolutionId = searchParams.get('taskSolutionId');
 
-      let data: TaskSolutionReview[];
+      let data: PaginatedResponse<TaskSolutionReview>;
+      const pagination = { page: currentPage, size: pageSize };
+      
       if (taskId) {
         data = await TaskSolutionReviewService.getReviewsByTaskId(
           Number(taskId),
+          pagination
         );
       } else if (taskSolutionId) {
         data = await TaskSolutionReviewService.getReviewsByTaskSolutionId(
           Number(taskSolutionId),
+          pagination
         );
       } else {
-        data = await TaskSolutionReviewService.getReviews();
+        data = await TaskSolutionReviewService.getReviews(pagination);
       }
 
-      setReviews(data);
-    } catch (err) {
+      setPaginatedData(data);
+    } catch {
       setError('Failed to load reviews');
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage, pageSize, searchParams]);
 
-  const filterAndSortReviews = () => {
-    let filtered = [...reviews];
+  useEffect(() => {
+    fetchReviews();
+  }, [fetchReviews]);
 
-    if (searchTerm) {
-      filtered = filtered.filter(
-        (review) =>
-          review.feedbackToStudent
-            .toLowerCase()
-            .includes(searchTerm.toLowerCase()) ||
-          review.reviewerComment
-            ?.toLowerCase()
-            .includes(searchTerm.toLowerCase()),
-      );
-    }
+  const reviews = paginatedData?.data || [];
+  const totalPages = paginatedData?.totalPages || 0;
+  const total = paginatedData?.total || 0;
 
-    if (sourceFilter !== 'all') {
-      filtered = filtered.filter((review) => review.source === sourceFilter);
-    }
-
-    filtered.sort((a, b) => {
-      switch (sortBy) {
-        case 'newest':
-          return (
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-          );
-        case 'oldest':
-          return (
-            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-          );
-        case 'score-high':
-          return b.totalScore - a.totalScore;
-        case 'score-low':
-          return a.totalScore - b.totalScore;
-        default:
-          return 0;
-      }
-    });
-
-    setFilteredReviews(filtered);
+  const handlePageSizeChange = (newSize: number) => {
+    setPageSize(newSize);
+    setCurrentPage(1);
   };
 
   const getSourceBadge = (source: ReviewSource) => {
@@ -314,17 +282,17 @@ const ReviewsPage: React.FC = () => {
         </Select>
       </div>
 
-      {filteredReviews.length === 0 ? (
+      {reviews.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <FileText className="h-12 w-12 text-muted-foreground mb-4" />
             <h3 className="text-lg font-semibold mb-2">No reviews found</h3>
             <p className="text-muted-foreground text-center mb-4">
-              {reviews.length === 0
+              {total === 0
                 ? 'There are no reviews yet.'
                 : 'No reviews match your current filters.'}
             </p>
-            {canCreateReview && reviews.length === 0 && (
+            {canCreateReview && total === 0 && (
               <Button asChild>
                 <Link to="/dashboard/reviews/create">Create First Review</Link>
               </Button>
@@ -332,8 +300,9 @@ const ReviewsPage: React.FC = () => {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {filteredReviews.map((review) => (
+        <>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {reviews.map((review) => (
             <Card key={review.id} className="hover:shadow-md transition-shadow">
               <CardHeader className="space-y-3">
                 <div className="flex items-start justify-between">
@@ -396,8 +365,22 @@ const ReviewsPage: React.FC = () => {
                 </div>
               </CardContent>
             </Card>
-          ))}
-        </div>
+            ))}
+          </div>
+          
+          {totalPages > 1 && (
+            <div className="mt-8">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                pageSize={pageSize}
+                total={total}
+                onPageChange={setCurrentPage}
+                onPageSizeChange={handlePageSizeChange}
+              />
+            </div>
+          )}
+        </>
       )}
     </div>
   );
