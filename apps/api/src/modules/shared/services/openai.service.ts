@@ -65,7 +65,7 @@ export class OpenAIService {
     finishReason: string;
   }> {
     if (!this.openai) {
-      const apiKey = this.configService.get<string>('OPENAI_API_KEY');
+      const apiKey = this.configService.get<string>('OPENAI_API_KEY'); // TODO from DB
       if (!apiKey) {
         throw new Error('OpenAI API key is not configured.');
       }
