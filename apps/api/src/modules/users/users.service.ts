@@ -2,7 +2,12 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
-import { CreateUserDto, UpdateUserDto } from '@app/shared';
+import {
+  CreateUserDto,
+  UpdateUserDto,
+  PaginationDto,
+  PaginatedResponse,
+} from '@app/shared';
 import * as bcrypt from 'bcrypt';
 import { Logger } from 'nestjs-pino';
 
@@ -14,8 +19,24 @@ export class UsersService {
     private readonly logger: Logger,
   ) {}
 
-  async findAll(): Promise<User[]> {
-    return this.usersRepository.find();
+  async findAll(
+    paginationDto?: PaginationDto,
+  ): Promise<PaginatedResponse<User>> {
+    const { page = 1, size = 10 } = paginationDto || {};
+    const skip = (page - 1) * size;
+
+    const [data, total] = await this.usersRepository.findAndCount({
+      skip,
+      take: size,
+    });
+
+    return {
+      data,
+      total,
+      page,
+      size,
+      totalPages: Math.ceil(total / size),
+    };
   }
 
   async findOne(id: number): Promise<User> {

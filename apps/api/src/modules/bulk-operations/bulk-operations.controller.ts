@@ -5,6 +5,7 @@ import {
   Get,
   Param,
   Post,
+  Query,
   Res,
   UseGuards,
 } from '@nestjs/common';
@@ -17,7 +18,12 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { Response } from 'express';
-import { BulkImportSolutionDto, BulkImportTaskDto } from '@app/shared/dto';
+import {
+  BulkImportSolutionDto,
+  BulkImportTaskDto,
+  PaginatedResponse,
+  PaginationDto,
+} from '@app/shared/dto';
 import { UserRole } from '@app/shared/interfaces';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -85,8 +91,23 @@ export class BulkOperationsController {
   @Get('operations')
   @ApiOperation({ summary: 'Get all processing operations' })
   @ApiResponse({ status: 200, description: 'Operations list retrieved' })
-  async getAllOperations() {
-    return this.bulkOperationsService.getAllOperations();
+  async getAllOperations(
+    @Query() paginationDto: PaginationDto,
+  ): Promise<PaginatedResponse<any>> {
+    const result =
+      await this.bulkOperationsService.getAllOperations(paginationDto);
+
+    if (Array.isArray(result)) {
+      return {
+        data: result,
+        total: result.length,
+        page: 1,
+        size: result.length,
+        totalPages: 1,
+      };
+    }
+
+    return result;
   }
 
   @Get('operations/:operationId/status')

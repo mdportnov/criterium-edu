@@ -3,21 +3,36 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Pagination } from '@/components/ui/pagination';
 import { BulkOperationsService } from '@/services/bulk-operations.service';
-import type { ProcessingOperation, ProcessingStatus, OperationType } from '@/types';
+import type { PaginatedResponse, ProcessingOperation, ProcessingStatus, OperationType } from '@/types';
 import { Activity, Clock, CheckCircle, AlertCircle, RefreshCw, FileText, Zap, Trash2 } from 'lucide-react';
 
 const ProcessingStatusPage = () => {
-  const [operations, setOperations] = useState<ProcessingOperation[]>([]);
+  const [paginatedData, setPaginatedData] = useState<PaginatedResponse<ProcessingOperation> | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  const operations = paginatedData?.data || [];
+  const totalPages = paginatedData?.totalPages || 0;
+  const total = paginatedData?.total || 0;
+
+  const handlePageSizeChange = (newSize: number) => {
+    setPageSize(newSize);
+    setCurrentPage(1);
+  };
 
   useEffect(() => {
     const fetchOperations = async () => {
       try {
-        const operations = await BulkOperationsService.getAllProcessingOperations();
-        setOperations(operations);
+        const data = await BulkOperationsService.getAllProcessingOperations({
+          page: currentPage,
+          size: pageSize,
+        });
+        setPaginatedData(data);
         setError('');
         setLoading(false);
       } catch (err) {
@@ -31,14 +46,17 @@ const ProcessingStatusPage = () => {
     // Set up polling for updates
     const interval = setInterval(fetchOperations, 10000);
     return () => clearInterval(interval);
-  }, []);
+  }, [currentPage, pageSize]);
 
   const handleRefresh = async () => {
     setLoading(true);
     setError('');
     try {
-      const operations = await BulkOperationsService.getAllProcessingOperations();
-      setOperations(operations);
+      const data = await BulkOperationsService.getAllProcessingOperations({
+        page: currentPage,
+        size: pageSize,
+      });
+      setPaginatedData(data);
       setLoading(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to refresh operations');
@@ -54,7 +72,12 @@ const ProcessingStatusPage = () => {
     setDeletingId(operationId);
     try {
       await BulkOperationsService.deleteOperation(operationId);
-      setOperations(operations.filter(op => op.id !== operationId));
+      // Refresh data after deletion
+      const data = await BulkOperationsService.getAllProcessingOperations({
+        page: currentPage,
+        size: pageSize,
+      });
+      setPaginatedData(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete operation');
     } finally {
@@ -274,6 +297,19 @@ const ProcessingStatusPage = () => {
               </CardContent>
             </Card>
           ))}
+        </div>
+      )}
+
+      {totalPages > 1 && (
+        <div className="mt-8">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            pageSize={pageSize}
+            total={total}
+            onPageChange={setCurrentPage}
+            onPageSizeChange={handlePageSizeChange}
+          />
         </div>
       )}
 

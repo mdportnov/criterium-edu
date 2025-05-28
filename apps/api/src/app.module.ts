@@ -28,7 +28,7 @@ import { AuditMiddleware } from './modules/audit/audit.middleware';
       isGlobal: true,
       load: [configuration],
       cache: true,
-      // envFilePath: '.env.example', // Load .env.example for this test
+      envFilePath: '../.env.local', // Load .env.example for this test
     }),
 
     // Database - with proper error handling

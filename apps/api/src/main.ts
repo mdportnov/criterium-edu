@@ -36,7 +36,11 @@ async function bootstrap() {
     }
 
     app.enableCors({
-      origin: ['https://criterium.command.mephi.ru', 'http://localhost:3000'],
+      origin: [
+        'https://criterium.command.mephi.ru',
+        'http://localhost:3000',
+        'http://localhost:5173',
+      ],
       methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
       allowedHeaders:
         'Content-Type,Authorization,Accept,Origin,X-Requested-With',

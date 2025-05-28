@@ -1,15 +1,20 @@
 import { apiRequest } from './api';
 import type {
   CreateTaskSolutionReviewRequest,
+  PaginatedResponse,
+  PaginationParams,
   TaskSolutionReview,
   UpdateTaskSolutionReviewRequest,
 } from '@/types';
 
 export const TaskSolutionReviewService = {
-  async getReviews(): Promise<TaskSolutionReview[]> {
-    return apiRequest<TaskSolutionReview[]>({
+  async getReviews(
+    pagination?: PaginationParams,
+  ): Promise<PaginatedResponse<TaskSolutionReview>> {
+    return apiRequest<PaginatedResponse<TaskSolutionReview>>({
       method: 'GET',
       url: '/task-solution-reviews',
+      params: pagination,
     });
   },
 
@@ -22,17 +27,23 @@ export const TaskSolutionReviewService = {
 
   async getReviewsByTaskSolutionId(
     taskSolutionId: number,
-  ): Promise<TaskSolutionReview[]> {
-    return apiRequest<TaskSolutionReview[]>({
+    pagination?: PaginationParams,
+  ): Promise<PaginatedResponse<TaskSolutionReview>> {
+    return apiRequest<PaginatedResponse<TaskSolutionReview>>({
       method: 'GET',
       url: `/task-solution-reviews?taskSolutionId=${taskSolutionId}`,
+      params: pagination,
     });
   },
 
-  async getReviewsByTaskId(taskId: number): Promise<TaskSolutionReview[]> {
-    return apiRequest<TaskSolutionReview[]>({
+  async getReviewsByTaskId(
+    taskId: number,
+    pagination?: PaginationParams,
+  ): Promise<PaginatedResponse<TaskSolutionReview>> {
+    return apiRequest<PaginatedResponse<TaskSolutionReview>>({
       method: 'GET',
       url: `/task-solution-reviews?taskId=${taskId}`,
+      params: pagination,
     });
   },
 
@@ -71,14 +82,18 @@ export const TaskSolutionReviewService = {
     });
   },
 
-  async getPendingAutoReviews(taskId?: number): Promise<TaskSolutionReview[]> {
+  async getPendingAutoReviews(
+    taskId?: number,
+    pagination?: PaginationParams,
+  ): Promise<PaginatedResponse<TaskSolutionReview>> {
     const url = taskId
       ? `/task-solution-reviews/pending-auto?taskId=${taskId}`
       : '/task-solution-reviews/pending-auto';
 
-    return apiRequest<TaskSolutionReview[]>({
+    return apiRequest<PaginatedResponse<TaskSolutionReview>>({
       method: 'GET',
       url,
+      params: pagination,
     });
   },
 
@@ -112,8 +127,9 @@ export const TaskSolutionReviewService = {
   // Alias methods for backward compatibility with component naming
   async getTaskSolutionReviewsBySolutionId(
     solutionId: number,
-  ): Promise<TaskSolutionReview[]> {
-    return this.getReviewsByTaskSolutionId(solutionId);
+    pagination?: PaginationParams,
+  ): Promise<TaskSolutionReview[] | PaginatedResponse<TaskSolutionReview>> {
+    return this.getReviewsByTaskSolutionId(solutionId, pagination);
   },
 
   async createTaskSolutionReview(

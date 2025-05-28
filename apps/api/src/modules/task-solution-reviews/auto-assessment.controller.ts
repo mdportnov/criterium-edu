@@ -5,20 +5,27 @@ import {
   Param,
   Post,
   Put,
+  Query,
   UseGuards,
 } from '@nestjs/common';
-import { CurrentUser, UserRole } from '@app/shared';
+import {
+  CurrentUser,
+  PaginatedResponse,
+  PaginationDto,
+  UserRole,
+} from '@app/shared';
 import { ApiTags } from '@nestjs/swagger';
 import {
   AutoAssessRequestDto,
-  TaskAutoAssessRequestDto,
   SourceAutoAssessRequestDto,
+  TaskAutoAssessRequestDto,
 } from '../task-solutions/entities/solution-import.dto';
 import { AutoAssessmentService } from './auto-assessment.service';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { GetCurrentUser } from '../auth/decorators/current-user.decorator';
+import { AssessmentSession } from './entities/assessment-session.entity';
 
 @ApiTags('auto-assessment')
 @Controller('auto-assessment')
@@ -93,8 +100,22 @@ export class AutoAssessmentController {
 
   @Get('sessions')
   @Roles(UserRole.REVIEWER, UserRole.ADMIN)
-  async getAllSessions() {
-    return this.assessmentService.getAllSessions();
+  async getAllSessions(
+    @Query() paginationDto: PaginationDto,
+  ): Promise<PaginatedResponse<AssessmentSession>> {
+    const result = await this.assessmentService.getAllSessions(paginationDto);
+
+    if (Array.isArray(result)) {
+      return {
+        data: result,
+        total: result.length,
+        page: 1,
+        size: result.length,
+        totalPages: 1,
+      };
+    }
+
+    return result;
   }
 
   @Get('sessions/:id')

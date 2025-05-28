@@ -1,6 +1,10 @@
 import { apiRequest } from './api';
 import type { User } from '@app/shared';
-import type { UpdateUserRequest } from '@/types';
+import type {
+  PaginatedResponse,
+  PaginationParams,
+  UpdateUserRequest,
+} from '@/types';
 
 export const UserService = {
   async getProfile(): Promise<User> {
@@ -18,10 +22,16 @@ export const UserService = {
     });
   },
 
-  async getUsers(): Promise<User[]> {
-    return apiRequest<User[]>({
+  async getUsers(
+    pagination?: PaginationParams,
+  ): Promise<PaginatedResponse<User>> {
+    const params = pagination
+      ? { page: pagination.page, size: pagination.size }
+      : {};
+    return apiRequest<PaginatedResponse<User>>({
       method: 'GET',
       url: '/users',
+      params,
     });
   },
 

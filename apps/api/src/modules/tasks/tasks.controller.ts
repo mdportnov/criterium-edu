@@ -6,10 +6,18 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { TasksService } from './tasks.service';
-import { CreateTaskDto, TaskDto, UpdateTaskDto, UserRole } from '@app/shared';
+import {
+  CreateTaskDto,
+  TaskDto,
+  UpdateTaskDto,
+  UserRole,
+  PaginationDto,
+  PaginatedResponse,
+} from '@app/shared';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -25,8 +33,10 @@ export class TasksController {
   constructor(private readonly tasksService: TasksService) {}
 
   @Get()
-  async findAll(): Promise<TaskDto[]> {
-    return this.tasksService.findAll();
+  async findAll(
+    @Query() paginationDto: PaginationDto,
+  ): Promise<PaginatedResponse<TaskDto>> {
+    return this.tasksService.findAll(paginationDto);
   }
 
   @Get(':id')

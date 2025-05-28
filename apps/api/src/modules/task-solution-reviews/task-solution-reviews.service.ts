@@ -6,6 +6,8 @@ import { CriterionScore } from './entities/criterion-score.entity';
 import {
   CreateTaskSolutionReviewDto,
   CriterionScoreDto,
+  PaginatedResponse,
+  PaginationDto,
   ReviewSource,
   TaskSolutionReviewDto,
   TaskSolutionStatus,
@@ -55,20 +57,72 @@ export class TaskSolutionReviewsService {
     };
   }
 
-  async findAll(): Promise<TaskSolutionReviewDto[]> {
-    const reviews = await this.reviewsRepository.find({
+  async findAll(
+    paginationDto?: PaginationDto,
+    taskId?: number,
+    taskSolutionId?: number,
+  ): Promise<PaginatedResponse<TaskSolutionReviewDto>> {
+    const { page = 1, size = 10 } = paginationDto || {};
+    const skip = (page - 1) * size;
+
+    // Build query conditions
+    const where: any = {};
+    if (taskId) {
+      where.taskSolution = { task: { id: taskId } };
+    }
+    if (taskSolutionId) {
+      where.taskSolutionId = taskSolutionId;
+    }
+
+    // If pagination is not provided, we'll still return in paginated format
+    // but with a large size to effectively get all results
+    const [reviews, total] = await this.reviewsRepository.findAndCount({
+      where,
       relations: [
         'taskSolution',
         'reviewer',
         'criteriaScores',
         'criteriaScores.criterion',
       ],
+      skip: paginationDto ? skip : 0,
+      take: paginationDto ? size : 1000, // Use a reasonable limit if no pagination
+      order: { createdAt: 'DESC' },
     });
-    return reviews.map((review) => this.mapReviewToDto(review));
+
+    return {
+      data: reviews.map((review) => this.mapReviewToDto(review)),
+      total,
+      page: paginationDto ? page : 1,
+      size: paginationDto ? size : total,
+      totalPages: Math.ceil(total / (paginationDto ? size : 1)),
+    };
   }
 
-  async findByTask(taskId: number): Promise<TaskSolutionReviewDto[]> {
-    const reviews = await this.reviewsRepository.find({
+  async findByTask(
+    taskId: number,
+    paginationDto?: PaginationDto,
+  ): Promise<
+    PaginatedResponse<TaskSolutionReviewDto> | TaskSolutionReviewDto[]
+  > {
+    if (!paginationDto) {
+      const reviews = await this.reviewsRepository.find({
+        where: {
+          taskSolution: { task: { id: taskId } },
+        },
+        relations: [
+          'taskSolution',
+          'taskSolution.task',
+          'reviewer',
+          'criteriaScores',
+        ],
+      });
+      return reviews.map((review) => this.mapReviewToDto(review));
+    }
+
+    const { page = 1, size = 10 } = paginationDto;
+    const skip = (page - 1) * size;
+
+    const [reviews, total] = await this.reviewsRepository.findAndCount({
       where: {
         taskSolution: { task: { id: taskId } },
       },
@@ -78,18 +132,56 @@ export class TaskSolutionReviewsService {
         'reviewer',
         'criteriaScores',
       ],
+      skip,
+      take: size,
+      order: { createdAt: 'DESC' },
     });
-    return reviews.map((review) => this.mapReviewToDto(review));
+
+    const totalPages = Math.ceil(total / size);
+
+    return {
+      data: reviews.map((review) => this.mapReviewToDto(review)),
+      total,
+      page,
+      size,
+      totalPages,
+    };
   }
 
   async findByTaskSolution(
     taskSolutionId: number,
-  ): Promise<TaskSolutionReviewDto[]> {
-    const reviews = await this.reviewsRepository.find({
+    paginationDto?: PaginationDto,
+  ): Promise<
+    PaginatedResponse<TaskSolutionReviewDto> | TaskSolutionReviewDto[]
+  > {
+    if (!paginationDto) {
+      const reviews = await this.reviewsRepository.find({
+        where: { taskSolutionId },
+        relations: ['reviewer', 'criteriaScores', 'criteriaScores.criterion'],
+      });
+      return reviews.map((review) => this.mapReviewToDto(review));
+    }
+
+    const { page = 1, size = 10 } = paginationDto;
+    const skip = (page - 1) * size;
+
+    const [reviews, total] = await this.reviewsRepository.findAndCount({
       where: { taskSolutionId },
       relations: ['reviewer', 'criteriaScores', 'criteriaScores.criterion'],
+      skip,
+      take: size,
+      order: { createdAt: 'DESC' },
     });
-    return reviews.map((review) => this.mapReviewToDto(review));
+
+    const totalPages = Math.ceil(total / size);
+
+    return {
+      data: reviews.map((review) => this.mapReviewToDto(review)),
+      total,
+      page,
+      size,
+      totalPages,
+    };
   }
 
   async findOne(
@@ -303,19 +395,42 @@ export class TaskSolutionReviewsService {
   }
 
   async findPendingAutoReviews(
+    paginationDto?: PaginationDto,
     taskId?: number,
-  ): Promise<TaskSolutionReviewDto[]> {
-    const queryBuilder = this.reviewsRepository
-      .createQueryBuilder('review')
-      .leftJoinAndSelect('review.taskSolution', 'taskSolution')
-      .leftJoinAndSelect('review.criteriaScores', 'criteriaScores')
-      .where('review.source = :source', { source: ReviewSource.AUTO });
+  ): Promise<PaginatedResponse<TaskSolutionReviewDto>> {
+    const { page = 1, size = 10 } = paginationDto || {};
+    const skip = (page - 1) * size;
+
+    // Build query conditions for pending auto-reviews
+    const where: any = {
+      source: ReviewSource.AUTO,
+      status: 'pending',
+    };
 
     if (taskId) {
-      queryBuilder.andWhere('taskSolution.task = :taskId', { taskId });
+      where.taskSolution = { task: { id: taskId } };
     }
 
-    const reviews = await queryBuilder.getMany();
-    return reviews.map((review) => this.mapReviewToDto(review));
+    // Get pending auto-reviews with pagination
+    const [reviews, total] = await this.reviewsRepository.findAndCount({
+      where,
+      relations: [
+        'taskSolution',
+        'taskSolution.task',
+        'taskSolution.user',
+        'criteriaScores',
+      ],
+      skip: paginationDto ? skip : 0,
+      take: paginationDto ? size : 100,
+      order: { createdAt: 'DESC' },
+    });
+
+    return {
+      data: reviews.map((review) => this.mapReviewToDto(review)),
+      total,
+      page: paginationDto ? page : 1,
+      size: paginationDto ? size : total,
+      totalPages: Math.ceil(total / (paginationDto ? size : 1)),
+    };
   }
 }

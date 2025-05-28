@@ -12,6 +12,9 @@ import {
 import { TaskSolutionsService } from './task-solutions.service';
 import {
   CreateTaskSolutionDto,
+  CurrentUser,
+  PaginatedResponse,
+  PaginationDto,
   TaskSolutionDto,
   UpdateTaskSolutionDto,
   UserRole,
@@ -22,7 +25,6 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { TaskSolution } from './entities/task-solution.entity';
 import { GetCurrentUser } from '../auth/decorators/current-user.decorator';
-import { CurrentUser } from '@app/shared';
 
 // Helper function to map a single TaskSolution entity to TaskSolutionDto
 function mapTaskSolutionToDto(solution: TaskSolution): TaskSolutionDto {
@@ -64,36 +66,103 @@ export class TaskSolutionsController {
   @ApiQuery({ name: 'taskId', required: false })
   @ApiQuery({ name: 'studentId', required: false })
   async findAll(
+    @Query() paginationDto: PaginationDto,
     @Query('taskId') taskId?: number,
     @Query('studentId') studentId?: number,
-  ): Promise<TaskSolutionDto[]> {
-    let solutions: TaskSolution[];
+  ): Promise<PaginatedResponse<TaskSolutionDto>> {
+    let result;
+
     if (taskId) {
-      solutions = await this.taskSolutionsService.findByTask(taskId);
+      result = await this.taskSolutionsService.findByTask(
+        taskId,
+        paginationDto,
+      );
     } else if (studentId) {
-      solutions = await this.taskSolutionsService.findByStudent(studentId);
+      result = await this.taskSolutionsService.findByStudent(
+        studentId,
+        paginationDto,
+      );
     } else {
-      solutions = await this.taskSolutionsService.findAll();
+      result = await this.taskSolutionsService.findAll(paginationDto);
     }
-    return mapTaskSolutionsToDtos(solutions);
+
+    if (Array.isArray(result)) {
+      return {
+        data: mapTaskSolutionsToDtos(result),
+        total: result.length,
+        page: 1,
+        size: result.length,
+        totalPages: 1,
+      };
+    }
+
+    return {
+      data: mapTaskSolutionsToDtos(result.data),
+      total: result.total,
+      page: result.page,
+      size: result.size,
+      totalPages: result.totalPages,
+    };
   }
 
   @Get('my-solutions')
   @Roles(UserRole.STUDENT)
   async findMyTaskSolutions(
+    @Query() paginationDto: PaginationDto,
     @GetCurrentUser() user: CurrentUser,
-  ): Promise<TaskSolutionDto[]> {
-    const solutions = await this.taskSolutionsService.findByStudent(user.id);
-    return mapTaskSolutionsToDtos(solutions);
+  ): Promise<PaginatedResponse<TaskSolutionDto>> {
+    const result = await this.taskSolutionsService.findByStudent(
+      user.id,
+      paginationDto,
+    );
+
+    if (Array.isArray(result)) {
+      return {
+        data: mapTaskSolutionsToDtos(result),
+        total: result.length,
+        page: 1,
+        size: result.length,
+        totalPages: 1,
+      };
+    }
+
+    return {
+      data: mapTaskSolutionsToDtos(result.data),
+      total: result.total,
+      page: result.page,
+      size: result.size,
+      totalPages: result.totalPages,
+    };
   }
 
   @Get('by-task/:taskId')
   @Roles(UserRole.ADMIN, UserRole.REVIEWER)
   async findByTask(
     @Param('taskId') taskId: number,
-  ): Promise<TaskSolutionDto[]> {
-    const solutions = await this.taskSolutionsService.findByTask(taskId);
-    return mapTaskSolutionsToDtos(solutions);
+    @Query() paginationDto: PaginationDto,
+  ): Promise<PaginatedResponse<TaskSolutionDto>> {
+    const result = await this.taskSolutionsService.findByTask(
+      taskId,
+      paginationDto,
+    );
+
+    if (Array.isArray(result)) {
+      return {
+        data: mapTaskSolutionsToDtos(result),
+        total: result.length,
+        page: 1,
+        size: result.length,
+        totalPages: 1,
+      };
+    }
+
+    return {
+      data: mapTaskSolutionsToDtos(result.data),
+      total: result.total,
+      page: result.page,
+      size: result.size,
+      totalPages: result.totalPages,
+    };
   }
 
   @Get(':id')
