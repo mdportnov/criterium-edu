@@ -27,7 +27,7 @@ export class SolutionImportController {
 
   @Get('sources/:id')
   @Roles(UserRole.ADMIN, UserRole.REVIEWER)
-  async getSource(@Param('id') id: number) {
+  async getSource(@Param('id') id: string) {
     return this.importService.getSource(id);
   }
 }

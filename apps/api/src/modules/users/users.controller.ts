@@ -45,7 +45,7 @@ export class UsersController {
 
   @Get(':id')
   @Roles(UserRole.ADMIN, UserRole.REVIEWER)
-  async findOne(@Param('id') id: number): Promise<UserDto> {
+  async findOne(@Param('id') id: string): Promise<UserDto> {
     const user = await this.usersService.findOne(id);
     return this.mapToDto(user);
   }
@@ -60,7 +60,7 @@ export class UsersController {
   @Patch(':id')
   @Roles(UserRole.ADMIN)
   async update(
-    @Param('id') id: number,
+    @Param('id') id: string,
     @Body() updateUserDto: UpdateUserDto,
   ): Promise<UserDto> {
     const user = await this.usersService.update(id, updateUserDto);
@@ -69,7 +69,7 @@ export class UsersController {
 
   @Delete(':id')
   @Roles(UserRole.ADMIN)
-  async remove(@Param('id') id: number): Promise<void> {
+  async remove(@Param('id') id: string): Promise<void> {
     await this.usersService.remove(id);
   }
 

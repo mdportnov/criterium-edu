@@ -39,7 +39,7 @@ export class UsersService {
     };
   }
 
-  async findOne(id: number): Promise<User> {
+  async findOne(id: string): Promise<User> {
     const user = await this.usersRepository.findOneBy({ id });
     if (!user) {
       this.logger.error(
@@ -75,7 +75,7 @@ export class UsersService {
     return savedUser;
   }
 
-  async update(id: number, updateUserDto: UpdateUserDto): Promise<User> {
+  async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
     const user = await this.findOne(id);
 
     // Hash password if provided
@@ -94,7 +94,7 @@ export class UsersService {
     return updatedUser;
   }
 
-  async remove(id: number): Promise<void> {
+  async remove(id: string): Promise<void> {
     const user = await this.findOne(id);
     await this.usersRepository.remove(user);
 

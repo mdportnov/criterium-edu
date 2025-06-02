@@ -46,14 +46,14 @@ const LLMProcessingPage = () => {
     queryKey: ['task-solutions', selectedTaskId],
     queryFn: () =>
       selectedTaskId
-        ? TaskSolutionService.getTaskSolutionsByTaskId(Number(selectedTaskId))
+        ? TaskSolutionService.getTaskSolutionsByTaskId(selectedTaskId)
         : [],
     enabled: !!selectedTaskId,
   });
 
   const { data: selectedTask } = useQuery({
     queryKey: ['task', selectedTaskId],
-    queryFn: () => TaskService.getTaskById(Number(selectedTaskId)),
+    queryFn: () => TaskService.getTaskById(selectedTaskId),
     enabled: !!selectedTaskId,
   });
 
@@ -82,7 +82,7 @@ Be fair, objective, and educational in your assessment.`;
     }
   };
 
-  const handleSolutionToggle = (solutionId: number) => {
+  const handleSolutionToggle = (solutionId: string) => {
     setSelectedSolutions((prev) =>
       prev.includes(solutionId)
         ? prev.filter((id) => id !== solutionId)

@@ -105,7 +105,7 @@ export class SolutionImportService {
     return this.sourceRepository.find();
   }
 
-  async getSource(id: number): Promise<SolutionSource> {
+  async getSource(id: string): Promise<SolutionSource> {
     const source = await this.sourceRepository.findOne({
       where: { id },
       relations: ['solutions'],

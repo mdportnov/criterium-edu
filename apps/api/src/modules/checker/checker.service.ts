@@ -26,7 +26,7 @@ export class CheckerService {
   /**
    * Process a task solution to generate an automated review
    */
-  async processTaskSolution(taskSolutionId: number): Promise<any> {
+  async processTaskSolution(taskSolutionId: string): Promise<any> {
     this.logger.log(`Processing task solution with ID: ${taskSolutionId}`);
 
     try {

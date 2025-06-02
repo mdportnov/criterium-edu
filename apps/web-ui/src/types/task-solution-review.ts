@@ -6,15 +6,15 @@ export enum ReviewSource {
 }
 
 export interface CriterionScore {
-  criterionId: number;
+  criterionId: string;
   score: number;
   comment?: string;
 }
 
 export interface TaskSolutionReview {
-  id: number;
-  taskSolutionId: number;
-  reviewerId?: number;
+  id: string;
+  taskSolutionId: string;
+  reviewerId?: string;
   criteriaScores: CriterionScore[];
   totalScore: number;
   feedbackToStudent: string;
@@ -25,7 +25,7 @@ export interface TaskSolutionReview {
 }
 
 export interface CreateTaskSolutionReviewRequest {
-  taskSolutionId: number;
+  taskSolutionId: string;
   criteriaScores: CriterionScore[];
   feedbackToStudent: string;
   reviewerComment?: string;

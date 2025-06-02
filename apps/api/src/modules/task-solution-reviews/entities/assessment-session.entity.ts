@@ -22,8 +22,8 @@ export enum AssessmentSessionStatus {
 
 @Entity('assessment_sessions')
 export class AssessmentSession {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column({ type: 'varchar', length: 255 })
   name: string;
@@ -43,14 +43,14 @@ export class AssessmentSession {
   initiatedBy: User;
 
   @Column({ name: 'initiated_by_id' })
-  initiatedById: number;
+  initiatedById: string;
 
   @ManyToOne(() => Task, { nullable: true })
   @JoinColumn({ name: 'task_id' })
   task?: Task;
 
   @Column({ name: 'task_id', nullable: true })
-  taskId?: number;
+  taskId?: string;
 
   @Column({ type: 'varchar', length: 100, default: 'gpt-4o' })
   llmModel: string;
@@ -67,7 +67,7 @@ export class AssessmentSession {
   };
 
   @Column({ type: 'json' })
-  solutionIds: number[];
+  solutionIds: string[];
 
   @Column({ type: 'int', default: 0 })
   totalSolutions: number;
@@ -98,7 +98,7 @@ export class AssessmentSession {
 
   @Column({ type: 'json', nullable: true })
   errors?: Array<{
-    solutionId: number;
+    solutionId: string;
     error: string;
     timestamp: Date;
   }>;

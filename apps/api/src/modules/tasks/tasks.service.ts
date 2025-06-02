@@ -77,7 +77,7 @@ export class TasksService {
     };
   }
 
-  async findOne(id: number): Promise<TaskDto> {
+  async findOne(id: string): Promise<TaskDto> {
     this.logger.debug(
       { message: 'Finding task by ID', taskId: id },
       TasksService.name,
@@ -99,7 +99,7 @@ export class TasksService {
     return this.mapTaskToDto(task);
   }
 
-  async create(createTaskDto: CreateTaskDto, userId: number): Promise<TaskDto> {
+  async create(createTaskDto: CreateTaskDto, userId: string): Promise<TaskDto> {
     this.logger.log(
       {
         message: 'Creating new task',
@@ -149,7 +149,7 @@ export class TasksService {
     return this.mapTaskToDto(fullSavedTask);
   }
 
-  async update(id: number, updateTaskDto: UpdateTaskDto): Promise<TaskDto> {
+  async update(id: string, updateTaskDto: UpdateTaskDto): Promise<TaskDto> {
     this.logger.debug(
       {
         message: 'Updating task',
@@ -243,7 +243,7 @@ export class TasksService {
     return this.mapTaskToDto(fullUpdatedTask);
   }
 
-  async remove(id: number): Promise<void> {
+  async remove(id: string): Promise<void> {
     // Ensure task exists before attempting to remove
     const task = await this.tasksRepository.findOne({ where: { id } });
     if (!task) {

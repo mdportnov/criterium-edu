@@ -35,7 +35,7 @@ export const UserService = {
     });
   },
 
-  async getUserById(id: number): Promise<User> {
+  async getUserById(id: string): Promise<User> {
     return apiRequest<User>({
       method: 'GET',
       url: `/users/${id}`,

@@ -9,11 +9,11 @@ export class AddAssessmentSessionsAndEnhancements1748000000000
     // Create assessment_sessions table
     await queryRunner.query(`
       CREATE TABLE "assessment_sessions" (
-        "id" SERIAL NOT NULL,
+        "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
         "name" character varying(255) NOT NULL,
         "description" text,
         "status" character varying NOT NULL DEFAULT 'pending' CHECK ("status" IN ('pending', 'in_progress', 'completed', 'failed', 'cancelled')),
-        "initiated_by_id" integer,
+        "initiated_by_id" uuid,
         "llm_model" character varying NOT NULL DEFAULT 'gpt-4o',
         "system_prompt" text,
         "temperature" numeric(3,2) DEFAULT 0.7,
@@ -47,7 +47,7 @@ export class AddAssessmentSessionsAndEnhancements1748000000000
       ADD COLUMN "token_usage" integer,
       ADD COLUMN "cost" numeric(10,6),
       ADD COLUMN "processing_time" integer,
-      ADD COLUMN "session_id" integer
+      ADD COLUMN "session_id" uuid
     `);
 
     // Create indexes for better performance

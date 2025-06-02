@@ -1,7 +1,7 @@
 export interface TaskSolution {
-  id: number;
-  taskId: number;
-  studentId: number;
+  id: string;
+  taskId: string;
+  studentId: string;
   solutionText: string;
   status: TaskSolutionStatus;
   submittedAt: Date;

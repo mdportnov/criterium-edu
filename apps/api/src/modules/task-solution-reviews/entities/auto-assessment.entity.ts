@@ -11,8 +11,8 @@ import { TaskSolution } from '../../task-solutions/entities/task-solution.entity
 
 @Entity('auto_assessments')
 export class AutoAssessment {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @ManyToOne(() => TaskSolution)
   @JoinColumn({ name: 'solution_id' })
@@ -45,8 +45,8 @@ export class AutoAssessment {
   @Column({ type: 'int', nullable: true })
   processingTime: number;
 
-  @Column({ type: 'int', nullable: true })
-  sessionId: number;
+  @Column({ type: 'uuid', nullable: true })
+  sessionId: string;
 
   @CreateDateColumn()
   createdAt: Date;

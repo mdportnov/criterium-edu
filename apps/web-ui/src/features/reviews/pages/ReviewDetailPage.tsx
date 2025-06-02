@@ -33,11 +33,11 @@ const ReviewDetailPage: React.FC = () => {
 
   useEffect(() => {
     if (id) {
-      fetchReview(Number(id));
+      fetchReview(id);
     }
   }, [id]);
 
-  const fetchReview = async (reviewId: number) => {
+  const fetchReview = async (reviewId: string) => {
     try {
       setLoading(true);
       const reviewData =

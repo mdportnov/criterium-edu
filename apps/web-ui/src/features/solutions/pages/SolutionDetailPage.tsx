@@ -29,19 +29,19 @@ const SolutionDetailPage: React.FC = () => {
       setError('');
 
       try {
-        const solutionId = parseInt(id, 10);
         const solutionData =
-          await TaskSolutionService.getTaskSolutionById(solutionId);
+          await TaskSolutionService.getTaskSolutionById(id);
         setSolution(solutionData);
 
         // Check if there's a review for this solution
         try {
           const reviews =
             await TaskSolutionReviewService.getTaskSolutionReviewsBySolutionId(
-              solutionId,
+              id,
             );
-          if (reviews.length > 0) {
-            setReview(reviews[0]);
+          const reviewsArray = Array.isArray(reviews) ? reviews : reviews.data;
+          if (reviewsArray.length > 0) {
+            setReview(reviewsArray[0]);
           }
         } catch (reviewErr) {
           console.error('Error fetching review:', reviewErr);
@@ -96,7 +96,7 @@ const SolutionDetailPage: React.FC = () => {
     if (!review) return 0;
 
     return review.criteriaScores.reduce(
-      (total, score) => total + score.points,
+      (total, score) => total + score.score,
       0,
     );
   };
@@ -104,10 +104,7 @@ const SolutionDetailPage: React.FC = () => {
   const getMaxPossibleScore = () => {
     if (!review) return 0;
 
-    return review.criteriaScores.reduce(
-      (total, score) => total + score.maxPoints,
-      0,
-    );
+    return review.totalScore;
   };
 
   const getScorePercentage = () => {
@@ -169,17 +166,10 @@ const SolutionDetailPage: React.FC = () => {
           <div className="bg-card rounded-lg shadow-sm border border-border p-6">
             <h2 className="text-xl font-semibold mb-4">Solution Code</h2>
             <pre className="bg-muted p-4 rounded-md overflow-x-auto font-mono text-sm">
-              <code>{solution.solution}</code>
+              <code>{solution.solutionText}</code>
             </pre>
           </div>
 
-          {/* Solution Notes */}
-          {solution.notes && (
-            <div className="bg-card rounded-lg shadow-sm border border-border p-6">
-              <h2 className="text-xl font-semibold mb-4">Notes</h2>
-              <p className="whitespace-pre-line">{solution.notes}</p>
-            </div>
-          )}
 
           {/* Review */}
           {review && (
@@ -197,12 +187,12 @@ const SolutionDetailPage: React.FC = () => {
                       className="border-b border-border pb-4 last:border-0 last:pb-0"
                     >
                       <div className="flex justify-between items-start mb-2">
-                        <h4 className="font-medium">{score.criterionName}</h4>
+                        <h4 className="font-medium">Criterion</h4>
                         <span className="font-medium">
-                          {score.points} / {score.maxPoints} points
+                          {score.score} points
                         </span>
                       </div>
-                      <p className="text-muted-foreground">{score.feedback}</p>
+                      <p className="text-muted-foreground">{score.comment}</p>
                     </div>
                   ))}
                 </div>
@@ -210,13 +200,13 @@ const SolutionDetailPage: React.FC = () => {
                 {/* Overall Feedback */}
                 <div className="space-y-2">
                   <h3 className="text-lg font-medium">Overall Feedback</h3>
-                  <p className="whitespace-pre-line">{review.feedback}</p>
+                  <p className="whitespace-pre-line">{review.feedbackToStudent}</p>
                 </div>
 
                 {/* Reviewer */}
                 <div className="text-sm text-muted-foreground">
-                  Reviewed by {review.reviewerName} on{' '}
-                  {new Date(review.reviewedAt).toLocaleString()}
+                  Reviewed on{' '}
+                  {new Date(review.updatedAt).toLocaleString()}
                 </div>
               </div>
             </div>
@@ -264,7 +254,7 @@ const SolutionDetailPage: React.FC = () => {
                 <h3 className="text-sm font-medium text-muted-foreground">
                   Submitted By
                 </h3>
-                <p className="mt-1">{solution.studentName}</p>
+                <p className="mt-1">Student #{solution.studentId}</p>
               </div>
 
               <div>

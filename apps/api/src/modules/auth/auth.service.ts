@@ -113,7 +113,7 @@ export class AuthService {
     };
   }
 
-  async loginAs(userId: number, adminId: number): Promise<TokenDto> {
+  async loginAs(userId: string, adminId: string): Promise<TokenDto> {
     // Check if the target user exists
     const user = await this.usersService.findOne(userId);
 

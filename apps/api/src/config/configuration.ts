@@ -42,6 +42,6 @@ export default () => {
     },
     logging: {
       level: result.data.LOG_LEVEL,
-    }
+    },
   };
 };

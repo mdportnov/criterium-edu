@@ -39,8 +39,7 @@ const EditTaskPage: React.FC = () => {
       setError('');
 
       try {
-        const taskId = parseInt(id, 10);
-        const taskData = await TaskService.getTaskById(taskId);
+        const taskData = await TaskService.getTaskById(id);
         setTask(taskData);
 
         // Initialize form data with task data

@@ -27,15 +27,14 @@ interface AssessmentResult {
   totalScore: number;
 }
 
-interface CreateSessionDto {
+export interface CreateSessionDto {
   name: string;
   description?: string;
-  solutionIds: number[];
+  solutionIds: string[];
   llmModel?: string;
   systemPrompt?: string;
   temperature?: number;
   maxTokens?: number;
-  userId: number;
 }
 
 @Injectable()
@@ -69,12 +68,13 @@ export class AutoAssessmentService {
 
   async createAssessmentSession(
     dto: CreateSessionDto,
+    userId: string,
   ): Promise<AssessmentSession> {
     const user = await this.userRepository.findOne({
-      where: { id: dto.userId },
+      where: { id: userId },
     });
     if (!user) {
-      throw new NotFoundException(`User with ID ${dto.userId} not found`);
+      throw new NotFoundException(`User with ID ${userId} not found`);
     }
 
     const solutions = await this.solutionRepository.find({
@@ -128,7 +128,7 @@ export class AutoAssessmentService {
   }
 
   async processAssessmentSession(
-    sessionId: number,
+    sessionId: string,
   ): Promise<AssessmentSession> {
     const session = await this.sessionRepository.findOne({
       where: { id: sessionId },
@@ -342,10 +342,10 @@ export class AutoAssessmentService {
   }
 
   private async assessSolutionWithMetrics(
-    solutionId: number,
+    solutionId: string,
     model: string,
     customSystemPrompt?: string,
-    sessionId?: number,
+    sessionId?: string,
   ): Promise<AutoAssessment> {
     const solution = await this.solutionRepository.findOne({
       where: { id: solutionId },
@@ -422,7 +422,7 @@ export class AutoAssessmentService {
   }
 
   private async assessSolution(
-    solutionId: number,
+    solutionId: string,
     model: string,
   ): Promise<AutoAssessment> {
     const solution = await this.solutionRepository.findOne({
@@ -614,7 +614,7 @@ Important:
     }
   }
 
-  async getAssessment(id: number): Promise<AutoAssessment> {
+  async getAssessment(id: string): Promise<AutoAssessment> {
     const assessment = await this.assessmentRepository.findOne({
       where: { id },
       relations: ['solution', 'solution.task'],
@@ -628,7 +628,7 @@ Important:
   }
 
   async getAssessmentsBySolution(
-    solutionId: number,
+    solutionId: string,
   ): Promise<AutoAssessment[]> {
     return this.assessmentRepository.find({
       where: { solution: { id: solutionId } },
@@ -636,7 +636,7 @@ Important:
     });
   }
 
-  async getAssessmentSession(sessionId: number): Promise<AssessmentSession> {
+  async getAssessmentSession(sessionId: string): Promise<AssessmentSession> {
     const session = await this.sessionRepository.findOne({
       where: { id: sessionId },
       relations: ['initiatedBy'],
@@ -681,7 +681,7 @@ Important:
   }
 
   async getSessionsByUser(
-    userId: number,
+    userId: string,
     paginationDto?: PaginationDto,
   ): Promise<PaginatedResponse<AssessmentSession> | AssessmentSession[]> {
     if (!paginationDto) {
@@ -714,7 +714,7 @@ Important:
     };
   }
 
-  async stopSession(sessionId: number): Promise<AssessmentSession> {
+  async stopSession(sessionId: string): Promise<AssessmentSession> {
     const session = await this.getAssessmentSession(sessionId);
 
     if (
@@ -735,7 +735,7 @@ Important:
     return this.getAssessmentSession(sessionId);
   }
 
-  async restartSession(sessionId: number): Promise<AssessmentSession> {
+  async restartSession(sessionId: string): Promise<AssessmentSession> {
     const session = await this.getAssessmentSession(sessionId);
 
     if (
@@ -763,7 +763,7 @@ Important:
     return this.getAssessmentSession(sessionId);
   }
 
-  async cancelSession(sessionId: number): Promise<AssessmentSession> {
+  async cancelSession(sessionId: string): Promise<AssessmentSession> {
     return this.stopSession(sessionId);
   }
 

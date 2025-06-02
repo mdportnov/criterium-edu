@@ -51,15 +51,15 @@ const ReviewsPage: React.FC = () => {
 
       let data: PaginatedResponse<TaskSolutionReview>;
       const pagination = { page: currentPage, size: pageSize };
-      
+
       if (taskId) {
         data = await TaskSolutionReviewService.getReviewsByTaskId(
-          Number(taskId),
+          taskId,
           pagination
         );
       } else if (taskSolutionId) {
         data = await TaskSolutionReviewService.getReviewsByTaskSolutionId(
-          Number(taskSolutionId),
+          taskSolutionId,
           pagination
         );
       } else {

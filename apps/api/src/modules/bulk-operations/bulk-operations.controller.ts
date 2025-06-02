@@ -24,10 +24,11 @@ import {
   PaginatedResponse,
   PaginationDto,
 } from '@app/shared/dto';
-import { UserRole } from '@app/shared/interfaces';
+import { CurrentUser, UserRole } from '@app/shared/interfaces';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { GetCurrentUser } from '../auth/decorators/current-user.decorator';
 
 @ApiTags('Bulk Operations')
 @Controller('bulk-operations')
@@ -44,13 +45,11 @@ export class BulkOperationsController {
   })
   @ApiResponse({ status: 201, description: 'Tasks imported successfully' })
   @ApiResponse({ status: 400, description: 'Invalid JSON data' })
-  async importTasksJson(@Body() tasksData: BulkImportTaskDto[]) {
-    // TODO: Replace placeholder userId with actual user ID from auth context
-    const placeholderUserId = 1;
-    return this.bulkOperationsService.importTasksJson(
-      tasksData,
-      placeholderUserId,
-    );
+  async importTasksJson(
+    @Body() tasksData: BulkImportTaskDto[],
+    @GetCurrentUser() user: CurrentUser,
+  ) {
+    return this.bulkOperationsService.importTasksJson(tasksData, user.id);
   }
 
   // Endpoint for JSON Task Export
@@ -119,6 +118,7 @@ export class BulkOperationsController {
   }
 
   @Post('solutions/assess-llm')
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Start LLM assessment for solutions' })
   @ApiConsumes('application/json')
   @ApiBody({
@@ -144,12 +144,11 @@ export class BulkOperationsController {
       taskId?: string;
       systemPrompt?: string;
     },
+    @GetCurrentUser() user: CurrentUser,
   ) {
-    // TODO: Get actual user from JWT token
-    const userId = 1; // Placeholder
     return this.bulkOperationsService.startLLMAssessment({
       ...requestData,
-      userId,
+      userId: user.id,
     });
   }
 

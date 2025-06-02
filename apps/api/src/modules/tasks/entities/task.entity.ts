@@ -14,8 +14,8 @@ import { TaskSolution } from '../../task-solutions/entities/task-solution.entity
 
 @Entity('tasks')
 export class Task {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column({ type: 'varchar' })
   title: string;
@@ -32,8 +32,8 @@ export class Task {
   @Column({ type: 'simple-array', nullable: true })
   tags: string[];
 
-  @Column({ type: 'int' })
-  createdBy: number;
+  @Column({ type: 'uuid' })
+  createdBy: string;
 
   @ManyToOne(() => User)
   @JoinColumn({ name: 'createdBy' })

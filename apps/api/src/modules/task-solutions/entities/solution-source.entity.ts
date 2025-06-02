@@ -3,8 +3,8 @@ import { TaskSolution } from './task-solution.entity';
 
 @Entity('solution_sources')
 export class SolutionSource {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column({ type: 'varchar', unique: true })
   name: string;

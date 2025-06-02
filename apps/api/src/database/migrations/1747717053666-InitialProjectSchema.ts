@@ -4,35 +4,36 @@ export class InitialProjectSchema1747717053666 implements MigrationInterface {
   name = 'InitialProjectSchema1747717053666';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query(`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`);
     await queryRunner.query(
       `CREATE TYPE "public"."users_role_enum" AS ENUM('admin', 'reviewer', 'student')`,
     );
     await queryRunner.query(
-      `CREATE TABLE "users" ("id" SERIAL NOT NULL, "email" character varying NOT NULL, "firstName" character varying NOT NULL, "lastName" character varying NOT NULL, "password" character varying NOT NULL, "role" "public"."users_role_enum" NOT NULL DEFAULT 'student', "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "updatedAt" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "UQ_97672ac88f789774dd47f7c8be3" UNIQUE ("email"), CONSTRAINT "PK_a3ffb1c0c8416b9fc6f907b7433" PRIMARY KEY ("id"))`,
+      `CREATE TABLE "users" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "email" character varying NOT NULL, "firstName" character varying NOT NULL, "lastName" character varying NOT NULL, "password" character varying NOT NULL, "role" "public"."users_role_enum" NOT NULL DEFAULT 'student', "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "updatedAt" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "UQ_97672ac88f789774dd47f7c8be3" UNIQUE ("email"), CONSTRAINT "PK_a3ffb1c0c8416b9fc6f907b7433" PRIMARY KEY ("id"))`,
     );
     await queryRunner.query(
-      `CREATE TABLE "task_criteria" ("id" SERIAL NOT NULL, "name" character varying NOT NULL, "description" text NOT NULL, "maxPoints" numeric(5,2) NOT NULL, "checkerComments" text, "taskId" integer NOT NULL, CONSTRAINT "PK_6554800928693e144a72fbca034" PRIMARY KEY ("id"))`,
+      `CREATE TABLE "task_criteria" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "name" character varying NOT NULL, "description" text NOT NULL, "maxPoints" numeric(5,2) NOT NULL, "checkerComments" text, "taskId" uuid NOT NULL, CONSTRAINT "PK_6554800928693e144a72fbca034" PRIMARY KEY ("id"))`,
     );
     await queryRunner.query(
-      `CREATE TABLE "tasks" ("id" SERIAL NOT NULL, "title" character varying NOT NULL, "description" text NOT NULL, "authorSolution" text, "categories" text, "tags" text, "createdBy" integer NOT NULL, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "updatedAt" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "PK_8d12ff38fcc62aaba2cab748772" PRIMARY KEY ("id"))`,
+      `CREATE TABLE "tasks" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "title" character varying NOT NULL, "description" text NOT NULL, "authorSolution" text, "categories" text, "tags" text, "createdBy" uuid NOT NULL, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "updatedAt" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "PK_8d12ff38fcc62aaba2cab748772" PRIMARY KEY ("id"))`,
     );
     await queryRunner.query(
-      `CREATE TABLE "criterion_scores" ("id" SERIAL NOT NULL, "reviewId" integer NOT NULL, "criterionId" integer NOT NULL, "score" numeric(10,2) NOT NULL, "comment" text, CONSTRAINT "PK_c19ea124c8d83836d6a79df1b4e" PRIMARY KEY ("id"))`,
+      `CREATE TABLE "criterion_scores" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "reviewId" uuid NOT NULL, "criterionId" uuid NOT NULL, "score" numeric(10,2) NOT NULL, "comment" text, CONSTRAINT "PK_c19ea124c8d83836d6a79df1b4e" PRIMARY KEY ("id"))`,
     );
     await queryRunner.query(
       `CREATE TYPE "public"."task_solution_reviews_source_enum" AS ENUM('auto', 'manual', 'auto_approved', 'auto_modified')`,
     );
     await queryRunner.query(
-      `CREATE TABLE "task_solution_reviews" ("id" SERIAL NOT NULL, "taskSolutionId" integer NOT NULL, "reviewerId" integer, "totalScore" numeric(10,2) NOT NULL, "feedbackToStudent" text NOT NULL, "reviewerComment" text, "source" "public"."task_solution_reviews_source_enum" NOT NULL DEFAULT 'auto', "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "updatedAt" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "PK_d553c07f1c0de6164a629d7545f" PRIMARY KEY ("id"))`,
+      `CREATE TABLE "task_solution_reviews" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "taskSolutionId" uuid NOT NULL, "reviewerId" uuid, "totalScore" numeric(10,2) NOT NULL, "feedbackToStudent" text NOT NULL, "reviewerComment" text, "source" "public"."task_solution_reviews_source_enum" NOT NULL DEFAULT 'auto', "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "updatedAt" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "PK_d553c07f1c0de6164a629d7545f" PRIMARY KEY ("id"))`,
     );
     await queryRunner.query(
-      `CREATE TABLE "solution_sources" ("id" SERIAL NOT NULL, "name" character varying NOT NULL, "description" character varying, CONSTRAINT "UQ_889fc19bc69578217842638fc34" UNIQUE ("name"), CONSTRAINT "PK_abd42357c6a62895989727e4114" PRIMARY KEY ("id"))`,
+      `CREATE TABLE "solution_sources" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "name" character varying NOT NULL, "description" character varying, CONSTRAINT "UQ_889fc19bc69578217842638fc34" UNIQUE ("name"), CONSTRAINT "PK_abd42357c6a62895989727e4114" PRIMARY KEY ("id"))`,
     );
     await queryRunner.query(
-      `CREATE TABLE "task_solutions" ("id" SERIAL NOT NULL, "content" text NOT NULL, "externalId" character varying, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "updatedAt" TIMESTAMP NOT NULL DEFAULT now(), "user_id" integer, "task_id" integer, "source_id" integer, CONSTRAINT "PK_b15c307854fd002eb208ff396d3" PRIMARY KEY ("id"))`,
+      `CREATE TABLE "task_solutions" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "content" text NOT NULL, "externalId" character varying, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "updatedAt" TIMESTAMP NOT NULL DEFAULT now(), "user_id" uuid, "task_id" uuid, "source_id" uuid, CONSTRAINT "PK_b15c307854fd002eb208ff396d3" PRIMARY KEY ("id"))`,
     );
     await queryRunner.query(
-      `CREATE TABLE "auto_assessments" ("id" SERIAL NOT NULL, "criteriaScores" json NOT NULL, "comments" text NOT NULL, "totalScore" numeric(5,2) NOT NULL, "llmModel" character varying NOT NULL, "promptUsed" text, "rawResponse" json, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "updatedAt" TIMESTAMP NOT NULL DEFAULT now(), "solution_id" integer, CONSTRAINT "PK_0013e68f09befa4196b8abdff3a" PRIMARY KEY ("id"))`,
+      `CREATE TABLE "auto_assessments" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "criteriaScores" json NOT NULL, "comments" text NOT NULL, "totalScore" numeric(5,2) NOT NULL, "llmModel" character varying NOT NULL, "promptUsed" text, "rawResponse" json, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "updatedAt" TIMESTAMP NOT NULL DEFAULT now(), "solution_id" uuid, CONSTRAINT "PK_0013e68f09befa4196b8abdff3a" PRIMARY KEY ("id"))`,
     );
     await queryRunner.query(
       `ALTER TABLE "task_criteria" ADD CONSTRAINT "FK_6de018b8a8dbe8845ffe811ad20" FOREIGN KEY ("taskId") REFERENCES "tasks"("id") ON DELETE CASCADE ON UPDATE NO ACTION`,

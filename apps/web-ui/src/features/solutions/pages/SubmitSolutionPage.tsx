@@ -17,9 +17,8 @@ const SubmitSolutionPage: React.FC = () => {
   const [success, setSuccess] = useState('');
 
   const [formData, setFormData] = useState<CreateTaskSolutionRequest>({
-    taskId: 0,
-    solution: '',
-    notes: '',
+    taskId: '',
+    solutionText: '',
   });
 
   useEffect(() => {
@@ -30,10 +29,9 @@ const SubmitSolutionPage: React.FC = () => {
       setError('');
 
       try {
-        const id = parseInt(taskId, 10);
-        const taskData = await TaskService.getTaskById(id);
+        const taskData = await TaskService.getTaskById(taskId);
         setTask(taskData);
-        setFormData((prev) => ({ ...prev, taskId: id }));
+        setFormData((prev) => ({ ...prev, taskId }));
       } catch (err: any) {
         console.error('Error fetching task:', err);
         setError(
@@ -58,7 +56,7 @@ const SubmitSolutionPage: React.FC = () => {
     setError('');
     setSuccess('');
 
-    if (!formData.solution.trim()) {
+    if (!formData.solutionText.trim()) {
       setError('Solution is required');
       return;
     }
@@ -141,9 +139,9 @@ const SubmitSolutionPage: React.FC = () => {
                 <div className="space-y-2">
                   <Label htmlFor="solution">Solution Code</Label>
                   <textarea
-                    id="solution"
-                    name="solution"
-                    value={formData.solution}
+                    id="solutionText"
+                    name="solutionText"
+                    value={formData.solutionText}
                     onChange={handleChange}
                     placeholder="Enter your solution code here..."
                     className="flex min-h-64 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 font-mono"
@@ -151,17 +149,6 @@ const SubmitSolutionPage: React.FC = () => {
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="notes">Notes (Optional)</Label>
-                  <textarea
-                    id="notes"
-                    name="notes"
-                    value={formData.notes}
-                    onChange={handleChange}
-                    placeholder="Add any additional notes or explanations about your solution..."
-                    className="flex min-h-20 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  />
-                </div>
               </div>
             </div>
 

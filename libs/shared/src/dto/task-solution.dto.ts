@@ -1,16 +1,10 @@
-import {
-  IsEnum,
-  IsNotEmpty,
-  IsNumber,
-  IsOptional,
-  IsString,
-} from 'class-validator';
+import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { TaskSolutionStatus } from '../interfaces';
 
 export class CreateTaskSolutionDto {
-  @IsNumber()
+  @IsString()
   @IsNotEmpty()
-  taskId: number;
+  taskId: string;
 
   @IsString()
   @IsNotEmpty()
@@ -32,9 +26,9 @@ export class UpdateTaskSolutionDto {
 }
 
 export class TaskSolutionDto {
-  id: number;
-  taskId: number;
-  studentId: number;
+  id: string;
+  taskId: string;
+  studentId: string;
   solutionText: string;
   status: TaskSolutionStatus;
   submittedAt: Date;

@@ -18,7 +18,7 @@ export const TaskSolutionService = {
     });
   },
 
-  async getTaskSolutionById(id: number): Promise<TaskSolution> {
+  async getTaskSolutionById(id: string): Promise<TaskSolution> {
     return apiRequest<TaskSolution>({
       method: 'GET',
       url: `/task-solutions/${id}`,
@@ -26,7 +26,7 @@ export const TaskSolutionService = {
   },
 
   async getTaskSolutionsByTaskId(
-    taskId: number,
+    taskId: string,
     pagination?: PaginationParams,
   ): Promise<TaskSolution[] | PaginatedResponse<TaskSolution>> {
     return apiRequest<TaskSolution[] | PaginatedResponse<TaskSolution>>({
@@ -57,7 +57,7 @@ export const TaskSolutionService = {
   },
 
   async updateTaskSolution(
-    id: number,
+    id: string,
     data: UpdateTaskSolutionRequest,
   ): Promise<TaskSolution> {
     return apiRequest<TaskSolution>({
@@ -67,7 +67,7 @@ export const TaskSolutionService = {
     });
   },
 
-  async deleteTaskSolution(id: number): Promise<void> {
+  async deleteTaskSolution(id: string): Promise<void> {
     return apiRequest<void>({
       method: 'DELETE',
       url: `/task-solutions/${id}`,

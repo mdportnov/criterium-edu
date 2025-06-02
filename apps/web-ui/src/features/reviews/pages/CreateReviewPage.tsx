@@ -27,7 +27,7 @@ const CreateReviewPage: React.FC = () => {
   const [success, setSuccess] = useState('');
 
   const [formData, setFormData] = useState({
-    taskSolutionId: 0,
+    taskSolutionId: '',
     feedbackToStudent: '',
     reviewerComment: '',
     criteriaScores: [] as CriterionScore[],
@@ -38,13 +38,13 @@ const CreateReviewPage: React.FC = () => {
     if (taskSolutionId) {
       setFormData((prev) => ({
         ...prev,
-        taskSolutionId: Number(taskSolutionId),
+        taskSolutionId: taskSolutionId,
       }));
-      fetchTaskSolution(Number(taskSolutionId));
+      fetchTaskSolution(taskSolutionId);
     }
   }, [searchParams]);
 
-  const fetchTaskSolution = async (id: number) => {
+  const fetchTaskSolution = async (id: string) => {
     try {
       setLoading(true);
       const solutionData = await TaskSolutionService.getTaskSolutionById(id);
@@ -68,7 +68,7 @@ const CreateReviewPage: React.FC = () => {
   };
 
   const updateCriterionScore = (
-    criterionId: number,
+    criterionId: string,
     field: 'score' | 'comment',
     value: string | number,
   ) => {
@@ -131,7 +131,7 @@ const CreateReviewPage: React.FC = () => {
     0,
   );
   const maxScore =
-    task?.criteria?.reduce((sum, criterion) => sum + criterion.maxScore, 0) ||
+    task?.criteria?.reduce((sum, criterion) => sum + criterion.maxPoints, 0) ||
     0;
 
   if (!user || (user.role !== 'admin' && user.role !== 'reviewer')) {
@@ -198,12 +198,12 @@ const CreateReviewPage: React.FC = () => {
                       placeholder="Enter task solution ID"
                       value={formData.taskSolutionId || ''}
                       onChange={(e) => {
-                        const id = Number(e.target.value);
+                        const id = e.target.value;
                         setFormData((prev) => ({
                           ...prev,
                           taskSolutionId: id,
                         }));
-                        if (id > 0) {
+                        if (id) {
                           fetchTaskSolution(id);
                         }
                       }}
@@ -237,7 +237,7 @@ const CreateReviewPage: React.FC = () => {
                       <div>
                         <span className="text-muted-foreground">Student:</span>
                         <span className="ml-2 font-medium">
-                          User #{taskSolution.userId}
+                          User #{taskSolution.studentId}
                         </span>
                       </div>
                       <div>
@@ -266,11 +266,11 @@ const CreateReviewPage: React.FC = () => {
                         >
                           <div className="flex items-center justify-between">
                             <h4 className="font-medium">
-                              {criterion?.title ||
+                              {criterion?.name ||
                                 `Criterion #${criterionScore.criterionId}`}
                             </h4>
                             <span className="text-sm text-muted-foreground">
-                              Max: {criterion?.maxScore || 0}
+                              Max: {criterion?.maxPoints || 0}
                             </span>
                           </div>
 
@@ -291,7 +291,7 @@ const CreateReviewPage: React.FC = () => {
                                 id={`score-${criterionScore.criterionId}`}
                                 type="number"
                                 min="0"
-                                max={criterion?.maxScore || 100}
+                                max={criterion?.maxPoints || 100}
                                 value={criterionScore.score}
                                 onChange={(e) =>
                                   updateCriterionScore(
@@ -412,11 +412,11 @@ const CreateReviewPage: React.FC = () => {
                           className="flex justify-between text-sm"
                         >
                           <span className="truncate">
-                            {criterion?.title ||
+                            {criterion?.name ||
                               `Criterion #${score.criterionId}`}
                           </span>
                           <span>
-                            {score.score}/{criterion?.maxScore || 0}
+                            {score.score}/{criterion?.maxPoints || 0}
                           </span>
                         </div>
                       );

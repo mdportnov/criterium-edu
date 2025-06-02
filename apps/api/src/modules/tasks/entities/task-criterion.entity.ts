@@ -9,8 +9,8 @@ import { Task } from './task.entity';
 
 @Entity('task_criteria')
 export class TaskCriterion {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column({ type: 'varchar' })
   name: string;
@@ -24,8 +24,8 @@ export class TaskCriterion {
   @Column({ type: 'text', nullable: true })
   checkerComments: string;
 
-  @Column({ type: 'int' })
-  taskId: number;
+  @Column({ type: 'uuid' })
+  taskId: string;
 
   @ManyToOne(() => Task, (task) => task.criteria, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'taskId' })

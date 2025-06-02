@@ -42,7 +42,7 @@ export class BulkOperationsService {
 
   async importTasksJson(
     tasksData: BulkImportTaskDto[],
-    userId: number /* Placeholder for actual user ID */,
+    userId: string,
   ): Promise<{
     successfullyImported: number;
     totalTasks: number;
@@ -177,7 +177,7 @@ export class BulkOperationsService {
           );
 
           const createSolutionDto: CreateTaskSolutionDto = {
-            taskId: parseInt(solution.taskId, 10),
+            taskId: solution.taskId,
             solutionText: solution.solutionContent,
           };
 
@@ -360,7 +360,7 @@ export class BulkOperationsService {
     llmModel?: string;
     taskId?: string;
     systemPrompt?: string;
-    userId: number;
+    userId: string;
     sessionName?: string;
     sessionDescription?: string;
   }): Promise<ProcessingOperationDto> {
@@ -400,7 +400,7 @@ export class BulkOperationsService {
       llmModel?: string;
       taskId?: string;
       systemPrompt?: string;
-      userId: number;
+      userId: string;
       sessionName?: string;
       sessionDescription?: string;
     },
@@ -426,7 +426,7 @@ export class BulkOperationsService {
         description:
           data.sessionDescription ||
           `Bulk assessment for operation ${operationId}`,
-        solutionIds: data.solutionIds.map((id) => parseInt(id, 10)),
+        solutionIds: data.solutionIds,
         llmModel: data.llmModel,
         systemPrompt: data.systemPrompt,
         userId: data.userId,
