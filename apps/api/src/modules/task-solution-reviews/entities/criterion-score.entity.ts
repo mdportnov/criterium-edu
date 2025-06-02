@@ -10,11 +10,11 @@ import { TaskCriterion } from '../../tasks/entities/task-criterion.entity';
 
 @Entity('criterion_scores')
 export class CriterionScore {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
-  @Column({ type: 'int' })
-  reviewId: number;
+  @Column({ type: 'uuid' })
+  reviewId: string;
 
   @ManyToOne(() => TaskSolutionReview, (review) => review.criteriaScores, {
     onDelete: 'CASCADE',
@@ -22,8 +22,8 @@ export class CriterionScore {
   @JoinColumn({ name: 'reviewId' })
   review: TaskSolutionReview;
 
-  @Column({ type: 'int' })
-  criterionId: number;
+  @Column({ type: 'uuid' })
+  criterionId: string;
 
   @ManyToOne(() => TaskCriterion)
   @JoinColumn({ name: 'criterionId' })

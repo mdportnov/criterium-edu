@@ -39,8 +39,8 @@ export class TaskSolutionReviewsController {
   @ApiQuery({ name: 'taskId', required: false })
   async findAll(
     @Query() paginationDto: PaginationDto,
-    @Query('taskSolutionId') taskSolutionId?: number,
-    @Query('taskId') taskId?: number,
+    @Query('taskSolutionId') taskSolutionId?: string,
+    @Query('taskId') taskId?: string,
   ): Promise<PaginatedResponse<TaskSolutionReviewDto>> {
     return await this.reviewsService.findAll(
       paginationDto,
@@ -54,14 +54,14 @@ export class TaskSolutionReviewsController {
   @ApiQuery({ name: 'taskId', required: false })
   async findPendingAutoReviews(
     @Query() paginationDto: PaginationDto,
-    @Query('taskId') taskId?: number,
+    @Query('taskId') taskId?: string,
   ): Promise<PaginatedResponse<TaskSolutionReviewDto>> {
     return this.reviewsService.findPendingAutoReviews(paginationDto, taskId);
   }
 
   @Get(':id')
   async findOne(
-    @Param('id') id: number,
+    @Param('id') id: string,
     @GetCurrentUser() user: CurrentUser,
   ): Promise<TaskSolutionReviewDto> {
     const review = await this.reviewsService.findOne(id, {
@@ -107,7 +107,7 @@ export class TaskSolutionReviewsController {
   @Patch(':id')
   @Roles(UserRole.ADMIN, UserRole.REVIEWER)
   async update(
-    @Param('id') id: number,
+    @Param('id') id: string,
     @Body() updateReviewDto: UpdateTaskSolutionReviewDto,
     @GetCurrentUser() user: CurrentUser,
   ): Promise<TaskSolutionReviewDto> {
@@ -131,7 +131,7 @@ export class TaskSolutionReviewsController {
   @Post(':id/approve')
   @Roles(UserRole.ADMIN, UserRole.REVIEWER)
   async approveAutoReview(
-    @Param('id') id: number,
+    @Param('id') id: string,
     @GetCurrentUser() user: CurrentUser,
   ): Promise<TaskSolutionReviewDto> {
     const review = await this.reviewsService.findOne(id);
@@ -149,7 +149,7 @@ export class TaskSolutionReviewsController {
 
   @Post(':id/reject')
   @Roles(UserRole.ADMIN, UserRole.REVIEWER)
-  async rejectAutoReview(@Param('id') id: number): Promise<void> {
+  async rejectAutoReview(@Param('id') id: string): Promise<void> {
     const review = await this.reviewsService.findOne(id);
 
     // Only auto reviews can be rejected
@@ -164,7 +164,7 @@ export class TaskSolutionReviewsController {
   @Post('batch-approve')
   @Roles(UserRole.ADMIN, UserRole.REVIEWER)
   async batchApproveAutoReviews(
-    @Body() data: { reviewIds: number[] },
+    @Body() data: { reviewIds: string[] },
     @GetCurrentUser() user: CurrentUser,
   ): Promise<{ approvedCount: number; errors: any[] }> {
     return this.reviewsService.batchApproveReviews(data.reviewIds, user.id);
@@ -173,14 +173,14 @@ export class TaskSolutionReviewsController {
   @Post('batch-reject')
   @Roles(UserRole.ADMIN, UserRole.REVIEWER)
   async batchRejectAutoReviews(
-    @Body() data: { reviewIds: number[] },
+    @Body() data: { reviewIds: string[] },
   ): Promise<{ rejectedCount: number; errors: any[] }> {
     return this.reviewsService.batchRejectReviews(data.reviewIds);
   }
 
   @Delete(':id')
   @Roles(UserRole.ADMIN)
-  async remove(@Param('id') id: number): Promise<void> {
+  async remove(@Param('id') id: string): Promise<void> {
     await this.reviewsService.remove(id);
   }
 }

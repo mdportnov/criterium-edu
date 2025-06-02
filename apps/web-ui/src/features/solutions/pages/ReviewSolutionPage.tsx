@@ -33,10 +33,10 @@ const ReviewSolutionPage: React.FC = () => {
   const canReview = hasRole([UserRole.REVIEWER, UserRole.ADMIN]);
 
   const [formData, setFormData] = useState<CreateTaskSolutionReviewRequest>({
-    taskSolutionId: 0,
+    taskSolutionId: '',
     feedbackToStudent: '',
     criteriaScores: [],
-    source: ReviewSource.AUTO,
+    source: ReviewSource.MANUAL,
   });
 
   useEffect(() => {
@@ -47,11 +47,9 @@ const ReviewSolutionPage: React.FC = () => {
       setError('');
 
       try {
-        const solutionId = parseInt(id, 10);
-
         // Fetch solution
         const solutionData =
-          await TaskSolutionService.getTaskSolutionById(solutionId);
+          await TaskSolutionService.getTaskSolutionById(id);
         setSolution(solutionData);
 
         // Fetch task to get criteria
@@ -62,35 +60,34 @@ const ReviewSolutionPage: React.FC = () => {
         try {
           const reviews =
             await TaskSolutionReviewService.getTaskSolutionReviewsBySolutionId(
-              solutionId,
+              id,
             );
-          if (reviews.length > 0) {
-            setExistingReview(reviews[0]);
+          const reviewsArray = Array.isArray(reviews) ? reviews : reviews.data;
+          if (reviewsArray.length > 0) {
+            setExistingReview(reviewsArray[0]);
 
             // Initialize form with existing review data
             setFormData({
-              solutionId,
-              feedback: reviews[0].feedback,
-              criteriaScores: reviews[0].criteriaScores.map((score) => ({
+              taskSolutionId: id,
+              feedbackToStudent: reviewsArray[0].feedbackToStudent,
+              criteriaScores: reviewsArray[0].criteriaScores.map((score) => ({
                 criterionId: score.criterionId,
-                criterionName: score.criterionName,
-                points: score.points,
-                maxPoints: score.maxPoints,
-                feedback: score.feedback,
+                score: score.score,
+                comment: score.comment,
               })),
+              source: ReviewSource.MANUAL,
             });
           } else {
             // Initialize form with empty data based on task criteria
             setFormData({
-              solutionId,
-              feedback: '',
+              taskSolutionId: id,
+              feedbackToStudent: '',
               criteriaScores: taskData.criteria.map((criterion) => ({
-                criterionId: criterion.id || 0,
-                criterionName: criterion.name,
-                points: 0,
-                maxPoints: criterion.maxPoints,
-                feedback: '',
+                criterionId: criterion.id || '',
+                score: 0,
+                comment: '',
               })),
+              source: ReviewSource.MANUAL,
             });
           }
         } catch (reviewErr) {
@@ -98,15 +95,14 @@ const ReviewSolutionPage: React.FC = () => {
 
           // Initialize form with empty data based on task criteria
           setFormData({
-            solutionId,
-            feedback: '',
+            taskSolutionId: id,
+            feedbackToStudent: '',
             criteriaScores: taskData.criteria.map((criterion) => ({
-              criterionId: criterion.id || 0,
-              criterionName: criterion.name,
-              points: 0,
-              maxPoints: criterion.maxPoints,
-              feedback: '',
+              criterionId: criterion.id || '',
+              score: 0,
+              comment: '',
             })),
+            source: ReviewSource.MANUAL,
           });
         }
       } catch (err: any) {
@@ -124,39 +120,39 @@ const ReviewSolutionPage: React.FC = () => {
   }, [id]);
 
   const handleFeedbackChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setFormData((prev) => ({ ...prev, feedback: e.target.value }));
+    setFormData((prev) => ({ ...prev, feedbackToStudent: e.target.value }));
   };
 
-  const handleCriterionPointsChange = (index: number, points: number) => {
+  const handleCriterionScoreChange = (index: number, score: number) => {
     const criteriaScores = [...formData.criteriaScores];
-    criteriaScores[index] = { ...criteriaScores[index], points };
+    criteriaScores[index] = { ...criteriaScores[index], score };
     setFormData((prev) => ({ ...prev, criteriaScores }));
   };
 
-  const handleCriterionFeedbackChange = (index: number, feedback: string) => {
+  const handleCriterionCommentChange = (index: number, comment: string) => {
     const criteriaScores = [...formData.criteriaScores];
-    criteriaScores[index] = { ...criteriaScores[index], feedback };
+    criteriaScores[index] = { ...criteriaScores[index], comment };
     setFormData((prev) => ({ ...prev, criteriaScores }));
   };
 
   const validateForm = (): boolean => {
     // Check if any criterion score is invalid
     for (const score of formData.criteriaScores) {
-      if (score.points < 0 || score.points > score.maxPoints) {
+      if (score.score < 0) {
         setError(
-          `Points for "${score.criterionName}" must be between 0 and ${score.maxPoints}`,
+          `Score cannot be negative`,
         );
         return false;
       }
 
-      if (!score.feedback.trim()) {
-        setError(`Feedback for "${score.criterionName}" is required`);
+      if (!score.comment || !score.comment.trim()) {
+        setError(`Comment for criterion is required`);
         return false;
       }
     }
 
     // Check if overall feedback is provided
-    if (!formData.feedback.trim()) {
+    if (!formData.feedbackToStudent.trim()) {
       setError('Overall feedback is required');
       return false;
     }
@@ -180,7 +176,7 @@ const ReviewSolutionPage: React.FC = () => {
         await TaskSolutionReviewService.updateTaskSolutionReview(
           existingReview.id,
           {
-            feedback: formData.feedback,
+            feedbackToStudent: formData.feedbackToStudent,
             criteriaScores: formData.criteriaScores,
           },
         );
@@ -233,14 +229,14 @@ const ReviewSolutionPage: React.FC = () => {
 
   const getTotalScore = () => {
     return formData.criteriaScores.reduce(
-      (total, score) => total + score.points,
+      (total, score) => total + score.score,
       0,
     );
   };
 
   const getMaxPossibleScore = () => {
-    return formData.criteriaScores.reduce(
-      (total, score) => total + score.maxPoints,
+    return taskCriteria.reduce(
+      (total, criterion) => total + criterion.maxPoints,
       0,
     );
   };
@@ -304,9 +300,9 @@ const ReviewSolutionPage: React.FC = () => {
                     className="border-b border-border pb-6 last:border-0 last:pb-0"
                   >
                     <div className="flex justify-between items-start mb-2">
-                      <h3 className="font-medium">{score.criterionName}</h3>
+                      <h3 className="font-medium">{taskCriteria[index]?.name || 'Criterion'}</h3>
                       <span className="text-sm text-muted-foreground">
-                        Max: {score.maxPoints} points
+                        Max: {taskCriteria[index]?.maxPoints || 0} points
                       </span>
                     </div>
 
@@ -315,17 +311,17 @@ const ReviewSolutionPage: React.FC = () => {
                         <div className="flex justify-between">
                           <Label htmlFor={`points-${index}`}>Points</Label>
                           <span className="text-sm font-medium">
-                            {score.points} / {score.maxPoints}
+                            {score.score} / {taskCriteria[index]?.maxPoints || 0}
                           </span>
                         </div>
                         <Input
                           id={`points-${index}`}
                           type="range"
                           min="0"
-                          max={score.maxPoints}
-                          value={score.points}
+                          max={taskCriteria[index]?.maxPoints || 0}
+                          value={score.score}
                           onChange={(e) =>
-                            handleCriterionPointsChange(
+                            handleCriterionScoreChange(
                               index,
                               parseInt(e.target.value, 10),
                             )
@@ -338,11 +334,11 @@ const ReviewSolutionPage: React.FC = () => {
                         <Label htmlFor={`feedback-${index}`}>Feedback</Label>
                         <textarea
                           id={`feedback-${index}`}
-                          value={score.feedback}
+                          value={score.comment || ''}
                           onChange={(e) =>
-                            handleCriterionFeedbackChange(index, e.target.value)
+                            handleCriterionCommentChange(index, e.target.value)
                           }
-                          placeholder={`Provide feedback for ${score.criterionName}...`}
+                          placeholder={`Provide feedback for this criterion...`}
                           className="flex min-h-20 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                           required
                         />
@@ -361,7 +357,7 @@ const ReviewSolutionPage: React.FC = () => {
                 <Label htmlFor="feedback">Feedback</Label>
                 <textarea
                   id="feedback"
-                  value={formData.feedback}
+                  value={formData.feedbackToStudent}
                   onChange={handleFeedbackChange}
                   placeholder="Provide overall feedback for this solution..."
                   className="flex min-h-32 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
@@ -400,7 +396,7 @@ const ReviewSolutionPage: React.FC = () => {
                 <h3 className="text-sm font-medium text-muted-foreground">
                   Student
                 </h3>
-                <p className="mt-1">{solution?.studentName}</p>
+                <p className="mt-1">Student #{solution?.studentId}</p>
               </div>
 
               <div>

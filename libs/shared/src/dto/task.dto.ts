@@ -10,9 +10,9 @@ import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class TaskCriterionDto {
-  @IsNumber()
+  @IsString()
   @IsOptional()
-  id?: number;
+  id?: string;
 
   @IsString()
   @IsNotEmpty()
@@ -95,7 +95,7 @@ export class UpdateTaskDto {
 }
 
 export class TaskDto {
-  id: number;
+  id: string;
   title: string;
   description: string;
   authorSolution?: string;
@@ -107,7 +107,7 @@ export class TaskDto {
   tags?: string[];
 
   criteria: TaskCriterionDto[];
-  createdBy: number;
+  createdBy: string;
   createdAt: Date;
   updatedAt: Date;
 }

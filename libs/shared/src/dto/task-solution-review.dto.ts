@@ -11,9 +11,9 @@ import { Type } from 'class-transformer';
 import { ReviewSource } from '../interfaces';
 
 export class CriterionScoreDto {
-  @IsNumber()
+  @IsString()
   @IsNotEmpty()
-  criterionId: number;
+  criterionId: string;
 
   @IsNumber()
   @IsNotEmpty()
@@ -25,9 +25,9 @@ export class CriterionScoreDto {
 }
 
 export class CreateTaskSolutionReviewDto {
-  @IsNumber()
+  @IsString()
   @IsNotEmpty()
-  taskSolutionId: number;
+  taskSolutionId: string;
 
   @IsArray()
   @ValidateNested({ each: true })
@@ -66,15 +66,15 @@ export class UpdateTaskSolutionReviewDto {
   @IsOptional()
   source?: ReviewSource;
 
-  @IsNumber()
+  @IsString()
   @IsOptional()
-  reviewerId?: number;
+  reviewerId?: string;
 }
 
 export class TaskSolutionReviewDto {
-  id: number;
-  taskSolutionId: number;
-  reviewerId?: number;
+  id: string;
+  taskSolutionId: string;
+  reviewerId?: string;
   criteriaScores: CriterionScoreDto[];
   totalScore: number;
   feedbackToStudent: string;

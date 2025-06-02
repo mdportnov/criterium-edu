@@ -40,7 +40,7 @@ export class TasksController {
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: number): Promise<TaskDto> {
+  async findOne(@Param('id') id: string): Promise<TaskDto> {
     return this.tasksService.findOne(id);
   }
 
@@ -56,7 +56,7 @@ export class TasksController {
   @Patch(':id')
   @Roles(UserRole.ADMIN, UserRole.REVIEWER)
   async update(
-    @Param('id') id: number,
+    @Param('id') id: string,
     @Body() updateTaskDto: UpdateTaskDto,
   ): Promise<TaskDto> {
     return this.tasksService.update(id, updateTaskDto);
@@ -64,7 +64,7 @@ export class TasksController {
 
   @Delete(':id')
   @Roles(UserRole.ADMIN, UserRole.REVIEWER)
-  async remove(@Param('id') id: number): Promise<void> {
+  async remove(@Param('id') id: string): Promise<void> {
     await this.tasksService.remove(id);
   }
 }

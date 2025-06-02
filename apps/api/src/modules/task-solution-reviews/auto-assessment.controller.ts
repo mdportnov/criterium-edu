@@ -20,7 +20,10 @@ import {
   SourceAutoAssessRequestDto,
   TaskAutoAssessRequestDto,
 } from '../task-solutions/entities/solution-import.dto';
-import { AutoAssessmentService } from './auto-assessment.service';
+import {
+  AutoAssessmentService,
+  CreateSessionDto,
+} from './auto-assessment.service';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -53,13 +56,13 @@ export class AutoAssessmentController {
 
   @Get(':id')
   @Roles(UserRole.ADMIN, UserRole.REVIEWER, UserRole.STUDENT)
-  async getAssessment(@Param('id') id: number) {
+  async getAssessment(@Param('id') id: string) {
     return this.assessmentService.getAssessment(id);
   }
 
   @Get('solution/:solutionId')
   @Roles(UserRole.ADMIN, UserRole.REVIEWER, UserRole.STUDENT)
-  async getAssessmentsBySolution(@Param('solutionId') solutionId: number) {
+  async getAssessmentsBySolution(@Param('solutionId') solutionId: string) {
     return this.assessmentService.getAssessmentsBySolution(solutionId);
   }
 
@@ -67,26 +70,15 @@ export class AutoAssessmentController {
   @Roles(UserRole.REVIEWER, UserRole.ADMIN)
   async createSession(
     @Body()
-    dto: {
-      name: string;
-      description?: string;
-      solutionIds: number[];
-      llmModel?: string;
-      systemPrompt?: string;
-      temperature?: number;
-      maxTokens?: number;
-    },
+    dto: CreateSessionDto,
     @GetCurrentUser() user: CurrentUser,
   ) {
-    return this.assessmentService.createAssessmentSession({
-      ...dto,
-      userId: user.id,
-    });
+    return this.assessmentService.createAssessmentSession(dto, user.id);
   }
 
   @Post('sessions/:id/process')
   @Roles(UserRole.REVIEWER, UserRole.ADMIN)
-  async processSession(@Param('id') sessionId: number) {
+  async processSession(@Param('id') sessionId: string) {
     // Process the session asynchronously
     this.assessmentService
       .processAssessmentSession(sessionId)
@@ -120,25 +112,25 @@ export class AutoAssessmentController {
 
   @Get('sessions/:id')
   @Roles(UserRole.REVIEWER, UserRole.ADMIN)
-  async getSession(@Param('id') sessionId: number) {
+  async getSession(@Param('id') sessionId: string) {
     return this.assessmentService.getAssessmentSession(sessionId);
   }
 
   @Put('sessions/:id/stop')
   @Roles(UserRole.REVIEWER, UserRole.ADMIN)
-  async stopSession(@Param('id') sessionId: number) {
+  async stopSession(@Param('id') sessionId: string) {
     return this.assessmentService.stopSession(sessionId);
   }
 
   @Put('sessions/:id/restart')
   @Roles(UserRole.REVIEWER, UserRole.ADMIN)
-  async restartSession(@Param('id') sessionId: number) {
+  async restartSession(@Param('id') sessionId: string) {
     return this.assessmentService.restartSession(sessionId);
   }
 
   @Put('sessions/:id/cancel')
   @Roles(UserRole.REVIEWER, UserRole.ADMIN)
-  async cancelSession(@Param('id') sessionId: number) {
+  async cancelSession(@Param('id') sessionId: string) {
     return this.assessmentService.cancelSession(sessionId);
   }
 }

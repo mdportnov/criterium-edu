@@ -21,7 +21,7 @@ export const TaskService = {
     });
   },
 
-  async getTaskById(id: number): Promise<Task> {
+  async getTaskById(id: string): Promise<Task> {
     return apiRequest<Task>({
       method: 'GET',
       url: `/tasks/${id}`,
@@ -36,7 +36,7 @@ export const TaskService = {
     });
   },
 
-  async updateTask(id: number, data: UpdateTaskRequest): Promise<Task> {
+  async updateTask(id: string, data: UpdateTaskRequest): Promise<Task> {
     return apiRequest<Task>({
       method: 'PATCH',
       url: `/tasks/${id}`,
@@ -44,7 +44,7 @@ export const TaskService = {
     });
   },
 
-  async deleteTask(id: number): Promise<void> {
+  async deleteTask(id: string): Promise<void> {
     return apiRequest<void>({
       method: 'DELETE',
       url: `/tasks/${id}`,

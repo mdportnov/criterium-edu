@@ -91,7 +91,7 @@ export class TaskSolutionsService {
   }
 
   async findByStudent(
-    studentId: number,
+    studentId: string,
     paginationDto?: PaginationDto,
   ): Promise<PaginatedResponse<TaskSolution> | TaskSolution[]> {
     if (!paginationDto) {
@@ -147,7 +147,7 @@ export class TaskSolutionsService {
   }
 
   async findByTask(
-    taskId: number,
+    taskId: string,
     paginationDto?: PaginationDto,
   ): Promise<PaginatedResponse<TaskSolution> | TaskSolution[]> {
     if (!paginationDto) {
@@ -202,7 +202,7 @@ export class TaskSolutionsService {
     };
   }
 
-  async findOne(id: number, user?: CurrentUser): Promise<TaskSolution> {
+  async findOne(id: string, user?: CurrentUser): Promise<TaskSolution> {
     const taskSolution = await this.taskSolutionsRepository.findOne({
       where: { id },
       relations: ['task', 'user'], // Ensure task and user are loaded for the DTO
@@ -248,7 +248,7 @@ export class TaskSolutionsService {
   }
 
   // New method to find one TaskSolution and return as DTO
-  async findOneAsDto(id: number): Promise<TaskSolutionDto> {
+  async findOneAsDto(id: string): Promise<TaskSolutionDto> {
     // We call the existing findOne but without the user, as CheckerService acts with system privileges
     const taskSolutionEntity = await this.findOne(id);
     // findOne already throws NotFoundException if not found
@@ -282,9 +282,9 @@ export class TaskSolutionsService {
   }
 
   async update(
-    id: number,
+    id: string,
     updateTaskSolutionDto: UpdateTaskSolutionDto,
-    userId: number,
+    userId: string,
     userRole: UserRole,
   ): Promise<TaskSolution> {
     const taskSolution = await this.findOne(id);
@@ -361,7 +361,7 @@ export class TaskSolutionsService {
     return updatedSolution;
   }
 
-  async remove(id: number, userId: number, userRole: UserRole): Promise<void> {
+  async remove(id: string, userId: string, userRole: UserRole): Promise<void> {
     const taskSolution = await this.findOne(id);
 
     // Students can only delete their own solutions that haven't been reviewed

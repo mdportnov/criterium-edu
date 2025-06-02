@@ -59,8 +59,8 @@ export class TaskSolutionReviewsService {
 
   async findAll(
     paginationDto?: PaginationDto,
-    taskId?: number,
-    taskSolutionId?: number,
+    taskId?: string,
+    taskSolutionId?: string,
   ): Promise<PaginatedResponse<TaskSolutionReviewDto>> {
     const { page = 1, size = 10 } = paginationDto || {};
     const skip = (page - 1) * size;
@@ -99,7 +99,7 @@ export class TaskSolutionReviewsService {
   }
 
   async findByTask(
-    taskId: number,
+    taskId: string,
     paginationDto?: PaginationDto,
   ): Promise<
     PaginatedResponse<TaskSolutionReviewDto> | TaskSolutionReviewDto[]
@@ -149,7 +149,7 @@ export class TaskSolutionReviewsService {
   }
 
   async findByTaskSolution(
-    taskSolutionId: number,
+    taskSolutionId: string,
     paginationDto?: PaginationDto,
   ): Promise<
     PaginatedResponse<TaskSolutionReviewDto> | TaskSolutionReviewDto[]
@@ -185,7 +185,7 @@ export class TaskSolutionReviewsService {
   }
 
   async findOne(
-    id: number,
+    id: string,
     options?: FindOneOptions<TaskSolutionReview>,
   ): Promise<TaskSolutionReview> {
     const findOptions: FindOneOptions<TaskSolutionReview> = {
@@ -210,7 +210,7 @@ export class TaskSolutionReviewsService {
 
   async create(
     createReviewDto: CreateTaskSolutionReviewDto,
-    reviewerId?: number,
+    reviewerId?: string,
   ): Promise<TaskSolutionReviewDto> {
     const taskSolution = await this.taskSolutionsRepository.findOne({
       where: { id: createReviewDto.taskSolutionId },
@@ -259,7 +259,7 @@ export class TaskSolutionReviewsService {
   }
 
   async update(
-    id: number,
+    id: string,
     updateReviewDto: UpdateTaskSolutionReviewDto,
   ): Promise<TaskSolutionReviewDto> {
     const review = await this.findOne(id);
@@ -306,7 +306,7 @@ export class TaskSolutionReviewsService {
     return this.mapReviewToDto(review);
   }
 
-  async remove(id: number): Promise<void> {
+  async remove(id: string): Promise<void> {
     const review = await this.findOne(id);
 
     const taskSolution = await this.taskSolutionsRepository.findOneBy({
@@ -322,8 +322,8 @@ export class TaskSolutionReviewsService {
   }
 
   async batchApproveReviews(
-    reviewIds: number[],
-    reviewerId: number,
+    reviewIds: string[],
+    reviewerId: string,
   ): Promise<{ approvedCount: number; errors: any[] }> {
     const results = [];
     const errors = [];
@@ -361,7 +361,7 @@ export class TaskSolutionReviewsService {
   }
 
   async batchRejectReviews(
-    reviewIds: number[],
+    reviewIds: string[],
   ): Promise<{ rejectedCount: number; errors: any[] }> {
     const results = [];
     const errors = [];
@@ -396,7 +396,7 @@ export class TaskSolutionReviewsService {
 
   async findPendingAutoReviews(
     paginationDto?: PaginationDto,
-    taskId?: number,
+    taskId?: string,
   ): Promise<PaginatedResponse<TaskSolutionReviewDto>> {
     const { page = 1, size = 10 } = paginationDto || {};
     const skip = (page - 1) * size;

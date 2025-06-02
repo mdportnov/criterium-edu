@@ -1,5 +1,5 @@
 export interface TaskCriterion {
-  id?: number;
+  id?: string;
   name: string;
   description: string;
   maxPoints: number;
@@ -7,14 +7,14 @@ export interface TaskCriterion {
 }
 
 export interface Task {
-  id: number;
+  id: string;
   title: string;
   description: string;
   authorSolution?: string;
   categories?: string[];
   tags?: string[];
   criteria: TaskCriterion[];
-  createdBy: number;
+  createdBy: string;
   createdAt: string;
   updatedAt: string;
 }

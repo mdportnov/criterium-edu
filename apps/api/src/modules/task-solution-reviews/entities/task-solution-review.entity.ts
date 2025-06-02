@@ -15,18 +15,18 @@ import { CriterionScore } from './criterion-score.entity';
 
 @Entity('task_solution_reviews')
 export class TaskSolutionReview {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
-  @Column({ type: 'int' })
-  taskSolutionId: number;
+  @Column({ type: 'uuid' })
+  taskSolutionId: string;
 
   @ManyToOne(() => TaskSolution)
   @JoinColumn({ name: 'taskSolutionId' })
   taskSolution: TaskSolution;
 
-  @Column({ type: 'int', nullable: true })
-  reviewerId: number;
+  @Column({ type: 'uuid', nullable: true })
+  reviewerId: string;
 
   @ManyToOne(() => User, { nullable: true })
   @JoinColumn({ name: 'reviewerId' })

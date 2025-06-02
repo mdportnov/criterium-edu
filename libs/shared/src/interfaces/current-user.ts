@@ -1,6 +1,6 @@
 import { UserRole } from './user.interface';
 
 export interface CurrentUser {
-  id: number;
+  id: string;
   role: UserRole;
 }

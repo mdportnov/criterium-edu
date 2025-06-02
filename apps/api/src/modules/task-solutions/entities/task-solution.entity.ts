@@ -16,8 +16,8 @@ import { TaskSolutionStatus } from '@app/shared';
 
 @Entity('task_solutions')
 export class TaskSolution {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column({ type: 'text' })
   content: string;

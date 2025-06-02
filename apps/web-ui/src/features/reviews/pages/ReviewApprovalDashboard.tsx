@@ -25,8 +25,8 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 const ReviewApprovalDashboard = () => {
   const queryClient = useQueryClient();
   const [selectedTaskId, setSelectedTaskId] = useState<string>('all');
-  const [selectedReviews, setSelectedReviews] = useState<number[]>([]);
-  const [expandedReviews, setExpandedReviews] = useState<Set<number>>(
+  const [selectedReviews, setSelectedReviews] = useState<string[]>([]);
+  const [expandedReviews, setExpandedReviews] = useState<Set<string>>(
     new Set(),
   );
   const [isProcessing, setIsProcessing] = useState(false);
@@ -46,7 +46,7 @@ const ReviewApprovalDashboard = () => {
     queryKey: ['pending-auto-reviews', selectedTaskId, currentPage, pageSize],
     queryFn: () =>
       TaskSolutionReviewService.getPendingAutoReviews(
-        selectedTaskId === 'all' ? undefined : Number(selectedTaskId),
+        selectedTaskId === 'all' ? undefined : selectedTaskId,
         { page: currentPage, size: pageSize }
       ),
     refetchInterval: 15000, // Refresh every 15 seconds
@@ -70,7 +70,7 @@ const ReviewApprovalDashboard = () => {
     }
   };
 
-  const handleReviewToggle = (reviewId: number) => {
+  const handleReviewToggle = (reviewId: string) => {
     setSelectedReviews((prev) =>
       prev.includes(reviewId)
         ? prev.filter((id) => id !== reviewId)
@@ -78,7 +78,7 @@ const ReviewApprovalDashboard = () => {
     );
   };
 
-  const toggleExpanded = (reviewId: number) => {
+  const toggleExpanded = (reviewId: string) => {
     setExpandedReviews((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(reviewId)) {
@@ -142,7 +142,7 @@ const ReviewApprovalDashboard = () => {
     }
   };
 
-  const handleIndividualApprove = async (reviewId: number) => {
+  const handleIndividualApprove = async (reviewId: string) => {
     try {
       await TaskSolutionReviewService.approveAutoReview(reviewId);
       setMessage({
@@ -159,7 +159,7 @@ const ReviewApprovalDashboard = () => {
     }
   };
 
-  const handleIndividualReject = async (reviewId: number) => {
+  const handleIndividualReject = async (reviewId: string) => {
     try {
       await TaskSolutionReviewService.rejectAutoReview(reviewId);
       setMessage({

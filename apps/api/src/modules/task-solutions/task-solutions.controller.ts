@@ -67,8 +67,8 @@ export class TaskSolutionsController {
   @ApiQuery({ name: 'studentId', required: false })
   async findAll(
     @Query() paginationDto: PaginationDto,
-    @Query('taskId') taskId?: number,
-    @Query('studentId') studentId?: number,
+    @Query('taskId') taskId?: string,
+    @Query('studentId') studentId?: string,
   ): Promise<PaginatedResponse<TaskSolutionDto>> {
     let result;
 
@@ -138,7 +138,7 @@ export class TaskSolutionsController {
   @Get('by-task/:taskId')
   @Roles(UserRole.ADMIN, UserRole.REVIEWER)
   async findByTask(
-    @Param('taskId') taskId: number,
+    @Param('taskId') taskId: string,
     @Query() paginationDto: PaginationDto,
   ): Promise<PaginatedResponse<TaskSolutionDto>> {
     const result = await this.taskSolutionsService.findByTask(
@@ -167,7 +167,7 @@ export class TaskSolutionsController {
 
   @Get(':id')
   async findOne(
-    @Param('id') id: number,
+    @Param('id') id: string,
     @GetCurrentUser() user: CurrentUser,
   ): Promise<TaskSolutionDto> {
     const solution = await this.taskSolutionsService.findOne(id, user);
@@ -190,7 +190,7 @@ export class TaskSolutionsController {
 
   @Patch(':id')
   async update(
-    @Param('id') id: number,
+    @Param('id') id: string,
     @Body() updateTaskSolutionDto: UpdateTaskSolutionDto,
     @GetCurrentUser() user: CurrentUser,
   ): Promise<TaskSolutionDto> {
@@ -205,7 +205,7 @@ export class TaskSolutionsController {
 
   @Delete(':id')
   async remove(
-    @Param('id') id: number,
+    @Param('id') id: string,
     @GetCurrentUser() user: CurrentUser,
   ): Promise<void> {
     await this.taskSolutionsService.remove(id, user.id, user.role);

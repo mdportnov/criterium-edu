@@ -16,7 +16,7 @@ export class CheckerController {
   @Post('process/:taskSolutionId')
   @Roles(UserRole.ADMIN, UserRole.REVIEWER)
   async processTaskSolution(
-    @Param('taskSolutionId') taskSolutionId: number,
+    @Param('taskSolutionId') taskSolutionId: string,
   ): Promise<any> {
     return this.checkerService.processTaskSolution(taskSolutionId);
   }

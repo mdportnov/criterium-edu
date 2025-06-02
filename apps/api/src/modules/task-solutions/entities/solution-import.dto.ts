@@ -1,27 +1,21 @@
-import {
-  IsArray,
-  IsNotEmpty,
-  IsNumber,
-  IsOptional,
-  IsString,
-} from 'class-validator';
+import { IsArray, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class ImportSolutionDto {
   @IsString()
   @IsNotEmpty()
   content: string;
 
-  @IsNumber()
+  @IsString()
   @IsNotEmpty()
-  taskId: number;
+  taskId: string;
 
   @IsString()
   @IsOptional()
   externalId?: string;
 
-  @IsNumber()
+  @IsString()
   @IsOptional()
-  userId?: number;
+  userId?: string;
 }
 
 export class BatchImportSolutionsDto {
@@ -37,7 +31,7 @@ export class BatchImportSolutionsDto {
 export class AutoAssessRequestDto {
   @IsArray()
   @IsNotEmpty()
-  solutionIds: number[];
+  solutionIds: string[];
 
   @IsString()
   @IsOptional()
@@ -45,9 +39,9 @@ export class AutoAssessRequestDto {
 }
 
 export class TaskAutoAssessRequestDto {
-  @IsNumber()
+  @IsString()
   @IsNotEmpty()
-  taskId: number;
+  taskId: string;
 
   @IsString()
   @IsOptional()
@@ -55,9 +49,9 @@ export class TaskAutoAssessRequestDto {
 }
 
 export class SourceAutoAssessRequestDto {
-  @IsNumber()
+  @IsString()
   @IsNotEmpty()
-  sourceId: number;
+  sourceId: string;
 
   @IsString()
   @IsOptional()

@@ -18,7 +18,7 @@ export const TaskSolutionReviewService = {
     });
   },
 
-  async getReviewById(id: number): Promise<TaskSolutionReview> {
+  async getReviewById(id: string): Promise<TaskSolutionReview> {
     return apiRequest<TaskSolutionReview>({
       method: 'GET',
       url: `/task-solution-reviews/${id}`,
@@ -26,7 +26,7 @@ export const TaskSolutionReviewService = {
   },
 
   async getReviewsByTaskSolutionId(
-    taskSolutionId: number,
+    taskSolutionId: string,
     pagination?: PaginationParams,
   ): Promise<PaginatedResponse<TaskSolutionReview>> {
     return apiRequest<PaginatedResponse<TaskSolutionReview>>({
@@ -37,7 +37,7 @@ export const TaskSolutionReviewService = {
   },
 
   async getReviewsByTaskId(
-    taskId: number,
+    taskId: string,
     pagination?: PaginationParams,
   ): Promise<PaginatedResponse<TaskSolutionReview>> {
     return apiRequest<PaginatedResponse<TaskSolutionReview>>({
@@ -47,7 +47,7 @@ export const TaskSolutionReviewService = {
     });
   },
 
-  async approveAutoReview(id: number): Promise<TaskSolutionReview> {
+  async approveAutoReview(id: string): Promise<TaskSolutionReview> {
     return apiRequest<TaskSolutionReview>({
       method: 'POST',
       url: `/task-solution-reviews/${id}/approve`,
@@ -65,7 +65,7 @@ export const TaskSolutionReviewService = {
   },
 
   async updateReview(
-    id: number,
+    id: string,
     data: UpdateTaskSolutionReviewRequest,
   ): Promise<TaskSolutionReview> {
     return apiRequest<TaskSolutionReview>({
@@ -75,7 +75,7 @@ export const TaskSolutionReviewService = {
     });
   },
 
-  async deleteReview(id: number): Promise<void> {
+  async deleteReview(id: string): Promise<void> {
     return apiRequest<void>({
       method: 'DELETE',
       url: `/task-solution-reviews/${id}`,
@@ -83,7 +83,7 @@ export const TaskSolutionReviewService = {
   },
 
   async getPendingAutoReviews(
-    taskId?: number,
+    taskId?: string,
     pagination?: PaginationParams,
   ): Promise<PaginatedResponse<TaskSolutionReview>> {
     const url = taskId
@@ -97,7 +97,7 @@ export const TaskSolutionReviewService = {
     });
   },
 
-  async rejectAutoReview(id: number): Promise<void> {
+  async rejectAutoReview(id: string): Promise<void> {
     return apiRequest<void>({
       method: 'POST',
       url: `/task-solution-reviews/${id}/reject`,
@@ -105,7 +105,7 @@ export const TaskSolutionReviewService = {
   },
 
   async batchApproveReviews(
-    reviewIds: number[],
+    reviewIds: string[],
   ): Promise<{ approvedCount: number; errors: any[] }> {
     return apiRequest<{ approvedCount: number; errors: any[] }>({
       method: 'POST',
@@ -115,7 +115,7 @@ export const TaskSolutionReviewService = {
   },
 
   async batchRejectReviews(
-    reviewIds: number[],
+    reviewIds: string[],
   ): Promise<{ rejectedCount: number; errors: any[] }> {
     return apiRequest<{ rejectedCount: number; errors: any[] }>({
       method: 'POST',
@@ -126,7 +126,7 @@ export const TaskSolutionReviewService = {
 
   // Alias methods for backward compatibility with component naming
   async getTaskSolutionReviewsBySolutionId(
-    solutionId: number,
+    solutionId: string,
     pagination?: PaginationParams,
   ): Promise<TaskSolutionReview[] | PaginatedResponse<TaskSolutionReview>> {
     return this.getReviewsByTaskSolutionId(solutionId, pagination);
@@ -139,7 +139,7 @@ export const TaskSolutionReviewService = {
   },
 
   async updateTaskSolutionReview(
-    id: number,
+    id: string,
     data: UpdateTaskSolutionReviewRequest,
   ): Promise<TaskSolutionReview> {
     return this.updateReview(id, data);

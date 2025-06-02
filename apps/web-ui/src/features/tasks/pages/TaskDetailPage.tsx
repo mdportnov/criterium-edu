@@ -25,16 +25,16 @@ const TaskDetailPage: React.FC = () => {
       setError('');
 
       try {
-        const taskId = parseInt(id, 10);
-        const taskData = await TaskService.getTaskById(taskId);
+        const taskData = await TaskService.getTaskById(id);
         setTask(taskData);
 
         // If user is a student, fetch their solutions for this task
         if (isStudent && user) {
           const solutions =
-            await TaskSolutionService.getTaskSolutionsByTaskId(taskId);
-          const userSolutions = solutions.filter(
-            (solution) => solution.studentId === user.id,
+            await TaskSolutionService.getTaskSolutionsByTaskId(id);
+          const solutionsArray = Array.isArray(solutions) ? solutions : solutions.data;
+          const userSolutions = solutionsArray.filter(
+            (solution: TaskSolution) => solution.studentId === user.id,
           );
           setMySolutions(userSolutions);
         }
