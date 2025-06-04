@@ -29,10 +29,12 @@ const BulkSolutionUploadPage = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string>('');
 
-  const { data: tasks = [] } = useQuery({
+  const { data: tasksResponse } = useQuery({
     queryKey: ['tasks'],
     queryFn: TaskService.getTasks,
   });
+  
+  const tasks = tasksResponse?.data || [];
 
   const sampleJson = [
     {
