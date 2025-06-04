@@ -302,9 +302,6 @@ const MainLayout: React.FC = () => {
         <div className="container-responsive max-w-7xl mx-auto py-6 sm:py-8">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
             <div className="flex items-center gap-2">
-              <div className="w-6 h-6 bg-primary/20 rounded flex items-center justify-center">
-                <span className="text-xs font-bold text-primary">CE</span>
-              </div>
               <p className="text-sm text-muted-foreground">
                 &copy; {new Date().getFullYear()} Criterium EDU. All rights
                 reserved.

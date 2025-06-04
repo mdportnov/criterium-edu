@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, Activity, Shield, BarChart3 } from 'lucide-react';
+import { Users, Activity, Shield, BarChart3, MessageSquare } from 'lucide-react';
 import { UsersTab } from '../components/UsersTab';
 import { AuditLogsTab } from '../components/AuditLogsTab';
 import { SettingsTab } from '../components/SettingsTab';
+import { PromptsTab } from '../components/PromptsTab';
 
 const AdminPanelPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState('users');
@@ -22,7 +23,7 @@ const AdminPanelPage: React.FC = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4 h-auto p-1">
+        <TabsList className="grid w-full grid-cols-2 lg:grid-cols-5 h-auto p-1">
           <TabsTrigger value="users" className="flex items-center gap-2 py-3">
             <Users className="w-4 h-4" />
             <span className="hidden sm:inline">Users</span>
@@ -30,6 +31,10 @@ const AdminPanelPage: React.FC = () => {
           <TabsTrigger value="activity" className="flex items-center gap-2 py-3">
             <Activity className="w-4 h-4" />
             <span className="hidden sm:inline">Activity Logs</span>
+          </TabsTrigger>
+          <TabsTrigger value="prompts" className="flex items-center gap-2 py-3">
+            <MessageSquare className="w-4 h-4" />
+            <span className="hidden sm:inline">Prompts</span>
           </TabsTrigger>
           <TabsTrigger value="stats" className="flex items-center gap-2 py-3">
             <BarChart3 className="w-4 h-4" />
@@ -71,6 +76,23 @@ const AdminPanelPage: React.FC = () => {
             </CardHeader>
             <CardContent>
               <AuditLogsTab />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="prompts" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <MessageSquare className="w-5 h-5 text-primary" />
+                AI Prompts Management
+              </CardTitle>
+              <CardDescription>
+                Configure AI prompts with multi-language support for various system operations
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <PromptsTab />
             </CardContent>
           </Card>
         </TabsContent>

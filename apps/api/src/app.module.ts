@@ -19,6 +19,7 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { AuditModule } from './modules/audit/audit.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { SettingsModule } from './modules/settings/settings.module';
+import { PromptsModule } from './modules/prompts/prompts.module';
 import { AuditMiddleware } from './modules/audit/audit.middleware';
 
 @Module({
@@ -84,6 +85,7 @@ import { AuditMiddleware } from './modules/audit/audit.middleware';
     AuditModule,
     AdminModule,
     SettingsModule,
+    PromptsModule,
   ],
 })
 export class AppModule implements NestModule {
