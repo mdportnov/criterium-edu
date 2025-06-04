@@ -181,4 +181,13 @@ export class BulkOperationsController {
   async deleteOperation(@Param('id') operationId: string) {
     return this.bulkOperationsService.deleteOperation(operationId);
   }
+
+  @Post('operations/check-stuck')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiOperation({ summary: 'Check for and handle stuck operations' })
+  @ApiResponse({ status: 200, description: 'Stuck operations check completed' })
+  async checkStuckOperations() {
+    return this.bulkOperationsService.checkAndHandleStuckOperations();
+  }
 }
