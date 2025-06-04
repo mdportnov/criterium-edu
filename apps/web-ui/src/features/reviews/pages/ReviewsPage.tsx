@@ -13,6 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Pagination } from '@/components/ui/pagination';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { TaskSolutionReviewService } from '@/services';
 import { useAuth } from '@/contexts/AuthContext';
 import type { PaginatedResponse, ReviewSource, TaskSolutionReview } from '@/types';
@@ -134,32 +135,65 @@ const ReviewsPage: React.FC = () => {
           </p>
         </div>
         {canCreateReview && (
-          <div className="flex flex-wrap gap-2">
-            <Button asChild>
-              <Link to="/dashboard/reviews/create">
-                <Plus className="w-4 h-4 mr-2" />
-                Create Review
-              </Link>
-            </Button>
-            <Button variant="outline" asChild>
-              <Link to="/dashboard/reviews/bulk-upload">
-                <Upload className="w-4 h-4 mr-2" />
-                Bulk Upload
-              </Link>
-            </Button>
-            <Button variant="outline" asChild>
-              <Link to="/dashboard/reviews/llm-processing">
-                <Brain className="w-4 h-4 mr-2" />
-                LLM Assessment
-              </Link>
-            </Button>
-            <Button variant="outline" asChild>
-              <Link to="/dashboard/reviews/approval-dashboard">
-                <CheckCircle className="w-4 h-4 mr-2" />
-                Approvals
-              </Link>
-            </Button>
-          </div>
+          <TooltipProvider>
+            <div className="flex flex-wrap gap-2">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button asChild>
+                    <Link to="/dashboard/reviews/create">
+                      <Plus className="w-4 h-4 mr-2" />
+                      Create Review
+                    </Link>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Manually create a review for a specific solution</p>
+                </TooltipContent>
+              </Tooltip>
+              
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="outline" asChild>
+                    <Link to="/dashboard/reviews/bulk-upload">
+                      <Upload className="w-4 h-4 mr-2" />
+                      Bulk Upload
+                    </Link>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Upload multiple student solutions at once via JSON</p>
+                </TooltipContent>
+              </Tooltip>
+              
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="outline" asChild>
+                    <Link to="/dashboard/reviews/llm-processing">
+                      <Brain className="w-4 h-4 mr-2" />
+                      LLM Assessment
+                    </Link>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Use AI to automatically assess and review solutions</p>
+                </TooltipContent>
+              </Tooltip>
+              
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="outline" asChild>
+                    <Link to="/dashboard/reviews/approval-dashboard">
+                      <CheckCircle className="w-4 h-4 mr-2" />
+                      Approvals
+                    </Link>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Review and approve AI-generated assessments</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+          </TooltipProvider>
         )}
       </div>
 
@@ -172,68 +206,101 @@ const ReviewsPage: React.FC = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <Button
-                variant="ghost"
-                className="h-auto p-4 flex flex-col items-center gap-2 transition-all duration-200 hover:scale-105 hover:shadow-md hover:bg-accent/50"
-                asChild
-              >
-                <Link to="/dashboard/reviews/processing-status">
-                  <Activity className="w-6 h-6" />
-                  <div className="text-center">
-                    <div className="font-medium">Processing Status</div>
-                    <div className="text-xs text-muted-foreground">
-                      View active operations
-                    </div>
-                  </div>
-                </Link>
-              </Button>
-              <Button
-                variant="ghost"
-                className="h-auto p-4 flex flex-col items-center gap-2 transition-all duration-200 hover:scale-105 hover:shadow-md hover:bg-accent/50 group"
-                asChild
-              >
-                <Link to="/dashboard/reviews/approval-dashboard">
-                  <CheckCircle className="w-6 h-6 transition-transform duration-200 group-hover:scale-110" />
-                  <div className="text-center">
-                    <div className="font-medium">Pending Approvals</div>
-                    <div className="text-xs text-muted-foreground">
-                      Review AI feedback
-                    </div>
-                  </div>
-                </Link>
-              </Button>
-              <Button
-                variant="ghost"
-                className="h-auto p-4 flex flex-col items-center gap-2 transition-all duration-200 hover:scale-105 hover:shadow-md hover:bg-accent/50 group"
-                asChild
-              >
-                <Link to="/dashboard/reviews/bulk-upload">
-                  <Upload className="w-6 h-6 transition-transform duration-200 group-hover:-translate-y-1" />
-                  <div className="text-center">
-                    <div className="font-medium">Import Solutions</div>
-                    <div className="text-xs text-muted-foreground">
-                      Bulk solution upload
-                    </div>
-                  </div>
-                </Link>
-              </Button>
-              <Button
-                variant="ghost"
-                className="h-auto p-4 flex flex-col items-center gap-2 transition-all duration-200 hover:scale-105 hover:shadow-md hover:bg-accent/50 group"
-                asChild
-              >
-                <Link to="/dashboard/reviews/llm-processing">
-                  <Brain className="w-6 h-6 transition-transform duration-200 group-hover:pulse" />
-                  <div className="text-center">
-                    <div className="font-medium">AI Assessment</div>
-                    <div className="text-xs text-muted-foreground">
-                      Configure LLM reviews
-                    </div>
-                  </div>
-                </Link>
-              </Button>
-            </div>
+            <TooltipProvider>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="h-auto p-4 flex flex-col items-center gap-2 transition-all duration-200 hover:scale-105 hover:shadow-md hover:bg-accent/50"
+                      asChild
+                    >
+                      <Link to="/dashboard/reviews/processing-status">
+                        <Activity className="w-6 h-6" />
+                        <div className="text-center">
+                          <div className="font-medium">Processing Status</div>
+                          <div className="text-xs text-muted-foreground">
+                            View active operations
+                          </div>
+                        </div>
+                      </Link>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Monitor real-time status of bulk operations and AI processing tasks</p>
+                  </TooltipContent>
+                </Tooltip>
+                
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="h-auto p-4 flex flex-col items-center gap-2 transition-all duration-200 hover:scale-105 hover:shadow-md hover:bg-accent/50 group"
+                      asChild
+                    >
+                      <Link to="/dashboard/reviews/approval-dashboard">
+                        <CheckCircle className="w-6 h-6 transition-transform duration-200 group-hover:scale-110" />
+                        <div className="text-center">
+                          <div className="font-medium">Pending Approvals</div>
+                          <div className="text-xs text-muted-foreground">
+                            Review AI feedback
+                          </div>
+                        </div>
+                      </Link>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Review, approve, or modify AI-generated assessments before publishing</p>
+                  </TooltipContent>
+                </Tooltip>
+                
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="h-auto p-4 flex flex-col items-center gap-2 transition-all duration-200 hover:scale-105 hover:shadow-md hover:bg-accent/50 group"
+                      asChild
+                    >
+                      <Link to="/dashboard/reviews/bulk-upload">
+                        <Upload className="w-6 h-6 transition-transform duration-200 group-hover:-translate-y-1" />
+                        <div className="text-center">
+                          <div className="font-medium">Import Solutions</div>
+                          <div className="text-xs text-muted-foreground">
+                            Bulk solution upload
+                          </div>
+                        </div>
+                      </Link>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Import multiple student solutions from JSON format for batch processing</p>
+                  </TooltipContent>
+                </Tooltip>
+                
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="h-auto p-4 flex flex-col items-center gap-2 transition-all duration-200 hover:scale-105 hover:shadow-md hover:bg-accent/50 group"
+                      asChild
+                    >
+                      <Link to="/dashboard/reviews/llm-processing">
+                        <Brain className="w-6 h-6 transition-transform duration-200 group-hover:pulse" />
+                        <div className="text-center">
+                          <div className="font-medium">AI Assessment</div>
+                          <div className="text-xs text-muted-foreground">
+                            Configure LLM reviews
+                          </div>
+                        </div>
+                      </Link>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Configure and start AI-powered automatic assessment of student solutions</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+            </TooltipProvider>
           </CardContent>
         </Card>
       )}

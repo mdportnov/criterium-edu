@@ -24,23 +24,23 @@ const AdminPanelPage: React.FC = () => {
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className="grid w-full grid-cols-2 lg:grid-cols-5 h-auto p-1">
-          <TabsTrigger value="users" className="flex items-center gap-2 py-3">
+          <TabsTrigger value="users" className="flex items-center gap-2 py-3 cursor-pointer">
             <Users className="w-4 h-4" />
             <span className="hidden sm:inline">Users</span>
           </TabsTrigger>
-          <TabsTrigger value="activity" className="flex items-center gap-2 py-3">
+          <TabsTrigger value="activity" className="flex items-center gap-2 py-3 cursor-pointer">
             <Activity className="w-4 h-4" />
             <span className="hidden sm:inline">Activity Logs</span>
           </TabsTrigger>
-          <TabsTrigger value="prompts" className="flex items-center gap-2 py-3">
+          <TabsTrigger value="prompts" className="flex items-center gap-2 py-3 cursor-pointer">
             <MessageSquare className="w-4 h-4" />
             <span className="hidden sm:inline">Prompts</span>
           </TabsTrigger>
-          <TabsTrigger value="stats" className="flex items-center gap-2 py-3">
+          <TabsTrigger value="stats" className="flex items-center gap-2 py-3 cursor-pointer">
             <BarChart3 className="w-4 h-4" />
             <span className="hidden sm:inline">Statistics</span>
           </TabsTrigger>
-          <TabsTrigger value="settings" className="flex items-center gap-2 py-3">
+          <TabsTrigger value="settings" className="flex items-center gap-2 py-3 cursor-pointer">
             <Shield className="w-4 h-4" />
             <span className="hidden sm:inline">Settings</span>
           </TabsTrigger>

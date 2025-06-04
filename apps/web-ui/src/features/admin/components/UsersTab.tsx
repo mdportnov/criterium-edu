@@ -169,7 +169,7 @@ export const UsersTab: React.FC = () => {
                       </div>
                     </td>
                     <td className="p-4">
-                      <Button variant="outline" size="sm" className="flex items-center gap-1">
+                      <Button variant="outline" size="sm" className="flex items-center gap-1 cursor-pointer">
                         <Activity className="w-3 h-3" />
                         View Activity
                       </Button>
