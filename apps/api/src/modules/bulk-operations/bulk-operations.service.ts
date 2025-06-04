@@ -290,12 +290,15 @@ export class BulkOperationsService {
     operationId: string,
     processedItems: number,
     totalItems: number,
+    failedItems: number = 0,
   ): Promise<void> {
     const progress = Math.round((processedItems / totalItems) * 100);
 
     await this.processingOperationRepository.update(operationId, {
       processedItems,
       progress,
+      failedItems,
+      lastProgressUpdate: new Date(),
     });
   }
 
@@ -545,9 +548,40 @@ export class BulkOperationsService {
         message: 'Stopping operation',
         operationId,
         currentStatus: operation.status,
+        processedItems: operation.processedItems,
+        totalItems: operation.totalItems,
       },
       BulkOperationsService.name,
     );
+
+    // Actually stop the operation by updating its status
+    await this.updateOperationStatus(
+      operationId,
+      ProcessingStatus.FAILED,
+      {
+        ...operation.metadata,
+        stoppedAt: new Date().toISOString(),
+        stoppedByUser: true,
+      },
+      'Operation was manually stopped by user',
+    );
+
+    // If it's an LLM assessment, try to stop the assessment session too
+    if (operation.type === OperationType.LLM_ASSESSMENT && operation.metadata?.assessmentSessionId) {
+      try {
+        await this.autoAssessmentService.stopAssessmentSession(operation.metadata.assessmentSessionId);
+      } catch (error) {
+        this.logger.warn(
+          {
+            message: 'Failed to stop assessment session',
+            operationId,
+            assessmentSessionId: operation.metadata.assessmentSessionId,
+            error: error.message,
+          },
+          BulkOperationsService.name,
+        );
+      }
+    }
 
     return this.getOperationStatus(operationId);
   }
@@ -652,6 +686,102 @@ export class BulkOperationsService {
     await this.processingOperationRepository.delete(operationId);
   }
 
+  async checkAndHandleStuckOperations(): Promise<{
+    checkedCount: number;
+    stuckCount: number;
+    handledOperations: string[];
+  }> {
+    const timeoutThreshold = new Date(Date.now() - 30 * 60 * 1000); // 30 minutes ago
+    
+    const stuckOperations = await this.processingOperationRepository
+      .createQueryBuilder('operation')
+      .where('operation.status IN (:...statuses)', {
+        statuses: [ProcessingStatus.IN_PROGRESS, ProcessingStatus.PENDING],
+      })
+      .andWhere(
+        '(operation.lastProgressUpdate IS NULL AND operation.createdAt < :timeoutThreshold) OR ' +
+        '(operation.lastProgressUpdate IS NOT NULL AND operation.lastProgressUpdate < :timeoutThreshold)',
+        { timeoutThreshold }
+      )
+      .getMany();
+
+    const handledOperations: string[] = [];
+
+    for (const operation of stuckOperations) {
+      try {
+        this.logger.warn(
+          {
+            message: 'Detected stuck operation',
+            operationId: operation.id,
+            type: operation.type,
+            status: operation.status,
+            createdAt: operation.createdAt,
+            lastProgressUpdate: operation.lastProgressUpdate,
+            processedItems: operation.processedItems,
+            totalItems: operation.totalItems,
+          },
+          BulkOperationsService.name,
+        );
+
+        // Mark operation as failed due to timeout
+        await this.updateOperationStatus(
+          operation.id,
+          ProcessingStatus.FAILED,
+          {
+            ...operation.metadata,
+            timeoutAt: new Date().toISOString(),
+            reason: 'Operation timed out - no progress for 30 minutes',
+            originalStatus: operation.status,
+          },
+          'Operation timed out due to no progress updates for 30 minutes',
+        );
+
+        // Try to stop related services
+        if (operation.type === OperationType.LLM_ASSESSMENT && operation.metadata?.assessmentSessionId) {
+          try {
+            await this.autoAssessmentService.stopAssessmentSession(operation.metadata.assessmentSessionId);
+          } catch (error) {
+            this.logger.warn(
+              {
+                message: 'Failed to stop stuck assessment session',
+                operationId: operation.id,
+                assessmentSessionId: operation.metadata.assessmentSessionId,
+                error: error.message,
+              },
+              BulkOperationsService.name,
+            );
+          }
+        }
+
+        handledOperations.push(operation.id);
+      } catch (error) {
+        this.logger.error(
+          {
+            message: 'Failed to handle stuck operation',
+            operationId: operation.id,
+            error: error.message,
+          },
+          BulkOperationsService.name,
+        );
+      }
+    }
+
+    this.logger.log(
+      {
+        message: 'Stuck operations check completed',
+        checkedCount: stuckOperations.length,
+        handledCount: handledOperations.length,
+      },
+      BulkOperationsService.name,
+    );
+
+    return {
+      checkedCount: stuckOperations.length,
+      stuckCount: handledOperations.length,
+      handledOperations,
+    };
+  }
+
   private mapOperationToDto(
     operation: ProcessingOperation,
   ): ProcessingOperationDto {
@@ -661,9 +791,12 @@ export class BulkOperationsService {
       status: operation.status,
       totalItems: operation.totalItems,
       processedItems: operation.processedItems,
+      failedItems: operation.failedItems || 0,
       progress: operation.progress,
       metadata: operation.metadata,
       errorMessage: operation.errorMessage,
+      lastProgressUpdate: operation.lastProgressUpdate,
+      timeoutMinutes: operation.timeoutMinutes,
       createdAt: operation.createdAt,
       updatedAt: operation.updatedAt,
     };

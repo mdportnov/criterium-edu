@@ -34,8 +34,17 @@ export class ProcessingOperation {
   @Column({ type: 'int', default: 0 })
   processedItems: number;
 
+  @Column({ type: 'int', default: 0 })
+  failedItems: number;
+
   @Column({ type: 'text', nullable: true })
   errorMessage?: string;
+
+  @Column({ type: 'timestamp', nullable: true })
+  lastProgressUpdate?: Date;
+
+  @Column({ type: 'int', default: 30 })
+  timeoutMinutes: number;
 
   @Column({ type: 'json', nullable: true })
   metadata?: Record<string, any>;
