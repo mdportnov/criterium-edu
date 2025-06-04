@@ -30,7 +30,7 @@ import {
   SolutionDetailPage,
   SubmitSolutionPage,
 } from '@/features/solutions';
-import { CheckerPage } from '@/features/checker';
+// import { CheckerPage } from '@/features/checker'; // DEPRECATED: Code Checker feature disabled
 import { BulkImportPage } from '@/features/bulk-operations';
 import {
   CreateReviewPage,
@@ -51,7 +51,7 @@ const dashboardPages: RouteObject[] = [
   { path: 'tasks', element: <TasksPage /> }, // /dashboard/tasks
   { path: 'tasks/:id', element: <TaskDetailPage /> }, // /dashboard/tasks/:id
   { path: 'tasks/:taskId/submit-solution', element: <SubmitSolutionPage /> }, // /dashboard/tasks/:taskId/submit-solution
-  { path: 'checker', element: <CheckerPage /> }, // /dashboard/checker
+  // { path: 'checker', element: <CheckerPage /> }, // /dashboard/checker // DEPRECATED: Code Checker feature disabled
   { path: 'my-solutions', element: <MySubmissionsPage /> }, // /dashboard/my-solutions
   { path: 'solutions/:id', element: <SolutionDetailPage /> }, // /dashboard/solutions/:id
   { path: 'reviews', element: <ReviewsPage /> }, // /dashboard/reviews

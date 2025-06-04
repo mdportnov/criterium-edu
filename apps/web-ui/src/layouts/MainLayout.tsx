@@ -11,7 +11,6 @@ import {
 } from '@/components/ui/sheet';
 import {
   ChevronDown,
-  Code2,
   FileText,
   Home,
   ListTodo,
@@ -70,7 +69,7 @@ const MainLayout: React.FC = () => {
 
   const navItems = [
     { path: '/dashboard', label: 'Dashboard', icon: Home },
-    { path: '/dashboard/tasks', label: 'Tasks', icon: ListTodo }
+    { path: '/dashboard/tasks', label: 'Tasks', icon: ListTodo },
   ];
 
   const studentItems =
@@ -87,17 +86,20 @@ const MainLayout: React.FC = () => {
   const adminItems = isAdminOrReviewer
     ? [
         { path: '/dashboard/reviews', label: 'Reviews', icon: Users },
-        { path: '/dashboard/checker', label: 'Code Checker', icon: Code2 },
+        // { path: '/dashboard/checker', label: 'Code Checker', icon: Code2 }, // DEPRECATED: Code Checker feature disabled
       ]
     : [];
 
   const superAdminItems = hasRole([UserRole.ADMIN])
-    ? [
-        { path: '/admin', label: 'Admin Panel', icon: Shield },
-      ]
+    ? [{ path: '/admin', label: 'Admin Panel', icon: Shield }]
     : [];
 
-  const allNavItems = [...navItems, ...studentItems, ...adminItems, ...superAdminItems];
+  const allNavItems = [
+    ...navItems,
+    ...studentItems,
+    ...adminItems,
+    ...superAdminItems,
+  ];
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -165,9 +167,7 @@ const MainLayout: React.FC = () => {
                       <p className="nav-user-name">
                         {user?.firstName} {user?.lastName}
                       </p>
-                      <p className="nav-user-email">
-                        {user?.email}
-                      </p>
+                      <p className="nav-user-email">{user?.email}</p>
                     </div>
                     <div className="p-1">
                       <Link

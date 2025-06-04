@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { dashboardService, type DashboardOverview, type TaskStatistics, type SolutionStatistics, type RecentActivity } from '@/services/dashboard.service';
 import {
   FileText,
@@ -182,12 +183,21 @@ const DashboardPage: React.FC = () => {
           </div>
           <div className="flex gap-2">
             {isAdmin && (
-              <Button asChild size="sm">
-                <Link to="/dashboard/tasks/create">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Create Task
-                </Link>
-              </Button>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button asChild size="sm">
+                      <Link to="/dashboard/tasks/create">
+                        <Plus className="w-4 h-4 mr-2" />
+                        Create Task
+                      </Link>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Create a new programming task with criteria and requirements</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             )}
           </div>
         </div>
@@ -432,20 +442,37 @@ const DashboardPage: React.FC = () => {
           {/* Quick Actions */}
           <Card className="p-6">
             <h2 className="text-lg font-semibold mb-4">Quick Actions</h2>
-            <div className="space-y-3">
-              <Button asChild className="w-full" variant="outline">
-                <Link to="/dashboard/tasks">
-                  <BookOpen className="w-4 h-4 mr-2" />
-                  View All Tasks
-                </Link>
-              </Button>
-              <Button asChild className="w-full" variant="outline">
-                <Link to="/dashboard/reviews">
-                  <Users className="w-4 h-4 mr-2" />
-                  Review Solutions
-                </Link>
-              </Button>
-            </div>
+            <TooltipProvider>
+              <div className="space-y-3">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button asChild className="w-full" variant="outline">
+                      <Link to="/dashboard/tasks">
+                        <BookOpen className="w-4 h-4 mr-2" />
+                        View All Tasks
+                      </Link>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Browse and manage all programming tasks in the system</p>
+                  </TooltipContent>
+                </Tooltip>
+                
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button asChild className="w-full" variant="outline">
+                      <Link to="/dashboard/reviews">
+                        <Users className="w-4 h-4 mr-2" />
+                        Review Solutions
+                      </Link>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Access solution review tools and assessment management</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+            </TooltipProvider>
           </Card>
         </div>
       </div>
