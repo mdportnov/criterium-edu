@@ -49,4 +49,9 @@ export class SettingsService {
   async getOpenAIApiKey(): Promise<string | null> {
     return this.getSetting('openai_api_key');
   }
+
+  async getOpenAIDefaultModel(): Promise<string> {
+    const value = await this.getSetting('openai_default_model');
+    return value || 'gpt-4o';
+  }
 }

@@ -13,6 +13,7 @@ import { Task } from '../tasks/entities/task.entity';
 import { User } from '../users/entities/user.entity';
 import { TaskSolutionsModule } from '../task-solutions/task-solutions.module';
 import { SharedModule } from '../shared/shared.module';
+import { SettingsModule } from '../settings/settings.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { SharedModule } from '../shared/shared.module';
     ]),
     TaskSolutionsModule,
     SharedModule,
+    SettingsModule,
   ],
   providers: [TaskSolutionReviewsService, AutoAssessmentService],
   controllers: [TaskSolutionReviewsController, AutoAssessmentController],

@@ -1,14 +1,14 @@
 import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import OpenAI from 'openai';
 import { Logger } from 'nestjs-pino';
+import { SettingsService } from '../../settings/settings.service';
 
 @Injectable()
 export class OpenAIService {
   private openai: OpenAI;
 
   constructor(
-    private readonly configService: ConfigService,
+    private readonly settingsService: SettingsService,
     private readonly logger: Logger,
   ) {}
 
@@ -17,7 +17,7 @@ export class OpenAIService {
     model: string = 'gpt-4o',
   ): Promise<any> {
     if (!this.openai) {
-      const apiKey = this.configService.get<string>('OPENAI_API_KEY');
+      const apiKey = await this.settingsService.getOpenAIApiKey();
       if (!apiKey) {
         throw new Error('OpenAI API key is not configured.');
       }
@@ -65,7 +65,7 @@ export class OpenAIService {
     finishReason: string;
   }> {
     if (!this.openai) {
-      const apiKey = this.configService.get<string>('OPENAI_API_KEY'); // TODO from DB
+      const apiKey = await this.settingsService.getOpenAIApiKey();
       if (!apiKey) {
         throw new Error('OpenAI API key is not configured.');
       }

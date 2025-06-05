@@ -401,10 +401,9 @@ export class TaskSolutionReviewsService {
     const { page = 1, size = 10 } = paginationDto || {};
     const skip = (page - 1) * size;
 
-    // Build query conditions for pending auto-reviews
+    // Build query conditions for auto-reviews
     const where: any = {
       source: ReviewSource.AUTO,
-      status: 'pending',
     };
 
     if (taskId) {

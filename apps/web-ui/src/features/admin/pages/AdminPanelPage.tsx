@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, Activity, Shield, BarChart3, MessageSquare } from 'lucide-react';
+import { Users, Activity, Shield, BarChart3, MessageSquare, DollarSign } from 'lucide-react';
 import { UsersTab } from '../components/UsersTab';
 import { AuditLogsTab } from '../components/AuditLogsTab';
 import { SettingsTab } from '../components/SettingsTab';
 import { PromptsTab } from '../components/PromptsTab';
+import { CostsTab } from '../components/CostsTab';
 
 const AdminPanelPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState('users');
@@ -23,7 +24,7 @@ const AdminPanelPage: React.FC = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2 lg:grid-cols-5 h-auto p-1">
+        <TabsList className="grid w-full grid-cols-2 lg:grid-cols-6 h-auto p-1">
           <TabsTrigger value="users" className="flex items-center gap-2 py-3 cursor-pointer">
             <Users className="w-4 h-4" />
             <span className="hidden sm:inline">Users</span>
@@ -35,6 +36,10 @@ const AdminPanelPage: React.FC = () => {
           <TabsTrigger value="prompts" className="flex items-center gap-2 py-3 cursor-pointer">
             <MessageSquare className="w-4 h-4" />
             <span className="hidden sm:inline">Prompts</span>
+          </TabsTrigger>
+          <TabsTrigger value="costs" className="flex items-center gap-2 py-3 cursor-pointer">
+            <DollarSign className="w-4 h-4" />
+            <span className="hidden sm:inline">Costs</span>
           </TabsTrigger>
           <TabsTrigger value="stats" className="flex items-center gap-2 py-3 cursor-pointer">
             <BarChart3 className="w-4 h-4" />
@@ -93,6 +98,23 @@ const AdminPanelPage: React.FC = () => {
             </CardHeader>
             <CardContent>
               <PromptsTab />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="costs" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <DollarSign className="w-5 h-5 text-primary" />
+                Cost Analytics
+              </CardTitle>
+              <CardDescription>
+                Monitor API usage costs and analyze spending patterns
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <CostsTab />
             </CardContent>
           </Card>
         </TabsContent>

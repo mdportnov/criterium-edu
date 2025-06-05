@@ -1,7 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
-import { ConfigService } from '@nestjs/config';
 import { AutoAssessment } from './entities/auto-assessment.entity';
 import {
   AssessmentSession,
@@ -19,6 +18,7 @@ import {
   TaskAutoAssessRequestDto,
 } from '../task-solutions/entities/solution-import.dto';
 import { OpenAIService } from '../shared/services/openai.service';
+import { SettingsService } from '../settings/settings.service';
 import { Logger } from 'nestjs-pino';
 
 interface AssessmentResult {
@@ -39,7 +39,6 @@ export interface CreateSessionDto {
 
 @Injectable()
 export class AutoAssessmentService {
-  private defaultModel: string;
 
   constructor(
     @InjectRepository(AutoAssessment)
@@ -57,13 +56,12 @@ export class AutoAssessmentService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private readonly openaiService: OpenAIService,
-    private readonly configService: ConfigService,
+    private readonly settingsService: SettingsService,
     private readonly logger: Logger,
-  ) {
-    this.defaultModel = this.configService.get<string>(
-      'OPENAI_DEFAULT_MODEL',
-      'gpt-4o',
-    );
+  ) {}
+
+  private async getDefaultModel(): Promise<string> {
+    return this.settingsService.getOpenAIDefaultModel();
   }
 
   async createAssessmentSession(
@@ -106,7 +104,7 @@ export class AutoAssessmentService {
       description: dto.description,
       status: AssessmentSessionStatus.PENDING,
       initiatedBy: user,
-      llmModel: dto.llmModel || this.defaultModel,
+      llmModel: dto.llmModel || (await this.getDefaultModel()),
       systemPrompt: dto.systemPrompt,
       configuration: {
         temperature: dto.temperature || 0.7,
@@ -278,7 +276,7 @@ export class AutoAssessmentService {
   }
 
   async assessSolutions(dto: AutoAssessRequestDto): Promise<AutoAssessment[]> {
-    const model = dto.llmModel || this.defaultModel;
+    const model = dto.llmModel || (await this.getDefaultModel());
     const results: AutoAssessment[] = [];
 
     for (const solutionId of dto.solutionIds) {
@@ -304,7 +302,7 @@ export class AutoAssessmentService {
   async assessSolutionsByTask(
     dto: TaskAutoAssessRequestDto,
   ): Promise<AutoAssessment[]> {
-    const model = dto.llmModel || this.defaultModel;
+    const model = dto.llmModel || (await this.getDefaultModel());
     const solutions = await this.solutionRepository.find({
       where: { task: { id: dto.taskId } },
       relations: ['task', 'user'],
@@ -324,7 +322,7 @@ export class AutoAssessmentService {
   async assessSolutionsBySource(
     dto: SourceAutoAssessRequestDto,
   ): Promise<AutoAssessment[]> {
-    const model = dto.llmModel || this.defaultModel;
+    const model = dto.llmModel || (await this.getDefaultModel());
     const solutions = await this.solutionRepository.find({
       where: { source: { id: dto.sourceId } },
       relations: ['task', 'user'],

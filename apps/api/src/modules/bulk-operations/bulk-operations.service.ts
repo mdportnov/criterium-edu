@@ -382,6 +382,7 @@ export class BulkOperationsService {
       type: OperationType.LLM_ASSESSMENT,
       totalItems: data.solutionIds.length,
       metadata: {
+        solutionIds: data.solutionIds,
         llmModel: data.llmModel,
         taskId: data.taskId,
         systemPrompt: data.systemPrompt,
@@ -634,8 +635,16 @@ export class BulkOperationsService {
     if (operation.type === OperationType.LLM_ASSESSMENT) {
       try {
         // For LLM assessments, we can restart with the stored metadata
+        const solutionIds = operation.metadata.solutionIds || [];
+
+        if (!solutionIds.length) {
+          throw new Error(
+            'No solution IDs found in operation metadata for restart',
+          );
+        }
+
         const restartData = {
-          solutionIds: operation.metadata.solutionIds || [],
+          solutionIds,
           llmModel: operation.metadata.llmModel,
           taskId: operation.metadata.taskId,
           systemPrompt: operation.metadata.systemPrompt,

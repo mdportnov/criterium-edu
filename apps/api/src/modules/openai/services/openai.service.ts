@@ -2,6 +2,7 @@ import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
 import OpenAI from 'openai';
 import { SettingsService } from '../../settings/settings.service';
 import { PromptsService } from '../../prompts/prompts.service';
+import { CostTrackingService } from '../../cost-tracking/cost-tracking.service';
 
 @Injectable()
 export class OpenaiApiService implements OnModuleInit {
@@ -11,6 +12,7 @@ export class OpenaiApiService implements OnModuleInit {
   constructor(
     private readonly settingsService: SettingsService,
     private readonly promptsService: PromptsService,
+    private readonly costTrackingService: CostTrackingService,
   ) {}
 
   async onModuleInit() {
@@ -23,12 +25,18 @@ export class OpenaiApiService implements OnModuleInit {
    * Gets a chat completion from the OpenAI API.
    * @param prompt The user prompt to send to the model.
    * @param model The model to use for the completion (e.g., 'gpt-3.5-turbo', 'gpt-4').
+   * @param taskId Optional task ID for cost tracking.
+   * @param userId Optional user ID for cost tracking.
+   * @param operationType Optional operation type for cost tracking.
    * @returns The content of the chat completion or null if not available.
    * @throws Error if the OpenAI client is not initialized or if the API call fails.
    */
   async getChatCompletion(
     prompt: string,
     model: string = 'gpt-3.5-turbo',
+    taskId?: string,
+    userId?: string,
+    operationType?: string,
   ): Promise<string | null> {
     if (!this.openai) {
       const apiKey = await this.settingsService.getOpenAIApiKey();
@@ -54,12 +62,15 @@ export class OpenaiApiService implements OnModuleInit {
     );
 
     try {
+      const startTime = Date.now();
       const completion = await this.openai.chat.completions.create({
         model: model,
         messages: [{ role: 'user', content: prompt }],
         // temperature: 0.7, // Example: Adjust creativity. Higher values mean more random.
         // max_tokens: 150,  // Example: Limit response length.
       });
+      const endTime = Date.now();
+      const requestDuration = endTime - startTime;
 
       const content = completion.choices[0]?.message?.content ?? null;
       if (content) {
@@ -69,10 +80,42 @@ export class OpenaiApiService implements OnModuleInit {
       } else {
         this.logger.warn('Chat completion response did not contain content.');
       }
-      // Log token usage if available and needed
+
+      // Track API usage and costs
       if (completion.usage) {
         this.logger.log(
           `OpenAI API usage: ${JSON.stringify(completion.usage)}`,
+        );
+
+        const costResult = this.costTrackingService.calculateCost(
+          'openai',
+          model,
+          {
+            promptTokens: completion.usage.prompt_tokens,
+            completionTokens: completion.usage.completion_tokens,
+            totalTokens: completion.usage.total_tokens,
+          },
+        );
+
+        await this.costTrackingService.trackApiUsage({
+          taskId,
+          userId,
+          operationType: operationType || 'chat_completion',
+          provider: 'openai',
+          model,
+          promptTokens: completion.usage.prompt_tokens,
+          completionTokens: completion.usage.completion_tokens,
+          totalTokens: completion.usage.total_tokens,
+          costUsd: costResult.totalCost,
+          requestDuration,
+          metadata: {
+            promptLength: prompt.length,
+            responseLength: content?.length || 0,
+          },
+        });
+
+        this.logger.log(
+          `Cost tracking: $${costResult.totalCost.toFixed(6)} (${completion.usage.total_tokens} tokens)`,
         );
       }
 
@@ -99,6 +142,8 @@ export class OpenaiApiService implements OnModuleInit {
    * @param variables Variables to interpolate into the prompt template.
    * @param languageCode Language code for the prompt (defaults to 'en').
    * @param model The model to use for the completion.
+   * @param taskId Optional task ID for cost tracking.
+   * @param userId Optional user ID for cost tracking.
    * @returns The content of the chat completion or null if not available.
    */
   async getChatCompletionWithPrompt(
@@ -106,6 +151,8 @@ export class OpenaiApiService implements OnModuleInit {
     variables?: Record<string, string>,
     languageCode: string = 'en',
     model: string = 'gpt-3.5-turbo',
+    taskId?: string,
+    userId?: string,
   ): Promise<string | null> {
     try {
       const promptContent = await this.promptsService.getPromptContent(
@@ -114,7 +161,13 @@ export class OpenaiApiService implements OnModuleInit {
         variables,
       );
 
-      return this.getChatCompletion(promptContent, model);
+      return this.getChatCompletion(
+        promptContent,
+        model,
+        taskId,
+        userId,
+        `prompt_${promptKey}`,
+      );
     } catch (error) {
       this.logger.error(
         `Error getting chat completion with prompt ${promptKey}:`,

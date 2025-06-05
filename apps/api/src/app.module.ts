@@ -20,6 +20,7 @@ import { AuditModule } from './modules/audit/audit.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { SettingsModule } from './modules/settings/settings.module';
 import { PromptsModule } from './modules/prompts/prompts.module';
+import { CostTrackingModule } from './modules/cost-tracking/cost-tracking.module';
 import { AuditMiddleware } from './modules/audit/audit.middleware';
 
 @Module({
@@ -86,6 +87,7 @@ import { AuditMiddleware } from './modules/audit/audit.middleware';
     AdminModule,
     SettingsModule,
     PromptsModule,
+    CostTrackingModule,
   ],
 })
 export class AppModule implements NestModule {
