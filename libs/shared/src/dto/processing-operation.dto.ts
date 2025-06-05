@@ -50,6 +50,18 @@ export class ProcessingOperationDto {
   processedItems: number;
 
   @ApiProperty({
+    description: 'Items that failed processing',
+    example: 5,
+  })
+  failedItems: number;
+
+  @ApiProperty({
+    description: 'Timeout in minutes',
+    example: 30,
+  })
+  timeoutMinutes: number;
+
+  @ApiProperty({
     description: 'Error message if failed',
     required: false,
   })
@@ -70,4 +82,10 @@ export class ProcessingOperationDto {
     description: 'Last update timestamp',
   })
   updatedAt: Date;
+
+  @ApiProperty({
+    description: 'Last progress update timestamp',
+    required: false,
+  })
+  lastProgressUpdate?: Date;
 }

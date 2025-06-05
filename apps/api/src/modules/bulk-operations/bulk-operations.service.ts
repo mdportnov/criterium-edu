@@ -424,16 +424,18 @@ export class BulkOperationsService {
       );
 
       // Create assessment session with comprehensive logging
-      const session = await this.autoAssessmentService.createAssessmentSession({
-        name: data.sessionName || `Assessment Session ${operationId}`,
-        description:
-          data.sessionDescription ||
-          `Bulk assessment for operation ${operationId}`,
-        solutionIds: data.solutionIds,
-        llmModel: data.llmModel,
-        systemPrompt: data.systemPrompt,
-        userId: data.userId,
-      });
+      const session = await this.autoAssessmentService.createAssessmentSession(
+        {
+          name: data.sessionName || `Assessment Session ${operationId}`,
+          description:
+            data.sessionDescription ||
+            `Bulk assessment for operation ${operationId}`,
+          solutionIds: data.solutionIds,
+          llmModel: data.llmModel,
+          systemPrompt: data.systemPrompt,
+        },
+        data.userId,
+      );
 
       // Update operation metadata with session info
       await this.updateOperationStatus(
@@ -572,7 +574,7 @@ export class BulkOperationsService {
       operation.metadata?.assessmentSessionId
     ) {
       try {
-        await this.autoAssessmentService.stopAssessmentSession(
+        await this.autoAssessmentService.stopSession(
           operation.metadata.assessmentSessionId,
         );
       } catch (error) {
@@ -747,7 +749,7 @@ export class BulkOperationsService {
           operation.metadata?.assessmentSessionId
         ) {
           try {
-            await this.autoAssessmentService.stopAssessmentSession(
+            await this.autoAssessmentService.stopSession(
               operation.metadata.assessmentSessionId,
             );
           } catch (error) {

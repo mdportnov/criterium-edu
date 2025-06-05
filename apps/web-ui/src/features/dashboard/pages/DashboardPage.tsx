@@ -39,11 +39,11 @@ const DashboardPage: React.FC = () => {
 
   const isReviewer = hasRole(UserRole.REVIEWER);
   const isAdmin = hasRole(UserRole.ADMIN);
-  const isTeacherOrAdmin = isReviewer || isAdmin;
+  const isReviewerOrAdmin = isReviewer || isAdmin;
 
   useEffect(() => {
     const fetchDashboardData = async () => {
-      if (!isTeacherOrAdmin) {
+      if (!isReviewerOrAdmin) {
         setIsLoading(false);
         return;
       }
@@ -72,9 +72,9 @@ const DashboardPage: React.FC = () => {
     };
 
     fetchDashboardData();
-  }, [isTeacherOrAdmin, period]);
+  }, [isReviewerOrAdmin, period]);
 
-  if (!isTeacherOrAdmin) {
+  if (!isReviewerOrAdmin) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">

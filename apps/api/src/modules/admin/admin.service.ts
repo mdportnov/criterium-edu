@@ -1,9 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../users/entities/user.entity';
 import { AuditService, GetAuditLogsOptions } from '../audit/audit.service';
 import { UserRole } from '@app/shared';
+import { Logger } from 'nestjs-pino';
 
 export interface GetUsersOptions {
   page?: number;
@@ -27,6 +28,7 @@ export class AdminService {
     @InjectRepository(User)
     private userRepository: Repository<User>,
     private auditService: AuditService,
+    private readonly logger: Logger,
   ) {}
 
   async getUsers(options: GetUsersOptions = {}) {
@@ -168,6 +170,38 @@ export class AdminService {
       dailyActivity: activityByDate,
       mostActiveUsers,
       totalActivities: dailyStats.total,
+    };
+  }
+
+  async updateUserRole(userId: string, role: UserRole) {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const oldRole = user.role;
+    user.role = role;
+
+    await this.userRepository.save(user);
+
+    this.logger.log(
+      {
+        message: 'User role updated',
+        userId,
+        oldRole,
+        newRole: role,
+      },
+      AdminService.name,
+    );
+
+    return {
+      id: user.id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      role: user.role,
+      updatedAt: user.updatedAt,
     };
   }
 }

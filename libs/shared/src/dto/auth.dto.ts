@@ -43,5 +43,5 @@ export class TokenDto {
 export class LoginAsDto {
   @IsNumber()
   @IsNotEmpty()
-  userId: number;
+  userId: string;
 }
