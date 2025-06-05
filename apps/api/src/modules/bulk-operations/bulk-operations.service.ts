@@ -567,9 +567,14 @@ export class BulkOperationsService {
     );
 
     // If it's an LLM assessment, try to stop the assessment session too
-    if (operation.type === OperationType.LLM_ASSESSMENT && operation.metadata?.assessmentSessionId) {
+    if (
+      operation.type === OperationType.LLM_ASSESSMENT &&
+      operation.metadata?.assessmentSessionId
+    ) {
       try {
-        await this.autoAssessmentService.stopAssessmentSession(operation.metadata.assessmentSessionId);
+        await this.autoAssessmentService.stopAssessmentSession(
+          operation.metadata.assessmentSessionId,
+        );
       } catch (error) {
         this.logger.warn(
           {
@@ -692,7 +697,7 @@ export class BulkOperationsService {
     handledOperations: string[];
   }> {
     const timeoutThreshold = new Date(Date.now() - 30 * 60 * 1000); // 30 minutes ago
-    
+
     const stuckOperations = await this.processingOperationRepository
       .createQueryBuilder('operation')
       .where('operation.status IN (:...statuses)', {
@@ -700,8 +705,8 @@ export class BulkOperationsService {
       })
       .andWhere(
         '(operation.lastProgressUpdate IS NULL AND operation.createdAt < :timeoutThreshold) OR ' +
-        '(operation.lastProgressUpdate IS NOT NULL AND operation.lastProgressUpdate < :timeoutThreshold)',
-        { timeoutThreshold }
+          '(operation.lastProgressUpdate IS NOT NULL AND operation.lastProgressUpdate < :timeoutThreshold)',
+        { timeoutThreshold },
       )
       .getMany();
 
@@ -737,9 +742,14 @@ export class BulkOperationsService {
         );
 
         // Try to stop related services
-        if (operation.type === OperationType.LLM_ASSESSMENT && operation.metadata?.assessmentSessionId) {
+        if (
+          operation.type === OperationType.LLM_ASSESSMENT &&
+          operation.metadata?.assessmentSessionId
+        ) {
           try {
-            await this.autoAssessmentService.stopAssessmentSession(operation.metadata.assessmentSessionId);
+            await this.autoAssessmentService.stopAssessmentSession(
+              operation.metadata.assessmentSessionId,
+            );
           } catch (error) {
             this.logger.warn(
               {

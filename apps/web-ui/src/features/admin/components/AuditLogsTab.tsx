@@ -13,8 +13,7 @@ import {
   User,
   AlertCircle,
   CheckCircle2,
-  Filter,
-  Calendar
+  Filter
 } from 'lucide-react';
 import { adminService } from '@/services/admin.service';
 import type { AuditLog, GetAuditLogsParams } from '@/types/admin';
@@ -168,7 +167,6 @@ export const AuditLogsTab: React.FC = () => {
                   <tr key={log.id} className="border-b border-border hover:bg-muted/30 transition-colors">
                     <td className="p-4">
                       <div className="text-sm text-muted-foreground flex items-center gap-1">
-                        <Calendar className="w-3 h-3" />
                         {formatDate(log.createdAt)}
                       </div>
                     </td>

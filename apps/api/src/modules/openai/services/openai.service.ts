@@ -137,7 +137,9 @@ export class OpenaiApiService implements OnModuleInit {
       languageCode?: string;
     }>,
     model: string = 'gpt-3.5-turbo',
-  ): Promise<Array<{ promptKey: string; content: string | null; error?: string }>> {
+  ): Promise<
+    Array<{ promptKey: string; content: string | null; error?: string }>
+  > {
     const results = [];
 
     for (const request of requests) {

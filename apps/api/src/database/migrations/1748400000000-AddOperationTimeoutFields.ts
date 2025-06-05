@@ -1,6 +1,8 @@
 import { MigrationInterface, QueryRunner, TableColumn } from 'typeorm';
 
-export class AddOperationTimeoutFields1748400000000 implements MigrationInterface {
+export class AddOperationTimeoutFields1748400000000
+  implements MigrationInterface
+{
   name = 'AddOperationTimeoutFields1748400000000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
@@ -11,7 +13,7 @@ export class AddOperationTimeoutFields1748400000000 implements MigrationInterfac
         name: 'failedItems',
         type: 'int',
         default: 0,
-      })
+      }),
     );
 
     // Add lastProgressUpdate column
@@ -21,7 +23,7 @@ export class AddOperationTimeoutFields1748400000000 implements MigrationInterfac
         name: 'lastProgressUpdate',
         type: 'timestamp',
         isNullable: true,
-      })
+      }),
     );
 
     // Add timeoutMinutes column
@@ -31,7 +33,7 @@ export class AddOperationTimeoutFields1748400000000 implements MigrationInterfac
         name: 'timeoutMinutes',
         type: 'int',
         default: 30,
-      })
+      }),
     );
 
     // Update existing operations to set lastProgressUpdate for in-progress ones

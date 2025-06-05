@@ -133,10 +133,11 @@ export class CreatePromptsTable1748300000000 implements MigrationInterface {
 
     await queryRunner.createIndex(
       'prompt_translations',
-      new Index('IDX_prompt_translations_prompt_language', [
-        'promptId',
-        'languageCode',
-      ], { isUnique: true }),
+      new Index(
+        'IDX_prompt_translations_prompt_language',
+        ['promptId', 'languageCode'],
+        { isUnique: true },
+      ),
     );
 
     // Insert default prompts
@@ -247,7 +248,10 @@ Provide analysis on:
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.dropIndex('prompt_translations', 'IDX_prompt_translations_prompt_language');
+    await queryRunner.dropIndex(
+      'prompt_translations',
+      'IDX_prompt_translations_prompt_language',
+    );
     await queryRunner.dropTable('prompt_translations');
     await queryRunner.dropTable('prompts');
   }

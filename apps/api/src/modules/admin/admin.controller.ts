@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Query,
+  Param,
   UseGuards,
   ParseIntPipe,
   DefaultValuePipe,
@@ -38,7 +39,7 @@ export class AdminController {
 
   @Get('users/:id/activity')
   async getUserActivity(
-    @Query('id', ParseUUIDPipe) userId: string,
+    @Param('id', ParseUUIDPipe) userId: string,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(50), ParseIntPipe) limit: number,
     @Query('action') action?: string,

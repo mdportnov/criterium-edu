@@ -166,7 +166,7 @@ const MySubmissionsPage: React.FC = () => {
 
                 <div className="flex justify-end">
                   <Button asChild variant="outline" size="sm">
-                    <Link to={`/solutions/${solution.id}`}>View Details</Link>
+                    <Link to={`/dashboard/solutions/${solution.id}`}>View Details</Link>
                   </Button>
                 </div>
               </div>
