@@ -46,7 +46,7 @@ export class PromptsService {
     createdBy: string,
   ): Promise<Prompt> {
     const { translations, ...promptData } = createPromptDto;
-    
+
     const prompt = this.promptRepository.create({
       ...promptData,
       createdBy,
@@ -55,11 +55,11 @@ export class PromptsService {
     const savedPrompt = await this.promptRepository.save(prompt);
 
     if (translations && translations.length > 0) {
-      const translationEntities = translations.map(translation =>
+      const translationEntities = translations.map((translation) =>
         this.translationRepository.create({
           ...translation,
           promptId: savedPrompt.id,
-        })
+        }),
       );
       await this.translationRepository.save(translationEntities);
     }
@@ -112,13 +112,13 @@ export class PromptsService {
 
     if (translations) {
       await this.translationRepository.delete({ promptId: id });
-      
+
       if (translations.length > 0) {
-        const translationEntities = translations.map(translation =>
+        const translationEntities = translations.map((translation) =>
           this.translationRepository.create({
             ...translation,
             promptId: id,
-          })
+          }),
         );
         await this.translationRepository.save(translationEntities);
       }
@@ -146,14 +146,14 @@ export class PromptsService {
     variables?: Record<string, string>,
   ): Promise<string> {
     const prompt = await this.getPromptByKey(key);
-    
+
     let translation = prompt.translations.find(
-      t => t.languageCode === languageCode,
+      (t) => t.languageCode === languageCode,
     );
 
     if (!translation) {
       translation = prompt.translations.find(
-        t => t.languageCode === prompt.defaultLanguage,
+        (t) => t.languageCode === prompt.defaultLanguage,
       );
     }
 
@@ -162,9 +162,7 @@ export class PromptsService {
     }
 
     if (!translation) {
-      throw new NotFoundException(
-        `No translation found for prompt ${key}`,
-      );
+      throw new NotFoundException(`No translation found for prompt ${key}`);
     }
 
     let content = translation.content;
@@ -192,7 +190,7 @@ export class PromptsService {
       .where('prompt.isActive = :isActive', { isActive: true })
       .getRawMany();
 
-    return result.map(r => r.category);
+    return result.map((r) => r.category);
   }
 
   async getAvailableLanguages(): Promise<string[]> {
@@ -201,6 +199,6 @@ export class PromptsService {
       .select('DISTINCT translation.languageCode', 'language')
       .getRawMany();
 
-    return result.map(r => r.language);
+    return result.map((r) => r.language);
   }
 }

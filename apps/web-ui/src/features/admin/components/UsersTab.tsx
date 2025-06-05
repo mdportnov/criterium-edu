@@ -17,6 +17,7 @@ import {
 import { adminService } from '@/services/admin.service';
 import type { AdminUser, GetUsersParams } from '@/types/admin';
 import { UserRole } from '@app/shared';
+import { UserActivityModal } from './UserActivityModal';
 
 export const UsersTab: React.FC = () => {
   const [params, setParams] = useState<GetUsersParams>({
@@ -24,6 +25,8 @@ export const UsersTab: React.FC = () => {
     limit: 20,
   });
   const [searchInput, setSearchInput] = useState('');
+  const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
+  const [isUserActivityOpen, setIsUserActivityOpen] = useState(false);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['admin-users', params],
@@ -72,6 +75,16 @@ export const UsersTab: React.FC = () => {
       month: 'short',
       day: 'numeric',
     });
+  };
+
+  const handleViewActivity = (user: AdminUser) => {
+    setSelectedUser(user);
+    setIsUserActivityOpen(true);
+  };
+
+  const handleCloseActivity = () => {
+    setIsUserActivityOpen(false);
+    setSelectedUser(null);
   };
 
   if (error) {
@@ -169,7 +182,12 @@ export const UsersTab: React.FC = () => {
                       </div>
                     </td>
                     <td className="p-4">
-                      <Button variant="outline" size="sm" className="flex items-center gap-1 cursor-pointer">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="flex items-center gap-1 cursor-pointer"
+                        onClick={() => handleViewActivity(user)}
+                      >
                         <Activity className="w-3 h-3" />
                         View Activity
                       </Button>
@@ -214,6 +232,20 @@ export const UsersTab: React.FC = () => {
             </Button>
           </div>
         </div>
+      )}
+
+      {/* User Activity Modal */}
+      {selectedUser && (
+        <UserActivityModal
+          isOpen={isUserActivityOpen}
+          onClose={handleCloseActivity}
+          userId={selectedUser.id}
+          userName={selectedUser.firstName && selectedUser.lastName 
+            ? `${selectedUser.firstName} ${selectedUser.lastName}`
+            : 'No name'
+          }
+          userEmail={selectedUser.email}
+        />
       )}
     </div>
   );

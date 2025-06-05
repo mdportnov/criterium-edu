@@ -263,11 +263,11 @@ const ReviewSolutionPage: React.FC = () => {
           Tasks
         </Link>
         <span>/</span>
-        <Link to={`/tasks/${solution?.taskId}`} className="hover:text-primary">
+        <Link to={`/dashboard/tasks/${solution?.taskId}`} className="hover:text-primary">
           Task #{solution?.taskId}
         </Link>
         <span>/</span>
-        <Link to={`/solutions/${id}`} className="hover:text-primary">
+        <Link to={`/dashboard/solutions/${id}`} className="hover:text-primary">
           Solution #{id}
         </Link>
         <span>/</span>
@@ -421,11 +421,11 @@ const ReviewSolutionPage: React.FC = () => {
 
               <div className="pt-4 border-t border-border space-y-2">
                 <Button asChild variant="outline" className="w-full">
-                  <Link to={`/solutions/${id}`}>View Full Solution</Link>
+                  <Link to={`/dashboard/solutions/${id}`}>View Full Solution</Link>
                 </Button>
 
                 <Button asChild variant="outline" className="w-full">
-                  <Link to={`/tasks/${solution?.taskId}`}>View Task</Link>
+                  <Link to={`/dashboard/tasks/${solution?.taskId}`}>View Task</Link>
                 </Button>
               </div>
             </div>

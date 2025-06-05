@@ -129,7 +129,7 @@ const SolutionDetailPage: React.FC = () => {
           Tasks
         </Link>
         <span>/</span>
-        <Link to={`/tasks/${solution.taskId}`} className="hover:text-primary">
+        <Link to={`/dashboard/tasks/${solution.taskId}`} className="hover:text-primary">
           Task #{solution.taskId}
         </Link>
         <span>/</span>
@@ -142,7 +142,7 @@ const SolutionDetailPage: React.FC = () => {
         <div className="flex gap-2">
           {canReview && solution.status !== 'reviewed' && (
             <Button asChild>
-              <Link to={`/solutions/${solution.id}/review`}>
+              <Link to={`/dashboard/solutions/${solution.id}/review`}>
                 {solution.status === 'in_review'
                   ? 'Continue Review'
                   : 'Start Review'}
@@ -152,7 +152,7 @@ const SolutionDetailPage: React.FC = () => {
 
           {isStudent && isOwnSolution && (
             <Button asChild variant="outline">
-              <Link to={`/tasks/${solution.taskId}/submit-solution`}>
+              <Link to={`/dashboard/tasks/${solution.taskId}/submit-solution`}>
                 Submit New Solution
               </Link>
             </Button>
@@ -279,7 +279,7 @@ const SolutionDetailPage: React.FC = () => {
 
               <div className="pt-4 border-t border-border">
                 <Button asChild variant="outline" className="w-full">
-                  <Link to={`/tasks/${solution.taskId}`}>View Task</Link>
+                  <Link to={`/dashboard/tasks/${solution.taskId}`}>View Task</Link>
                 </Button>
               </div>
             </div>
