@@ -1,8 +1,10 @@
 import {
   Controller,
   Get,
+  Put,
   Query,
   Param,
+  Body,
   UseGuards,
   ParseIntPipe,
   DefaultValuePipe,
@@ -93,5 +95,13 @@ export class AdminController {
     @Query('days', new DefaultValuePipe(30), ParseIntPipe) days: number,
   ) {
     return this.adminService.getActivityStats(days);
+  }
+
+  @Put('users/:id/role')
+  async updateUserRole(
+    @Param('id', ParseUUIDPipe) userId: string,
+    @Body('role') role: UserRole,
+  ) {
+    return this.adminService.updateUserRole(userId, role);
   }
 }

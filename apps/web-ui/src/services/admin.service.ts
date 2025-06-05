@@ -10,6 +10,7 @@ import type {
   GetAuditLogsParams,
   GetUserActivityParams,
 } from '@/types/admin';
+import { UserRole } from '@app/shared';
 
 class AdminService {
   async getUsers(
@@ -77,6 +78,11 @@ class AdminService {
 
   async getActivityStats(days = 30): Promise<ActivityStats> {
     const response = await api.get(`/admin/stats/activity?days=${days}`);
+    return response.data;
+  }
+
+  async updateUserRole(userId: string, role: UserRole): Promise<AdminUser> {
+    const response = await api.put(`/admin/users/${userId}/role`, { role });
     return response.data;
   }
 }

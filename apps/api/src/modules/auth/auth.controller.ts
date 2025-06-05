@@ -48,9 +48,9 @@ export class AuthController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   async loginAs(
-    @Body() loginAsDto: LoginAsDto,
+    @Body() login: LoginAsDto,
     @GetCurrentUser() user: CurrentUser,
   ): Promise<TokenDto> {
-    return this.authService.loginAs(loginAsDto.userId, user.id);
+    return this.authService.loginAs(login.userId, user.id);
   }
 }

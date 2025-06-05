@@ -1,18 +1,25 @@
-import React, { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import React, { useEffect, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Search, 
-  ChevronLeft, 
-  ChevronRight, 
-  User, 
-  Mail, 
+import {
+  Activity,
   Calendar,
+  ChevronLeft,
+  ChevronRight,
+  Mail,
+  Search,
   Shield,
-  Activity
+  User,
+  X,
 } from 'lucide-react';
 import { adminService } from '@/services/admin.service';
 import type { AdminUser, GetUsersParams } from '@/types/admin';
@@ -20,6 +27,7 @@ import { UserRole } from '@app/shared';
 import { UserActivityModal } from './UserActivityModal';
 
 export const UsersTab: React.FC = () => {
+  const queryClient = useQueryClient();
   const [params, setParams] = useState<GetUsersParams>({
     page: 1,
     limit: 20,
@@ -27,6 +35,7 @@ export const UsersTab: React.FC = () => {
   const [searchInput, setSearchInput] = useState('');
   const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
   const [isUserActivityOpen, setIsUserActivityOpen] = useState(false);
+  const [editingUserId, setEditingUserId] = useState<string | null>(null);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['admin-users', params],
@@ -35,7 +44,7 @@ export const UsersTab: React.FC = () => {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      setParams(prev => ({
+      setParams((prev) => ({
         ...prev,
         search: searchInput || undefined,
         page: 1,
@@ -46,17 +55,16 @@ export const UsersTab: React.FC = () => {
   }, [searchInput]);
 
   const handlePageChange = (newPage: number) => {
-    setParams(prev => ({ ...prev, page: newPage }));
+    setParams((prev) => ({ ...prev, page: newPage }));
   };
 
   const handleRoleFilter = (role: string) => {
-    setParams(prev => ({
+    setParams((prev) => ({
       ...prev,
       role: role === 'all' ? undefined : (role as UserRole),
       page: 1,
     }));
   };
-
 
   const getRoleBadgeVariant = (role: UserRole) => {
     switch (role) {
@@ -85,6 +93,30 @@ export const UsersTab: React.FC = () => {
   const handleCloseActivity = () => {
     setIsUserActivityOpen(false);
     setSelectedUser(null);
+  };
+
+  const updateRoleMutation = useMutation({
+    mutationFn: ({ userId, role }: { userId: string; role: UserRole }) =>
+      adminService.updateUserRole(userId, role),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      setEditingUserId(null);
+    },
+    onError: (error) => {
+      console.error('Failed to update user role:', error);
+    },
+  });
+
+  const handleRoleChange = (userId: string, newRole: UserRole) => {
+    updateRoleMutation.mutate({ userId, role: newRole });
+  };
+
+  const handleEditRole = (userId: string) => {
+    setEditingUserId(userId);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingUserId(null);
   };
 
   if (error) {
@@ -141,15 +173,26 @@ export const UsersTab: React.FC = () => {
             <table className="w-full">
               <thead className="bg-muted/50 border-b border-border">
                 <tr>
-                  <th className="text-left p-4 font-medium text-muted-foreground">User</th>
-                  <th className="text-left p-4 font-medium text-muted-foreground">Role</th>
-                  <th className="text-left p-4 font-medium text-muted-foreground">Joined</th>
-                  <th className="text-left p-4 font-medium text-muted-foreground">Actions</th>
+                  <th className="text-left p-4 font-medium text-muted-foreground">
+                    User
+                  </th>
+                  <th className="text-left p-4 font-medium text-muted-foreground">
+                    Role
+                  </th>
+                  <th className="text-left p-4 font-medium text-muted-foreground">
+                    Joined
+                  </th>
+                  <th className="text-left p-4 font-medium text-muted-foreground">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {data?.data.map((user: AdminUser) => (
-                  <tr key={user.id} className="border-b border-border hover:bg-muted/30 transition-colors">
+                  <tr
+                    key={user.id}
+                    className="border-b border-border hover:bg-muted/30 transition-colors"
+                  >
                     <td className="p-4">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
@@ -157,10 +200,9 @@ export const UsersTab: React.FC = () => {
                         </div>
                         <div>
                           <div className="font-medium text-foreground">
-                            {user.firstName && user.lastName 
+                            {user.firstName && user.lastName
                               ? `${user.firstName} ${user.lastName}`
-                              : 'No name'
-                            }
+                              : 'No name'}
                           </div>
                           <div className="text-sm text-muted-foreground flex items-center gap-1">
                             <Mail className="w-3 h-3" />
@@ -170,10 +212,60 @@ export const UsersTab: React.FC = () => {
                       </div>
                     </td>
                     <td className="p-4">
-                      <Badge variant={getRoleBadgeVariant(user.role)} className="flex items-center gap-1 w-fit">
-                        <Shield className="w-3 h-3" />
-                        {user.role}
-                      </Badge>
+                      {editingUserId === user.id ? (
+                        <div className="flex items-center gap-2">
+                          <Select
+                            value={user.role}
+                            onValueChange={(newRole: UserRole) =>
+                              handleRoleChange(user.id, newRole)
+                            }
+                            disabled={updateRoleMutation.isPending}
+                          >
+                            <SelectTrigger className="w-32">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value={UserRole.STUDENT}>
+                                Student
+                              </SelectItem>
+                              <SelectItem value={UserRole.REVIEWER}>
+                                Reviewer
+                              </SelectItem>
+                              <SelectItem value={UserRole.ADMIN}>
+                                Admin
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={handleCancelEdit}
+                            disabled={updateRoleMutation.isPending}
+                          >
+                            <X className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <Badge
+                            variant={getRoleBadgeVariant(user.role)}
+                            className="flex items-center gap-1 w-fit"
+                          >
+                            <Shield className="w-3 h-3" />
+                            {user.role === UserRole.REVIEWER
+                              ? 'Reviewer'
+                              : user.role}
+                          </Badge>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleEditRole(user.id)}
+                            className="text-xs opacity-60 hover:opacity-100"
+                          >
+                            Edit
+                          </Button>
+                        </div>
+                      )}
                     </td>
                     <td className="p-4">
                       <div className="text-sm text-muted-foreground flex items-center gap-1">
@@ -182,9 +274,9 @@ export const UsersTab: React.FC = () => {
                       </div>
                     </td>
                     <td className="p-4">
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
+                      <Button
+                        variant="outline"
+                        size="sm"
                         className="flex items-center gap-1 cursor-pointer"
                         onClick={() => handleViewActivity(user)}
                       >
@@ -204,7 +296,8 @@ export const UsersTab: React.FC = () => {
       {data && data.totalPages > 1 && (
         <div className="flex items-center justify-between">
           <div className="text-sm text-muted-foreground">
-            Showing {((data.page - 1) * data.limit) + 1} to {Math.min(data.page * data.limit, data.total)} of {data.total} users
+            Showing {(data.page - 1) * data.limit + 1} to{' '}
+            {Math.min(data.page * data.limit, data.total)} of {data.total} users
           </div>
           <div className="flex items-center gap-2">
             <Button
@@ -240,9 +333,10 @@ export const UsersTab: React.FC = () => {
           isOpen={isUserActivityOpen}
           onClose={handleCloseActivity}
           userId={selectedUser.id}
-          userName={selectedUser.firstName && selectedUser.lastName 
-            ? `${selectedUser.firstName} ${selectedUser.lastName}`
-            : 'No name'
+          userName={
+            selectedUser.firstName && selectedUser.lastName
+              ? `${selectedUser.firstName} ${selectedUser.lastName}`
+              : 'No name'
           }
           userEmail={selectedUser.email}
         />
