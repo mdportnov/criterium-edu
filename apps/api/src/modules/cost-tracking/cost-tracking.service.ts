@@ -41,6 +41,14 @@ export class CostTrackingService {
         prompt: 0.01 / 1000, // $0.01 per 1K tokens
         completion: 0.03 / 1000, // $0.03 per 1K tokens
       },
+      'gpt-4o': {
+        prompt: 0.005 / 1000, // $0.005 per 1K tokens
+        completion: 0.015 / 1000, // $0.015 per 1K tokens
+      },
+      'gpt-4o-mini': {
+        prompt: 0.00015 / 1000, // $0.00015 per 1K tokens
+        completion: 0.0006 / 1000, // $0.0006 per 1K tokens
+      },
       'gpt-3.5-turbo': {
         prompt: 0.0015 / 1000, // $0.0015 per 1K tokens
         completion: 0.002 / 1000, // $0.002 per 1K tokens
