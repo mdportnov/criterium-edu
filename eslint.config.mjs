@@ -7,7 +7,7 @@ import unusedImports from 'eslint-plugin-unused-imports';
 
 export default tseslint.config(
   {
-    ignores: ['eslint.config.mjs', 'dist'],
+    ignores: ['eslint.config.mjs', 'dist/**', 'node_modules/**'],
   },
   eslint.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,
@@ -21,17 +21,16 @@ export default tseslint.config(
       ecmaVersion: 2022,
       sourceType: 'module',
       parserOptions: {
-        project: [
-          './tsconfig.json', 
-          './apps/api/tsconfig.app.json',
-          './libs/shared/tsconfig.lib.json' 
-          // If you have a client app, add its tsconfig here, e.g., './apps/client/tsconfig.json'
-        ],
+        projectService: true,
         tsconfigRootDir: import.meta.dirname,
       },
     },
+    plugins: {
+      'unused-imports': unusedImports,
+    },
   },
   {
+    files: ['**/*.ts', '**/*.tsx'],
     rules: {
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-floating-promises': 'warn',
@@ -52,11 +51,6 @@ export default tseslint.config(
           ignoreRestSiblings: true,
         },
       ],
-    },
-  },
-  {
-    plugins: {
-      'unused-imports': unusedImports,
     },
   },
 );

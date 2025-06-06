@@ -3,8 +3,8 @@ import { z } from 'zod';
 const envSchema = z.object({
   NODE_ENV: z
     .enum(['development', 'production', 'test'])
-    .default('development'),
-  PORT: z.coerce.number().default(3000),
+    .default('production'),
+  BACKEND_PORT: z.coerce.number().default(3000),
   DB_HOST: z.string(),
   DB_PORT: z.coerce.number(),
   DB_USERNAME: z.string(),
@@ -28,7 +28,7 @@ export default () => {
   }
   return {
     nodeEnv: result.data.NODE_ENV,
-    port: result.data.PORT,
+    port: result.data.BACKEND_PORT,
     database: {
       host: result.data.DB_HOST,
       port: result.data.DB_PORT,

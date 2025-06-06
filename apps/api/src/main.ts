@@ -63,8 +63,8 @@ async function bootstrap() {
 
     // Swagger API documentation
     const swaggerConfig = new DocumentBuilder()
-      .setTitle('Criterium EDU API')
-      .setDescription('API for the Criterium EDU platform')
+      .setTitle('Criterium API')
+      .setDescription('API for the Criterium platform')
       .setVersion('1.0')
       .addBearerAuth()
       .build();
@@ -74,57 +74,7 @@ async function bootstrap() {
 
     // Run migrations in production before starting the server
     if (process.env.NODE_ENV === 'production') {
-      logger.log({
-        message:
-          'Production environment detected. Checking and running database migrations.',
-        context: 'DB Migration',
-      });
-
-      try {
-        if (!dataSource.isInitialized) {
-          logger.log({
-            message: 'Initializing data source for migrations.',
-            context: 'DB Migration',
-          });
-
-          await dataSource.initialize();
-
-          logger.log({
-            message: 'Data source initialized successfully.',
-            context: 'DB Migration',
-          });
-        }
-
-        logger.log({
-          message: 'Running pending migrations.',
-          context: 'DB Migration',
-        });
-
-        const migrationsRun = await dataSource.runMigrations();
-
-        if (migrationsRun.length > 0) {
-          logger.log({
-            message: `Successfully ran ${migrationsRun.length} migration(s).`,
-            migrations: migrationsRun.map((m) => m.name),
-            context: 'DB Migration',
-          });
-        } else {
-          logger.log({
-            message:
-              'No pending migrations to run. Database schema is up to date.',
-            context: 'DB Migration',
-          });
-        }
-      } catch (migrationError) {
-        logger.error({
-          message: 'CRITICAL: Failed to run database migrations.',
-          error: migrationError.message,
-          stack: migrationError.stack,
-          context: 'DB Migration',
-        });
-
-        process.exit(1); // Exit if migrations fail in production
-      }
+      await runDatabaseMigrations(logger, dataSource);
     }
 
     // Start server
@@ -140,3 +90,57 @@ bootstrap().catch((err) => {
   console.error('Failed to bootstrap application:', err);
   process.exit(1);
 });
+
+// Helper function to run database migrations
+async function runDatabaseMigrations(logger: Logger, dataSource: any) {
+  logger.log({
+    message:
+      'Production environment detected. Checking and running database migrations.',
+    context: 'DB Migration',
+  });
+
+  try {
+    if (!dataSource.isInitialized) {
+      logger.log({
+        message: 'Initializing data source for migrations.',
+        context: 'DB Migration',
+      });
+
+      await dataSource.initialize();
+
+      logger.log({
+        message: 'Data source initialized successfully.',
+        context: 'DB Migration',
+      });
+    }
+
+    logger.log({
+      message: 'Running pending migrations.',
+      context: 'DB Migration',
+    });
+
+    const migrationsRun = await dataSource.runMigrations();
+
+    if (migrationsRun.length > 0) {
+      logger.log({
+        message: `Successfully ran ${migrationsRun.length} migration(s).`,
+        migrations: migrationsRun.map((m) => m.name),
+        context: 'DB Migration',
+      });
+    } else {
+      logger.log({
+        message: 'No pending migrations to run. Database schema is up to date.',
+        context: 'DB Migration',
+      });
+    }
+  } catch (migrationError) {
+    logger.error({
+      message: 'CRITICAL: Failed to run database migrations.',
+      error: migrationError.message,
+      stack: migrationError.stack,
+      context: 'DB Migration',
+    });
+
+    process.exit(1); // Exit if migrations fail in production
+  }
+}

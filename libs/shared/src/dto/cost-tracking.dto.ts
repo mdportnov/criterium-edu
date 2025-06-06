@@ -1,7 +1,10 @@
 export interface SystemCostsDto {
   totalCost: number;
   dailyCosts: Record<string, number>;
-  modelBreakdown: Record<string, { cost: number; requests: number; tokens: number }>;
+  modelBreakdown: Record<
+    string,
+    { cost: number; requests: number; tokens: number }
+  >;
   operationBreakdown: Record<string, { cost: number; requests: number }>;
 }
 

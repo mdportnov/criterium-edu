@@ -39,7 +39,6 @@ export interface CreateSessionDto {
 
 @Injectable()
 export class AutoAssessmentService {
-
   constructor(
     @InjectRepository(AutoAssessment)
     private readonly assessmentRepository: Repository<AutoAssessment>,

@@ -17,7 +17,7 @@ jobs:
       packages: write
 
     env:
-      IMAGE_NAME: criterium-edu-backend
+      IMAGE_NAME: criterium-backend
       REGISTRY: ghcr.io
 
     steps:

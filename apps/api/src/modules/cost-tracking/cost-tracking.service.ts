@@ -67,11 +67,11 @@ export class CostTrackingService {
     usage: TokenUsage,
   ): CostCalculationResult {
     const pricing = this.PRICING[provider]?.[model];
-    
+
     if (!pricing) {
       // Fallback to default pricing if model not found
-      const promptCost = usage.promptTokens * 0.001 / 1000;
-      const completionCost = usage.completionTokens * 0.002 / 1000;
+      const promptCost = (usage.promptTokens * 0.001) / 1000;
+      const completionCost = (usage.completionTokens * 0.002) / 1000;
       return {
         promptCost,
         completionCost,
@@ -124,12 +124,16 @@ export class CostTrackingService {
       summary: {
         totalRequests: usageRecords.length,
         totalTokens,
-        avgCostPerRequest: usageRecords.length > 0 ? totalCost / usageRecords.length : 0,
+        avgCostPerRequest:
+          usageRecords.length > 0 ? totalCost / usageRecords.length : 0,
       },
     };
   }
 
-  async getUserCosts(userId: string, days = 30): Promise<{
+  async getUserCosts(
+    userId: string,
+    days = 30,
+  ): Promise<{
     totalCost: number;
     usageRecords: ApiUsage[];
     dailyCosts: Record<string, number>;
@@ -143,7 +147,7 @@ export class CostTrackingService {
     });
 
     const recentRecords = usageRecords.filter(
-      record => record.createdAt >= startDate,
+      (record) => record.createdAt >= startDate,
     );
 
     const totalCost = recentRecords.reduce(
@@ -152,7 +156,7 @@ export class CostTrackingService {
     );
 
     const dailyCosts: Record<string, number> = {};
-    recentRecords.forEach(record => {
+    recentRecords.forEach((record) => {
       const dateKey = record.createdAt.toISOString().split('T')[0];
       dailyCosts[dateKey] = (dailyCosts[dateKey] || 0) + Number(record.costUsd);
     });
@@ -167,7 +171,10 @@ export class CostTrackingService {
   async getSystemCosts(days = 30): Promise<{
     totalCost: number;
     dailyCosts: Record<string, number>;
-    modelBreakdown: Record<string, { cost: number; requests: number; tokens: number }>;
+    modelBreakdown: Record<
+      string,
+      { cost: number; requests: number; tokens: number }
+    >;
     operationBreakdown: Record<string, { cost: number; requests: number }>;
   }> {
     const startDate = new Date();
@@ -185,10 +192,16 @@ export class CostTrackingService {
     );
 
     const dailyCosts: Record<string, number> = {};
-    const modelBreakdown: Record<string, { cost: number; requests: number; tokens: number }> = {};
-    const operationBreakdown: Record<string, { cost: number; requests: number }> = {};
+    const modelBreakdown: Record<
+      string,
+      { cost: number; requests: number; tokens: number }
+    > = {};
+    const operationBreakdown: Record<
+      string,
+      { cost: number; requests: number }
+    > = {};
 
-    usageRecords.forEach(record => {
+    usageRecords.forEach((record) => {
       const dateKey = record.createdAt.toISOString().split('T')[0];
       const cost = Number(record.costUsd);
 

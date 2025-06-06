@@ -4,7 +4,7 @@
   "sourceRoot": "apps/api/src",
   "compilerOptions": {
     "deleteOutDir": true,
-    "webpack": false,
+    "webpack": true,
     "tsConfigPath": "apps/api/tsconfig.app.json"
   },
   "monorepo": true,
@@ -16,7 +16,8 @@
       "entryFile": "main",
       "sourceRoot": "apps/api/src",
       "compilerOptions": {
-        "tsConfigPath": "apps/api/tsconfig.app.json"
+        "tsConfigPath": "apps/api/tsconfig.app.json",
+        "webpack": true
       }
     },
     "web": {
@@ -25,7 +26,8 @@
       "entryFile": "main",
       "sourceRoot": "apps/web/src",
       "compilerOptions": {
-        "tsConfigPath": "apps/web/tsconfig.app.json"
+        "tsConfigPath": "apps/web/tsconfig.app.json",
+        "webpack": true
       }
     },
     "shared": {

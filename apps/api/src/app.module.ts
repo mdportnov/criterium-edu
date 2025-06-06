@@ -4,7 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { LoggerModule } from 'nestjs-pino';
 
 import configuration from './config/configuration';
-import { dataSourceOptions } from './database/data-source';
+import dataSource from './database/data-source';
 
 // Module imports
 import { UsersModule } from './modules/users/users.module';
@@ -43,7 +43,7 @@ import { AuditMiddleware } from './modules/audit/audit.middleware';
           throw new Error('Database configuration is missing');
         }
         return {
-          ...dataSourceOptions,
+          ...dataSource.options,
           autoLoadEntities: true,
           synchronize: process.env.NODE_ENV === 'development',
         };

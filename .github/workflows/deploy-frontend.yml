@@ -17,8 +17,8 @@ jobs:
       packages: write
 
     env:
-      IMAGE_NAME: criterium-edu-frontend
-      NGINX_IMAGE_NAME: criterium-edu-nginx
+      IMAGE_NAME: criterium-frontend
+      NGINX_IMAGE_NAME: criterium-nginx
       REGISTRY: ghcr.io
 
     steps:

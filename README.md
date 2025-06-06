@@ -1,3 +1,5 @@
+You're right! Since you only have `.env.local` files and no `.env.example`, here's the corrected installation guide:
+
 # Criterium EDU
 
 A comprehensive educational platform for managing tasks, solutions, and reviews with role-based access control.
@@ -23,61 +25,82 @@ This project is organized as a monorepo with two main parts:
 
 ### Prerequisites
 
-- Node.js (v16 or higher)
-- pnpm (v7 or higher)
-- PostgreSQL
+- Node.js (v22 or higher)
+- npm (v10 or higher)
+- Docker and Docker Compose (for Docker installation)
+- PostgreSQL (for local installation)
 
-### Installation
+## Installation
+
+### Option 1: Using Docker Compose (Recommended)
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/criterium-edu.git
+   git clone https://github.com/mdportnov/criterium-edu.git
+   cd criterium-edu
+   ```
+
+2. The repository contains pre-configured `.env.local` files for backend and frontend (`apps/api/.env.local` and `apps/web-ui/.env.local`) with all necessary environment variables.
+
+3. Start all services using Docker Compose:
+   ```bash
+   docker-compose up --build
+   ```
+
+4. Once the services are running, the backend will be available on the port specified in `.env.local` (default 3000), and the frontend on the port specified in the corresponding `.env.local` (default 5173).
+
+5. To stop the services:
+   ```bash
+   docker-compose down
+   ```
+
+**Note:**
+- All database settings, JWT, and other parameters are pre-configured in `.env.local` files.
+- Docker Compose automatically creates and connects the necessary containers (PostgreSQL, backend, frontend).
+
+### Option 2: Local Development Setup
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/mdportnov/criterium-edu.git
    cd criterium-edu
    ```
 
 2. Install dependencies:
    ```bash
-   pnpm install
+   npm install
    ```
 
-3. Set up environment variables:
+3. The repository includes pre-configured `.env.local` files with all necessary environment variables. Review and modify them if needed for your local setup.
+
+4. Start the backend server:
    ```bash
-   cp .env.example .env
-   # Edit .env with your database credentials and other settings
+   npm run start:api
    ```
 
-4. Run database migrations:
+5. In a separate terminal, start the frontend server:
    ```bash
-   cd apps/api
-   pnpm run migration:run
+   npm run start:web
    ```
 
-### Running the Application
+6. To stop the servers, use Ctrl+C in the terminal.
 
-#### Development Mode
+**Note:**
+- Backend will be available on the port specified in `apps/api/.env.local` (default 3000).
+- Frontend will be available on the port specified in `apps/web-ui/.env.local` (default 5173).
+
+### Running Both Services Simultaneously
 
 To run both backend and frontend in development mode:
 
 ```bash
-pnpm run start:all
+npm run start:all
 ```
 
-To run only the backend:
+### Production Build
 
 ```bash
-pnpm run start:api
-```
-
-To run only the frontend:
-
-```bash
-pnpm run start:web
-```
-
-#### Production Build
-
-```bash
-pnpm run build
+npm run build:all
 ```
 
 ## API Documentation

@@ -4,11 +4,12 @@
   "description": "Educational platform for task solutions and reviews",
   "scripts": {
     "build": "nest build",
+    "build:migrations": "tsc apps/api/src/database/migrations/*.ts apps/api/src/database/data-source*.ts --outDir dist/apps/api/src/database --target ES2022 --module commonjs --esModuleInterop --experimentalDecorators --emitDecoratorMetadata --moduleResolution node",
     "format": "prettier --write \"apps/**/*.ts\" \"libs/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
-    "start:prod": "node dist/apps/api/src/main",
+    "start:prod": "node dist/apps/api/src/main.js",
     "start:api": "nest start --watch",
     "start:web": "npm run dev -w apps/web-ui",
     "start:all": "concurrently \"npm run start:api\" \"npm run start:web\"",
@@ -17,10 +18,11 @@
     "web:build": "npm run build -w apps/web-ui",
     "build:api": "nest build",
     "build:web": "npm run build -w apps/web-ui",
-    "build:all": "npm run build:api && npm run build:web",
-    "migration:generate": "typeorm-ts-node-commonjs migration:generate -d apps/api/src/database/data-source.ts",
-    "migration:run": "typeorm-ts-node-commonjs migration:run -d apps/api/src/database/data-source.ts",
-    "migration:revert": "typeorm-ts-node-commonjs migration:revert -d apps/api/src/database/data-source.ts"
+    "build:all": "npm run build:api && npm run build:migrations && npm run build:web",
+    "typeorm:generate": "npx typeorm-ts-node-esm migration:generate -d apps/api/src/database/data-source.local.ts",
+    "typeorm:migrate": "npm run build:migrations && npx typeorm migration:run -d dist/apps/api/src/database/data-source.prod.js",
+    "typeorm:revert": "npm run build:migrations && npx typeorm migration:revert -d dist/apps/api/src/database/data-source.prod.js",
+    "typeorm:drop": "npx typeorm-ts-node-esm migration:drop -d apps/api/src/database/data-source.local.ts"
   },
   "keywords": [
     "education",
@@ -44,6 +46,7 @@
     "bcrypt": "^5.1.1",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
+    "express": "^5.1.0",
     "nestjs-pino": "^4.0.0",
     "openai": "^4.100.0",
     "passport": "^0.7.0",
@@ -56,22 +59,25 @@
     "typeorm": "^0.3.20"
   },
   "devDependencies": {
-    "@eslint/js": "^8.57.1",
+    "@eslint/js": "^9.28.0",
     "@tailwindcss/vite": "^4.1.7",
     "@types/bcrypt": "^5.0.2",
     "@types/multer": "^1.4.12",
     "@types/passport-jwt": "^4.0.1",
     "concurrently": "^8.2.2",
-    "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-prettier": "^5.1.3",
+    "copy-webpack-plugin": "^13.0.0",
+    "eslint": "^9.28.0",
+    "eslint-config-prettier": "^10.1.5",
+    "eslint-plugin-prettier": "^5.4.1",
     "eslint-plugin-unused-imports": "^4.1.4",
     "prettier": "^3.2.5",
     "tailwindcss": "^4.1.7",
     "ts-loader": "^9.5.2",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
-    "typescript-eslint": "^7.1.1",
-    "web-ui": "^0.0.0"
+    "typescript-eslint": "^8.33.1",
+    "web-ui": "^0.0.0",
+    "webpack-node-externals": "^3.0.0"
   },
   "workspaces": [
     "apps/*",
