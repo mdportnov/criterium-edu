@@ -73,11 +73,11 @@ jobs:
           passphrase: ${{ secrets.PASSPHRASE }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            sudo mkdir -p /var/www/criterium
+            sudo mkdir -p /var/www/criterium/apps/web-ui
             sudo chown -R ${{ secrets.SSH_USER }}:${{ secrets.SSH_USER }} /var/www/criterium
-            
+
             cp -f ~/criterium/docker-compose.prod.yml /var/www/criterium/
-            cp -f ~/criterium/apps/web-ui/.env.production /var/www/criterium/
+            cp -f ~/criterium/apps/web-ui/.env.production /var/www/criterium/apps/web-ui/
             
             cd /var/www/criterium
             
