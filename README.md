@@ -7,7 +7,7 @@ A comprehensive educational platform for managing tasks, solutions, and reviews 
 This project is organized as a monorepo with two main parts:
 
 - `/apps/api`: Backend API built with NestJS, TypeORM, and PostgreSQL.
-- `/web`: Frontend application built with React, TypeScript, and DaisyUI/TailwindCSS.
+- `/apps/web-ui`: Frontend application built with React, TypeScript, and DaisyUI/TailwindCSS.
 
 ## Features
 
