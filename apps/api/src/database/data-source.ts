@@ -23,7 +23,7 @@ export const dataSourceOptions: DataSourceOptions = {
   password: process.env.DB_PASSWORD || 'postgres',
   database: process.env.DB_NAME || 'criterium_edu',
   entities: [join(__dirname, '../**/*.entity{.ts,.js}')],
-  migrations: [join(__dirname, './migrations/*{.ts,.js}')],
+  migrations: [join(__dirname, 'migrations/*.js')],
   synchronize: process.env.NODE_ENV === 'development',
   logging: true,
 };

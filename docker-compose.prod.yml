@@ -4,7 +4,7 @@ services:
     image: postgres:17-alpine
     container_name: criterium-postgres
     env_file:
-      - .env.production
+      - apps/api/.env.production
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
@@ -28,7 +28,7 @@ services:
     image: ghcr.io/mdportnov/criterium-edu-backend:latest
     container_name: criterium-edu-backend
     env_file:
-      - .env.production
+      - apps/api/.env.production
     environment:
       NODE_ENV: ${NODE_ENV:-production}
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-criterium}
@@ -46,7 +46,7 @@ services:
     image: ghcr.io/mdportnov/criterium-edu-frontend:latest
     container_name: criterium-edu-frontend
     env_file:
-      - .env.production
+      - apps/web-ui/.env.production
     ports:
       - "80:80"
     restart: always
