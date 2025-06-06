@@ -1,8 +1,8 @@
 import {
   IsEmail,
   IsNotEmpty,
-  IsNumber,
   IsString,
+  IsUUID,
   MinLength,
 } from 'class-validator';
 
@@ -41,7 +41,7 @@ export class TokenDto {
 }
 
 export class LoginAsDto {
-  @IsNumber()
+  @IsUUID()
   @IsNotEmpty()
   userId: string;
 }
