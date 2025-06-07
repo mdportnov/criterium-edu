@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { z } from 'zod';
 
 export enum ProcessingStatus {
   PENDING = 'pending',
@@ -12,80 +12,25 @@ export enum OperationType {
   LLM_ASSESSMENT = 'llm_assessment',
 }
 
-export class ProcessingOperationDto {
-  @ApiProperty({
-    description: 'Unique operation ID',
-    example: '123e4567-e89b-12d3-a456-426614174000',
-  })
-  id: string;
+export const ProcessingOperationDtoSchema = z.object({
+  id: z.string(),
+  type: z.nativeEnum(OperationType),
+  status: z.nativeEnum(ProcessingStatus),
+  progress: z.number(),
+  totalItems: z.number(),
+  processedItems: z.number(),
+  failedItems: z.number(),
+  timeoutMinutes: z.number(),
+  errorMessage: z.string().optional(),
+  metadata: z.record(z.any()).optional(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+  lastProgressUpdate: z.date().optional(),
+});
 
-  @ApiProperty({
-    description: 'Type of operation',
-    enum: OperationType,
-  })
-  type: OperationType;
+export type ProcessingOperationDto = z.infer<
+  typeof ProcessingOperationDtoSchema
+>;
 
-  @ApiProperty({
-    description: 'Current status of the operation',
-    enum: ProcessingStatus,
-  })
-  status: ProcessingStatus;
-
-  @ApiProperty({
-    description: 'Progress percentage (0-100)',
-    example: 45,
-  })
-  progress: number;
-
-  @ApiProperty({
-    description: 'Total items to process',
-    example: 100,
-  })
-  totalItems: number;
-
-  @ApiProperty({
-    description: 'Items processed so far',
-    example: 45,
-  })
-  processedItems: number;
-
-  @ApiProperty({
-    description: 'Items that failed processing',
-    example: 5,
-  })
-  failedItems: number;
-
-  @ApiProperty({
-    description: 'Timeout in minutes',
-    example: 30,
-  })
-  timeoutMinutes: number;
-
-  @ApiProperty({
-    description: 'Error message if failed',
-    required: false,
-  })
-  errorMessage?: string;
-
-  @ApiProperty({
-    description: 'Additional metadata',
-    required: false,
-  })
-  metadata?: Record<string, any>;
-
-  @ApiProperty({
-    description: 'Creation timestamp',
-  })
-  createdAt: Date;
-
-  @ApiProperty({
-    description: 'Last update timestamp',
-  })
-  updatedAt: Date;
-
-  @ApiProperty({
-    description: 'Last progress update timestamp',
-    required: false,
-  })
-  lastProgressUpdate?: Date;
-}
+// Export types as runtime-accessible objects for NX webpack compatibility
+export const ProcessingOperationDto = {} as ProcessingOperationDto;

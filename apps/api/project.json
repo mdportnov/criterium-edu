@@ -1,0 +1,90 @@
+{
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "name": "api",
+  "sourceRoot": "apps/api/src",
+  "projectType": "application",
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "@nx/webpack:webpack",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "target": "node",
+        "compiler": "tsc",
+        "outputPath": "dist/apps/api",
+        "main": "apps/api/src/main.ts",
+        "tsConfig": "apps/api/tsconfig.app.json",
+        "isolatedConfig": true,
+        "webpackConfig": "apps/api/webpack.config.js",
+        "generatePackageJson": true
+      },
+      "configurations": {
+        "production": {
+          "optimization": true,
+          "extractLicenses": true,
+          "fileReplacements": [
+            {
+              "replace": "apps/api/src/environments/environment.ts",
+              "with": "apps/api/src/environments/environment.prod.ts"
+            }
+          ]
+        },
+        "development": {
+          "optimization": false
+        }
+      },
+      "defaultConfiguration": "production"
+    },
+    "build:migrations": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsc apps/api/src/database/migrations/*.ts apps/api/src/database/data-source*.ts --outDir dist/apps/api/src/database --target ES2022 --module commonjs --esModuleInterop --experimentalDecorators --emitDecoratorMetadata --moduleResolution node --skipLibCheck"
+      }
+    },
+    "serve": {
+      "executor": "@nx/js:node",
+      "options": {
+        "buildTarget": "api:build:development",
+        "watch": true
+      },
+      "configurations": {
+        "production": {
+          "buildTarget": "api:build:production"
+        }
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["apps/api/**/*.ts"]
+      }
+    },
+    "typeorm:generate": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "npx typeorm-ts-node-esm migration:generate -d apps/api/src/database/data-source.local.ts"
+      }
+    },
+    "typeorm:migrate": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["build:migrations"],
+      "options": {
+        "command": "npx typeorm migration:run -d dist/apps/api/src/database/data-source.prod.js"
+      }
+    },
+    "typeorm:revert": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["build:migrations"],
+      "options": {
+        "command": "npx typeorm migration:revert -d dist/apps/api/src/database/data-source.prod.js"
+      }
+    },
+    "docker-build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "docker build -f backend.Dockerfile -t criterium-backend ."
+      }
+    }
+  }
+}

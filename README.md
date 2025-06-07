@@ -9,7 +9,7 @@ A comprehensive educational platform for managing tasks, solutions, and reviews 
 This project is organized as a monorepo with two main parts:
 
 - `/apps/api`: Backend API built with NestJS, TypeORM, and PostgreSQL.
-- `/apps/web-ui`: Frontend application built with React, TypeScript, and DaisyUI/TailwindCSS.
+- `/apps/web`: Frontend application built with React, TypeScript, and DaisyUI/TailwindCSS.
 
 ## Features
 
@@ -40,7 +40,7 @@ This project is organized as a monorepo with two main parts:
    cd criterium-edu
    ```
 
-2. The repository contains pre-configured `.env.local` files for backend and frontend (`apps/api/.env.local` and `apps/web-ui/.env.local`) with all necessary environment variables.
+2. The repository contains pre-configured `.env.local` files for backend and frontend (`apps/api/.env.local` and `apps/web/.env.local`) with all necessary environment variables.
 
 3. Start all services using Docker Compose:
    ```bash
@@ -87,7 +87,7 @@ This project is organized as a monorepo with two main parts:
 
 **Note:**
 - Backend will be available on the port specified in `apps/api/.env.local` (default 3000).
-- Frontend will be available on the port specified in `apps/web-ui/.env.local` (default 5173).
+- Frontend will be available on the port specified in `apps/web/.env.local` (default 5173).
 
 ### Running Both Services Simultaneously
 

@@ -9,3 +9,4 @@ export * from './bulk-import-solution.dto';
 export * from './pagination.dto';
 export * from './processing-operation.dto';
 export * from './cost-tracking.dto';
+export * from './prompts.dto';

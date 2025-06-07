@@ -6,11 +6,15 @@ import {
   AssessmentSession,
   AssessmentSessionStatus,
 } from './entities/assessment-session.entity';
-import { PaginatedResponse, PaginationDto, ReviewSource } from '@app/shared';
+import {
+  CreateSessionDto,
+  PaginatedResponse,
+  PaginationDto,
+  ReviewSource,
+} from '@app/shared';
 import { TaskSolutionReview } from './entities/task-solution-review.entity';
 import { CriterionScore } from './entities/criterion-score.entity';
 import { TaskSolution } from '../task-solutions/entities/task-solution.entity';
-import { Task } from '../tasks/entities/task.entity';
 import { User } from '../users/entities/user.entity';
 import {
   AutoAssessRequestDto,
@@ -27,16 +31,6 @@ interface AssessmentResult {
   totalScore: number;
 }
 
-export interface CreateSessionDto {
-  name: string;
-  description?: string;
-  solutionIds: string[];
-  llmModel?: string;
-  systemPrompt?: string;
-  temperature?: number;
-  maxTokens?: number;
-}
-
 @Injectable()
 export class AutoAssessmentService {
   constructor(
@@ -50,8 +44,6 @@ export class AutoAssessmentService {
     private readonly criterionScoreRepository: Repository<CriterionScore>,
     @InjectRepository(TaskSolution)
     private readonly solutionRepository: Repository<TaskSolution>,
-    @InjectRepository(Task)
-    private readonly taskRepository: Repository<Task>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private readonly openaiService: OpenAIService,
@@ -465,13 +457,14 @@ export class AutoAssessmentService {
     return this.assessmentRepository.save(newAssessment);
   }
 
-  private createAssessmentPrompt(task: Task, solution: TaskSolution): string {
+  private createAssessmentPrompt(task: any, solution: TaskSolution): string {
     // Get task details
     const taskDescription = task.description || 'No task description provided';
     const taskCriteriaString = task.criteria
       ? task.criteria
           .map(
-            (c) => `${c.name} (Max Points: ${c.maxPoints}): ${c.description}`,
+            (c: any) =>
+              `${c.name} (Max Points: ${c.maxPoints}): ${c.description}`,
           )
           .join('\n')
       : 'No specific criteria provided';

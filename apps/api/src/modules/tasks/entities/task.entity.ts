@@ -9,8 +9,14 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
-import { TaskCriterion } from './task-criterion.entity';
-import { TaskSolution } from '../../task-solutions/entities/task-solution.entity';
+import type { TaskCriterion } from './task-criterion.entity';
+
+// Interface to avoid circular import with TaskSolution
+interface ITaskSolution {
+  id: string;
+  content: string;
+  status: string;
+}
 
 @Entity('tasks')
 export class Task {
@@ -39,14 +45,14 @@ export class Task {
   @JoinColumn({ name: 'createdBy' })
   creator: User;
 
-  @OneToMany(() => TaskCriterion, (criterion) => criterion.task, {
+  @OneToMany('TaskCriterion', (criterion: TaskCriterion) => criterion.task, {
     cascade: true,
     eager: true,
   })
   criteria: TaskCriterion[];
 
-  @OneToMany(() => TaskSolution, (solution) => solution.task)
-  solutions: TaskSolution[];
+  @OneToMany('TaskSolution', 'task')
+  solutions: ITaskSolution[];
 
   @CreateDateColumn()
   createdAt: Date;

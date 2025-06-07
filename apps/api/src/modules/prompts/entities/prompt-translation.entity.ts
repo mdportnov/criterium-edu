@@ -8,7 +8,7 @@ import {
   JoinColumn,
   Index,
 } from 'typeorm';
-import { Prompt } from './prompt.entity';
+import type { Prompt } from './prompt.entity';
 
 @Entity('prompt_translations')
 @Index(['promptId', 'languageCode'], { unique: true })
@@ -19,7 +19,7 @@ export class PromptTranslation {
   @Column({ type: 'uuid' })
   promptId: string;
 
-  @ManyToOne(() => Prompt, (prompt) => prompt.translations, {
+  @ManyToOne('Prompt', (prompt: Prompt) => prompt.translations, {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'promptId' })

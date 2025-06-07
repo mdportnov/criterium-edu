@@ -1,29 +1,14 @@
-import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
+import { z } from 'zod';
 
-export class BulkImportTaskCriterionDto {
-  @ApiProperty({
-    description: 'Name of the criterion',
-    example: 'Code Clarity',
-  })
-  @IsString()
-  @IsNotEmpty()
-  name: string;
+export const BulkImportTaskCriterionDtoSchema = z.object({
+  name: z.string(),
+  description: z.string(),
+  maxPoints: z.number(),
+});
 
-  @ApiProperty({
-    description: 'Detailed description of what this criterion assesses',
-    example:
-      'The code should be clear, well-commented, and easy to understand.',
-  })
-  @IsString()
-  @IsNotEmpty()
-  description: string;
+export type BulkImportTaskCriterionDto = z.infer<
+  typeof BulkImportTaskCriterionDtoSchema
+>;
 
-  @ApiProperty({
-    description: 'Maximum points achievable for this criterion',
-    example: 10,
-  })
-  @IsNumber()
-  @IsNotEmpty()
-  maxPoints: number;
-}
+// Export types as runtime-accessible objects for NX webpack compatibility
+export const BulkImportTaskCriterionDto = {} as BulkImportTaskCriterionDto;

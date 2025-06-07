@@ -5,7 +5,7 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { TaskSolutionReview } from './task-solution-review.entity';
+import type { TaskSolutionReview } from './task-solution-review.entity';
 import { TaskCriterion } from '../../tasks/entities/task-criterion.entity';
 
 @Entity('criterion_scores')
@@ -16,9 +16,13 @@ export class CriterionScore {
   @Column({ type: 'uuid' })
   reviewId: string;
 
-  @ManyToOne(() => TaskSolutionReview, (review) => review.criteriaScores, {
-    onDelete: 'CASCADE',
-  })
+  @ManyToOne(
+    'TaskSolutionReview',
+    (review: TaskSolutionReview) => review.criteriaScores,
+    {
+      onDelete: 'CASCADE',
+    },
+  )
   @JoinColumn({ name: 'reviewId' })
   review: TaskSolutionReview;
 

@@ -9,13 +9,8 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
-import { PromptTranslation } from './prompt-translation.entity';
-
-export enum PromptType {
-  SYSTEM = 'system',
-  USER = 'user',
-  ASSISTANT = 'assistant',
-}
+import type { PromptTranslation } from './prompt-translation.entity';
+import { PromptType } from '@app/shared';
 
 @Entity('prompts')
 export class Prompt {
@@ -57,7 +52,7 @@ export class Prompt {
   @Column({ default: true })
   isActive: boolean;
 
-  @OneToMany(() => PromptTranslation, (translation) => translation.prompt, {
+  @OneToMany('PromptTranslation', (translation: PromptTranslation) => translation.prompt, {
     cascade: true,
     eager: true,
   })

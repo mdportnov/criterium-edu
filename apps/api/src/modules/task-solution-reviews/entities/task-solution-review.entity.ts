@@ -10,8 +10,8 @@ import {
 } from 'typeorm';
 import { ReviewSource } from '@app/shared';
 import { User } from '../../users/entities/user.entity';
-import { TaskSolution } from '../../task-solutions/entities/task-solution.entity';
-import { CriterionScore } from './criterion-score.entity';
+import type { TaskSolution } from '../../task-solutions/entities/task-solution.entity';
+import type { CriterionScore } from './criterion-score.entity';
 
 @Entity('task_solution_reviews')
 export class TaskSolutionReview {
@@ -21,7 +21,7 @@ export class TaskSolutionReview {
   @Column({ type: 'uuid' })
   taskSolutionId: string;
 
-  @ManyToOne(() => TaskSolution)
+  @ManyToOne('TaskSolution')
   @JoinColumn({ name: 'taskSolutionId' })
   taskSolution: TaskSolution;
 
@@ -32,7 +32,7 @@ export class TaskSolutionReview {
   @JoinColumn({ name: 'reviewerId' })
   reviewer: User;
 
-  @OneToMany(() => CriterionScore, (criterionScore) => criterionScore.review, {
+  @OneToMany('CriterionScore', (criterionScore: CriterionScore) => criterionScore.review, {
     cascade: true,
     eager: true,
   })

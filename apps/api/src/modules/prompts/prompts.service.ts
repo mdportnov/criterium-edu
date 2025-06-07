@@ -1,36 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Prompt, PromptType } from './entities/prompt.entity';
+import { Prompt } from './entities/prompt.entity';
 import { PromptTranslation } from './entities/prompt-translation.entity';
-
-export interface CreatePromptDto {
-  key: string;
-  name: string;
-  description?: string;
-  category: string;
-  promptType?: PromptType;
-  defaultLanguage?: string;
-  variables?: string[];
-  translations: {
-    languageCode: string;
-    content: string;
-  }[];
-}
-
-export interface UpdatePromptDto {
-  name?: string;
-  description?: string;
-  category?: string;
-  promptType?: PromptType;
-  defaultLanguage?: string;
-  variables?: string[];
-  isActive?: boolean;
-  translations?: {
-    languageCode: string;
-    content: string;
-  }[];
-}
+import { CreatePromptDto, UpdatePromptDto } from '@app/shared';
 
 @Injectable()
 export class PromptsService {

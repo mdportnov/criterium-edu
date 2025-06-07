@@ -1,0 +1,69 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: criterium
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./data/pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - criterium-network
+
+  api:
+    build:
+      context: .
+      dockerfile: backend.nx.Dockerfile
+      target: build
+    volumes:
+      - ./apps/api:/usr/src/app/apps/api
+      - ./libs:/usr/src/app/libs
+      - ./dist:/usr/src/app/dist
+      - /usr/src/app/node_modules
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: criterium
+      JWT_SECRET: your-development-secret
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - criterium-network
+    command: npx nx serve api --host 0.0.0.0
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev.web
+    volumes:
+      - ./apps/web:/usr/src/app/apps/web
+      - ./libs:/usr/src/app/libs
+      - /usr/src/app/node_modules
+    ports:
+      - "5173:5173"
+    environment:
+      NODE_ENV: development
+      VITE_API_URL: http://localhost:3000
+    networks:
+      - criterium-network
+    command: npx nx serve web --host 0.0.0.0
+
+networks:
+  criterium-network:
+    driver: bridge

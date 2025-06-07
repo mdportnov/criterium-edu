@@ -1,113 +1,51 @@
-import {
-  IsArray,
-  IsNotEmpty,
-  IsNumber,
-  IsOptional,
-  IsString,
-  ValidateNested,
-} from 'class-validator';
-import { Type } from 'class-transformer';
-import { ApiProperty } from '@nestjs/swagger';
+import { z } from 'zod';
 
-export class TaskCriterionDto {
-  @IsString()
-  @IsOptional()
-  id?: string;
+export const TaskCriterionSchema = z.object({
+  id: z.string().optional(),
+  name: z.string().min(1),
+  description: z.string().min(1),
+  maxPoints: z.number().positive(),
+  checkerComments: z.string().optional(),
+});
 
-  @IsString()
-  @IsNotEmpty()
-  name: string;
+export const CreateTaskSchema = z.object({
+  title: z.string().min(1),
+  description: z.string().min(1),
+  authorSolution: z.string().optional(),
+  categories: z.array(z.string()).optional(),
+  tags: z.array(z.string()).optional(),
+  criteria: z.array(TaskCriterionSchema),
+});
 
-  @IsString()
-  @IsNotEmpty()
-  description: string;
+export const UpdateTaskSchema = z.object({
+  title: z.string().min(1).optional(),
+  description: z.string().min(1).optional(),
+  authorSolution: z.string().optional(),
+  categories: z.array(z.string()).optional(),
+  tags: z.array(z.string()).optional(),
+  criteria: z.array(TaskCriterionSchema).optional(),
+});
 
-  @IsNumber()
-  @IsNotEmpty()
-  maxPoints: number;
+export const TaskSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  description: z.string(),
+  authorSolution: z.string().optional(),
+  categories: z.array(z.string()).optional(),
+  tags: z.array(z.string()).optional(),
+  criteria: z.array(TaskCriterionSchema),
+  createdBy: z.string(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+});
 
-  @IsString()
-  @IsOptional()
-  checkerComments?: string;
-}
+export type TaskCriterionDto = z.infer<typeof TaskCriterionSchema>;
+export type CreateTaskDto = z.infer<typeof CreateTaskSchema>;
+export type UpdateTaskDto = z.infer<typeof UpdateTaskSchema>;
+export type TaskDto = z.infer<typeof TaskSchema>;
 
-export class CreateTaskDto {
-  @IsString()
-  @IsNotEmpty()
-  title: string;
-
-  @IsString()
-  @IsNotEmpty()
-  description: string;
-
-  @IsString()
-  @IsOptional()
-  authorSolution?: string;
-
-  @ApiProperty({ type: [String], required: false, nullable: true })
-  @IsArray()
-  @IsString({ each: true })
-  @IsOptional()
-  categories?: string[];
-
-  @ApiProperty({ type: [String], required: false, nullable: true })
-  @IsArray()
-  @IsString({ each: true })
-  @IsOptional()
-  tags?: string[];
-
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => TaskCriterionDto)
-  criteria: TaskCriterionDto[];
-}
-
-export class UpdateTaskDto {
-  @IsString()
-  @IsOptional()
-  title?: string;
-
-  @IsString()
-  @IsOptional()
-  description?: string;
-
-  @IsString()
-  @IsOptional()
-  authorSolution?: string;
-
-  @ApiProperty({ type: [String], required: false, nullable: true })
-  @IsArray()
-  @IsString({ each: true })
-  @IsOptional()
-  categories?: string[];
-
-  @ApiProperty({ type: [String], required: false, nullable: true })
-  @IsArray()
-  @IsString({ each: true })
-  @IsOptional()
-  tags?: string[];
-
-  @IsArray()
-  @IsOptional()
-  @ValidateNested({ each: true })
-  @Type(() => TaskCriterionDto)
-  criteria?: TaskCriterionDto[];
-}
-
-export class TaskDto {
-  id: string;
-  title: string;
-  description: string;
-  authorSolution?: string;
-
-  @ApiProperty({ type: [String], required: false, nullable: true })
-  categories?: string[];
-
-  @ApiProperty({ type: [String], required: false, nullable: true })
-  tags?: string[];
-
-  criteria: TaskCriterionDto[];
-  createdBy: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
+// Export types as runtime-accessible objects for NX webpack compatibility
+export const TaskCriterionDto = {} as TaskCriterionDto;
+export const CreateTaskDto = {} as CreateTaskDto;
+export const UpdateTaskDto = {} as UpdateTaskDto;
+export const TaskDto = {} as TaskDto;

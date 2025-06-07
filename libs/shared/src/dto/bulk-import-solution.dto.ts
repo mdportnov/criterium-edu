@@ -1,44 +1,14 @@
-import { IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
+import { z } from 'zod';
 
-export class BulkImportSolutionDto {
-  @ApiProperty({
-    description: 'Student name',
-    example: 'John Doe',
-  })
-  @IsString()
-  @IsNotEmpty()
-  studentName: string;
+export const BulkImportSolutionDtoSchema = z.object({
+  studentName: z.string(),
+  studentId: z.string(),
+  solutionContent: z.string(),
+  taskId: z.string().uuid(),
+  notes: z.string().optional(),
+});
 
-  @ApiProperty({
-    description: 'Student ID',
-    example: 'STU001',
-  })
-  @IsString()
-  @IsNotEmpty()
-  studentId: string;
+export type BulkImportSolutionDto = z.infer<typeof BulkImportSolutionDtoSchema>;
 
-  @ApiProperty({
-    description: 'Solution code content',
-    example: 'console.log("Hello World");',
-  })
-  @IsString()
-  @IsNotEmpty()
-  solutionContent: string;
-
-  @ApiProperty({
-    description: 'Task ID to associate solution with',
-    example: '123e4567-e89b-12d3-a456-426614174000',
-  })
-  @IsUUID()
-  @IsNotEmpty()
-  taskId: string;
-
-  @ApiProperty({
-    description: 'Optional submission notes',
-    required: false,
-  })
-  @IsString()
-  @IsOptional()
-  notes?: string;
-}
+// Export types as runtime-accessible objects for NX webpack compatibility
+export const BulkImportSolutionDto = {} as BulkImportSolutionDto;

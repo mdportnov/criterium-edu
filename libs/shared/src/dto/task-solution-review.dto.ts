@@ -1,85 +1,64 @@
-import {
-  IsArray,
-  IsEnum,
-  IsNotEmpty,
-  IsNumber,
-  IsOptional,
-  IsString,
-  ValidateNested,
-} from 'class-validator';
-import { Type } from 'class-transformer';
+import { z } from 'zod';
 import { ReviewSource } from '../interfaces';
 
-export class CriterionScoreDto {
-  @IsString()
-  @IsNotEmpty()
-  criterionId: string;
+export const CriterionScoreDtoSchema = z.object({
+  criterionId: z.string(),
+  score: z.number(),
+  comment: z.string().optional(),
+});
 
-  @IsNumber()
-  @IsNotEmpty()
-  score: number;
+export const CreateTaskSolutionReviewDtoSchema = z.object({
+  taskSolutionId: z.string(),
+  criteriaScores: z.array(CriterionScoreDtoSchema),
+  feedbackToStudent: z.string(),
+  reviewerComment: z.string().optional(),
+  source: z.nativeEnum(ReviewSource),
+});
 
-  @IsString()
-  @IsOptional()
-  comment?: string;
-}
+export const UpdateTaskSolutionReviewDtoSchema = z.object({
+  criteriaScores: z.array(CriterionScoreDtoSchema).optional(),
+  feedbackToStudent: z.string().optional(),
+  reviewerComment: z.string().optional(),
+  source: z.nativeEnum(ReviewSource).optional(),
+  reviewerId: z.string().optional(),
+});
 
-export class CreateTaskSolutionReviewDto {
-  @IsString()
-  @IsNotEmpty()
-  taskSolutionId: string;
+export const TaskSolutionReviewDtoSchema = z.object({
+  id: z.string(),
+  taskSolutionId: z.string(),
+  reviewerId: z.string().optional(),
+  criteriaScores: z.array(CriterionScoreDtoSchema),
+  totalScore: z.number(),
+  feedbackToStudent: z.string(),
+  reviewerComment: z.string().optional(),
+  source: z.nativeEnum(ReviewSource),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+});
 
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => CriterionScoreDto)
-  criteriaScores: CriterionScoreDto[];
+export const CreateSessionDtoSchema = z.object({
+  name: z.string(),
+  description: z.string().optional(),
+  solutionIds: z.array(z.string()),
+  llmModel: z.string().optional(),
+  systemPrompt: z.string().optional(),
+  temperature: z.number().optional(),
+  maxTokens: z.number().optional(),
+});
 
-  @IsString()
-  @IsNotEmpty()
-  feedbackToStudent: string;
+export type CriterionScoreDto = z.infer<typeof CriterionScoreDtoSchema>;
+export type CreateTaskSolutionReviewDto = z.infer<
+  typeof CreateTaskSolutionReviewDtoSchema
+>;
+export type UpdateTaskSolutionReviewDto = z.infer<
+  typeof UpdateTaskSolutionReviewDtoSchema
+>;
+export type TaskSolutionReviewDto = z.infer<typeof TaskSolutionReviewDtoSchema>;
+export type CreateSessionDto = z.infer<typeof CreateSessionDtoSchema>;
 
-  @IsString()
-  @IsOptional()
-  reviewerComment?: string;
-
-  @IsEnum(ReviewSource)
-  @IsNotEmpty()
-  source: ReviewSource;
-}
-
-export class UpdateTaskSolutionReviewDto {
-  @IsArray()
-  @IsOptional()
-  @ValidateNested({ each: true })
-  @Type(() => CriterionScoreDto)
-  criteriaScores?: CriterionScoreDto[];
-
-  @IsString()
-  @IsOptional()
-  feedbackToStudent?: string;
-
-  @IsString()
-  @IsOptional()
-  reviewerComment?: string;
-
-  @IsEnum(ReviewSource)
-  @IsOptional()
-  source?: ReviewSource;
-
-  @IsString()
-  @IsOptional()
-  reviewerId?: string;
-}
-
-export class TaskSolutionReviewDto {
-  id: string;
-  taskSolutionId: string;
-  reviewerId?: string;
-  criteriaScores: CriterionScoreDto[];
-  totalScore: number;
-  feedbackToStudent: string;
-  reviewerComment?: string;
-  source: ReviewSource;
-  createdAt: Date;
-  updatedAt: Date;
-}
+// Export types as runtime-accessible objects for NX webpack compatibility
+export const CriterionScoreDto = {} as CriterionScoreDto;
+export const CreateTaskSolutionReviewDto = {} as CreateTaskSolutionReviewDto;
+export const UpdateTaskSolutionReviewDto = {} as UpdateTaskSolutionReviewDto;
+export const TaskSolutionReviewDto = {} as TaskSolutionReviewDto;
+export const CreateSessionDto = {} as CreateSessionDto;

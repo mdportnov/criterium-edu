@@ -1,37 +1,33 @@
-import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { z } from 'zod';
 import { TaskSolutionStatus } from '../interfaces';
 
-export class CreateTaskSolutionDto {
-  @IsString()
-  @IsNotEmpty()
-  taskId: string;
+export const CreateTaskSolutionDtoSchema = z.object({
+  taskId: z.string(),
+  solutionText: z.string(),
+  notes: z.string().optional(),
+});
 
-  @IsString()
-  @IsNotEmpty()
-  solutionText: string;
+export const UpdateTaskSolutionDtoSchema = z.object({
+  solutionText: z.string().optional(),
+  status: z.nativeEnum(TaskSolutionStatus).optional(),
+});
 
-  @IsString()
-  @IsOptional()
-  notes?: string;
-}
+export const TaskSolutionDtoSchema = z.object({
+  id: z.string(),
+  taskId: z.string(),
+  studentId: z.string(),
+  solutionText: z.string(),
+  status: z.nativeEnum(TaskSolutionStatus),
+  submittedAt: z.date(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+});
 
-export class UpdateTaskSolutionDto {
-  @IsString()
-  @IsOptional()
-  solutionText?: string;
+export type CreateTaskSolutionDto = z.infer<typeof CreateTaskSolutionDtoSchema>;
+export type UpdateTaskSolutionDto = z.infer<typeof UpdateTaskSolutionDtoSchema>;
+export type TaskSolutionDto = z.infer<typeof TaskSolutionDtoSchema>;
 
-  @IsEnum(TaskSolutionStatus)
-  @IsOptional()
-  status?: TaskSolutionStatus;
-}
-
-export class TaskSolutionDto {
-  id: string;
-  taskId: string;
-  studentId: string;
-  solutionText: string;
-  status: TaskSolutionStatus;
-  submittedAt: Date;
-  createdAt: Date;
-  updatedAt: Date;
-}
+// Export types as runtime-accessible objects for NX webpack compatibility
+export const CreateTaskSolutionDto = {} as CreateTaskSolutionDto;
+export const UpdateTaskSolutionDto = {} as UpdateTaskSolutionDto;
+export const TaskSolutionDto = {} as TaskSolutionDto;

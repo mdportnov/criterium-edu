@@ -1,5 +1,5 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
-import { TaskSolution } from './task-solution.entity';
+import type { TaskSolution } from './task-solution.entity';
 
 @Entity('solution_sources')
 export class SolutionSource {
@@ -12,6 +12,6 @@ export class SolutionSource {
   @Column({ type: 'varchar', nullable: true })
   description: string;
 
-  @OneToMany(() => TaskSolution, (solution) => solution.source)
+  @OneToMany('TaskSolution', (solution: TaskSolution) => solution.source)
   solutions: TaskSolution[];
 }

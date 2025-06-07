@@ -9,7 +9,6 @@ import { TaskSolutionReviewsController } from './task-solution-reviews.controlle
 import { AutoAssessmentController } from './auto-assessment.controller';
 import { AutoAssessmentService } from './auto-assessment.service';
 import { TaskSolution } from '../task-solutions/entities/task-solution.entity';
-import { Task } from '../tasks/entities/task.entity';
 import { User } from '../users/entities/user.entity';
 import { TaskSolutionsModule } from '../task-solutions/task-solutions.module';
 import { SharedModule } from '../shared/shared.module';
@@ -23,7 +22,6 @@ import { SettingsModule } from '../settings/settings.module';
       AutoAssessment,
       AssessmentSession,
       TaskSolution,
-      Task,
       User,
     ]),
     TaskSolutionsModule,

@@ -20,10 +20,8 @@ import {
   SourceAutoAssessRequestDto,
   TaskAutoAssessRequestDto,
 } from '../task-solutions/entities/solution-import.dto';
-import {
-  AutoAssessmentService,
-  CreateSessionDto,
-} from './auto-assessment.service';
+import { AutoAssessmentService } from './auto-assessment.service';
+import { CreateSessionDto } from '@app/shared';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';

@@ -47,7 +47,7 @@ services:
     image: ghcr.io/mdportnov/criterium-frontend:latest
     container_name: criterium-frontend
     env_file:
-      - apps/web-ui/.env.production
+      - apps/web/.env.production
     ports:
       - "80:80"
     restart: always

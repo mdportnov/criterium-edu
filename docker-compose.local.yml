@@ -62,7 +62,7 @@ services:
     container_name: criterium-frontend
     platform: linux/amd64
     env_file:
-      - apps/web-ui/.env.local
+      - apps/web/.env.local
     ports:
       - "${FRONTEND_PORT:-5173}:5173"
     restart: always

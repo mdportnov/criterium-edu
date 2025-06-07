@@ -1,10 +1,10 @@
 import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Logger } from 'nestjs-pino';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { ZodValidationPipe } from 'nestjs-zod';
 import dataSource from './database/data-source';
 
 async function bootstrap() {
@@ -25,7 +25,7 @@ async function bootstrap() {
     const port = configService.get<number>('port') || 3000;
 
     // Use Pino logger - wrap in try/catch in case it's not available
-    let logger: Logger;
+    let logger: Logger | undefined;
     try {
       logger = app.get(Logger);
       if (logger) {
@@ -40,6 +40,7 @@ async function bootstrap() {
         'https://criterium.command.mephi.ru',
         'http://localhost:3000',
         'http://localhost:5173',
+        'http://localhost:5174',
       ],
       methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
       allowedHeaders:
@@ -49,17 +50,8 @@ async function bootstrap() {
       optionsSuccessStatus: 204, // Standard success status for OPTIONS requests
     });
 
-    // Enable validation
-    app.useGlobalPipes(
-      new ValidationPipe({
-        whitelist: true,
-        transform: true,
-        forbidNonWhitelisted: true,
-        transformOptions: {
-          enableImplicitConversion: true,
-        },
-      }),
-    );
+    // Enable Zod validation
+    app.useGlobalPipes(new ZodValidationPipe());
 
     // Swagger API documentation
     const swaggerConfig = new DocumentBuilder()
@@ -73,13 +65,17 @@ async function bootstrap() {
     SwaggerModule.setup('api/docs', app, document);
 
     // Run migrations in production before starting the server
-    if (process.env.NODE_ENV === 'production') {
+    if (process.env.NODE_ENV === 'production' && logger) {
       await runDatabaseMigrations(logger, dataSource);
     }
 
     // Start server
     await app.listen(port);
-    logger.log(`Application is running on: http://localhost:${port}`);
+    if (logger) {
+      logger.log(`Application is running on: http://localhost:${port}`);
+    } else {
+      console.log(`Application is running on: http://localhost:${port}`);
+    }
   } catch (error) {
     console.error('Failed to start application:', error);
     process.exit(1);
@@ -124,7 +120,7 @@ async function runDatabaseMigrations(logger: Logger, dataSource: any) {
     if (migrationsRun.length > 0) {
       logger.log({
         message: `Successfully ran ${migrationsRun.length} migration(s).`,
-        migrations: migrationsRun.map((m) => m.name),
+        migrations: migrationsRun.map((m: any) => m.name),
         context: 'DB Migration',
       });
     } else {
@@ -134,10 +130,11 @@ async function runDatabaseMigrations(logger: Logger, dataSource: any) {
       });
     }
   } catch (migrationError) {
+    const error = migrationError as Error;
     logger.error({
       message: 'CRITICAL: Failed to run database migrations.',
-      error: migrationError.message,
-      stack: migrationError.stack,
+      error: error.message,
+      stack: error.stack,
       context: 'DB Migration',
     });
 

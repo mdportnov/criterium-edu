@@ -4,7 +4,7 @@ on:
   push:
     branches: [ master ]
     paths:
-      - 'apps/web-ui/**'
+      - '../../apps/web/**'
       - 'libs/**'
       - '.github/workflows/deploy-frontend.yml'
   workflow_dispatch:
@@ -61,7 +61,7 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           passphrase: ${{ secrets.PASSPHRASE }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "docker-compose.prod.yml, ./apps/web-ui/.env.production, ./apps/nginx/nginx.conf"
+          source: "docker-compose.prod.yml, ./apps/web/.env.production, ./apps/nginx/nginx.conf"
           target: "~/criterium/"
 
       - name: "Deploy to server"
@@ -73,11 +73,11 @@ jobs:
           passphrase: ${{ secrets.PASSPHRASE }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            sudo mkdir -p /var/www/criterium/apps/web-ui
+            sudo mkdir -p /var/www/criterium/apps/web
             sudo chown -R ${{ secrets.SSH_USER }}:${{ secrets.SSH_USER }} /var/www/criterium
 
             cp -f ~/criterium/docker-compose.prod.yml /var/www/criterium/
-            cp -f ~/criterium/apps/web-ui/.env.production /var/www/criterium/apps/web-ui/
+            cp -f ~/criterium/apps/web/.env.production /var/www/criterium/apps/web/
             
             cd /var/www/criterium
             

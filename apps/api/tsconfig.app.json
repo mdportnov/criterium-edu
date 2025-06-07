@@ -1,9 +1,16 @@
 {
-  "extends": "../../tsconfig.json",
+  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "declaration": false,
     "strictPropertyInitialization": false,
-    "outDir": "../../dist"
+    "outDir": "../../dist/apps/api",
+    "baseUrl": ".",
+    "paths": {
+      "@app/shared": ["../../libs/shared/src/index.ts"],
+      "@app/shared/*": ["../../libs/shared/src/*"],
+      "@shared": ["../../libs/shared/src/index.ts"],
+      "@shared/*": ["../../libs/shared/src/*"]
+    }
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist", "test", "**/*spec.ts"]

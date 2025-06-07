@@ -7,6 +7,10 @@ export interface TaskSolution {
   submittedAt: Date;
   createdAt: Date;
   updatedAt: Date;
+  task?: {
+    id: string;
+    title: string;
+  };
 }
 
 export enum TaskSolutionStatus {

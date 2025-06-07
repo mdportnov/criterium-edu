@@ -1,62 +1,37 @@
-import {
-  IsEmail,
-  IsEnum,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-} from 'class-validator';
+import { z } from 'zod';
 import { UserRole } from '../interfaces';
 
-export class CreateUserDto {
-  @IsEmail()
-  @IsNotEmpty()
-  email: string;
+export const CreateUserDtoSchema = z.object({
+  email: z.string().email(),
+  firstName: z.string(),
+  lastName: z.string(),
+  password: z.string(),
+  role: z.nativeEnum(UserRole),
+});
 
-  @IsString()
-  @IsNotEmpty()
-  firstName: string;
+export const UpdateUserDtoSchema = z.object({
+  email: z.string().email().optional(),
+  firstName: z.string().optional(),
+  lastName: z.string().optional(),
+  password: z.string().optional(),
+  role: z.nativeEnum(UserRole).optional(),
+});
 
-  @IsString()
-  @IsNotEmpty()
-  lastName: string;
+export const UserDtoSchema = z.object({
+  id: z.string(),
+  email: z.string().email(),
+  firstName: z.string(),
+  lastName: z.string(),
+  role: z.nativeEnum(UserRole),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+});
 
-  @IsString()
-  @IsNotEmpty()
-  password: string;
+export type CreateUserDto = z.infer<typeof CreateUserDtoSchema>;
+export type UpdateUserDto = z.infer<typeof UpdateUserDtoSchema>;
+export type UserDto = z.infer<typeof UserDtoSchema>;
 
-  @IsEnum(UserRole)
-  @IsNotEmpty()
-  role: UserRole;
-}
-
-export class UpdateUserDto {
-  @IsEmail()
-  @IsOptional()
-  email?: string;
-
-  @IsString()
-  @IsOptional()
-  firstName?: string;
-
-  @IsString()
-  @IsOptional()
-  lastName?: string;
-
-  @IsString()
-  @IsOptional()
-  password?: string;
-
-  @IsEnum(UserRole)
-  @IsOptional()
-  role?: UserRole;
-}
-
-export class UserDto {
-  id!: string;
-  email!: string;
-  firstName!: string;
-  lastName!: string;
-  role!: UserRole;
-  createdAt!: Date;
-  updatedAt!: Date;
-}
+// Export types as runtime-accessible objects for NX webpack compatibility
+export const CreateUserDto = {} as CreateUserDto;
+export const UpdateUserDto = {} as UpdateUserDto;
+export const UserDto = {} as UserDto;

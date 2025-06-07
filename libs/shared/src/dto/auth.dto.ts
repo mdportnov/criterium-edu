@@ -1,47 +1,32 @@
-import {
-  IsEmail,
-  IsNotEmpty,
-  IsString,
-  IsUUID,
-  MinLength,
-} from 'class-validator';
+import { z } from 'zod';
 
-export class LoginDto {
-  @IsEmail()
-  @IsNotEmpty()
-  email: string;
+export const LoginSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(6),
+});
 
-  @IsString()
-  @IsNotEmpty()
-  @MinLength(6)
-  password: string;
-}
+export const RegisterSchema = z.object({
+  email: z.string().email(),
+  firstName: z.string().min(1),
+  lastName: z.string().min(1),
+  password: z.string().min(6),
+});
 
-export class RegisterDto {
-  @IsEmail()
-  @IsNotEmpty()
-  email: string;
+export const TokenSchema = z.object({
+  access_token: z.string(),
+});
 
-  @IsString()
-  @IsNotEmpty()
-  firstName: string;
+export const LoginAsSchema = z.object({
+  userId: z.string().uuid(),
+});
 
-  @IsString()
-  @IsNotEmpty()
-  lastName: string;
+export type LoginDto = z.infer<typeof LoginSchema>;
+export type RegisterDto = z.infer<typeof RegisterSchema>;
+export type TokenDto = z.infer<typeof TokenSchema>;
+export type LoginAsDto = z.infer<typeof LoginAsSchema>;
 
-  @IsString()
-  @IsNotEmpty()
-  @MinLength(6)
-  password: string;
-}
-
-export class TokenDto {
-  access_token!: string;
-}
-
-export class LoginAsDto {
-  @IsUUID()
-  @IsNotEmpty()
-  userId: string;
-}
+// Export types as runtime-accessible objects for NX webpack compatibility
+export const LoginDto = {} as LoginDto;
+export const RegisterDto = {} as RegisterDto;
+export const TokenDto = {} as TokenDto;
+export const LoginAsDto = {} as LoginAsDto;

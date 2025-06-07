@@ -5,7 +5,7 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { Task } from './task.entity';
+import type { Task } from './task.entity';
 
 @Entity('task_criteria')
 export class TaskCriterion {
@@ -27,7 +27,7 @@ export class TaskCriterion {
   @Column({ type: 'uuid' })
   taskId: string;
 
-  @ManyToOne(() => Task, (task) => task.criteria, { onDelete: 'CASCADE' })
+  @ManyToOne('Task', (task: Task) => task.criteria, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'taskId' })
   task: Task;
 }

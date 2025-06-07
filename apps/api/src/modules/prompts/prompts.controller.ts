@@ -9,11 +9,8 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import {
-  CreatePromptDto,
-  PromptsService,
-  UpdatePromptDto,
-} from './prompts.service';
+import { PromptsService } from './prompts.service';
+import { CreatePromptDto, UpdatePromptDto } from '@app/shared';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';

@@ -7,7 +7,7 @@ COPY package*.json ./
 COPY tsconfig*.json ./
 
 # Copy apps and libs
-COPY apps/web-ui ./apps/web-ui
+COPY apps/web ./apps/web
 COPY libs ./libs
 
 # Install dependencies
@@ -24,7 +24,7 @@ RUN npm run build:web
 FROM nginx:alpine
 
 # Copy the built files to nginx
-COPY --from=builder /app/apps/web-ui/dist /usr/share/nginx/html
+COPY --from=builder /app/apps/web/dist /usr/share/nginx/html
 
 # Copy nginx config
 COPY apps/nginx/nginx.conf /etc/nginx/conf.d/default.conf
