@@ -40,7 +40,7 @@ const ProcessingOperationPage = () => {
   const [isRestartingOperation, setIsRestartingOperation] = useState(false);
 
   useEffect(() => {
-    if (!operationId) return;
+    if (!operationId) return undefined;
 
     const fetchOperation = async (isManualRefresh = false) => {
       try {

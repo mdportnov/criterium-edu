@@ -1,34 +1,39 @@
-FROM node:22-alpine AS builder
+FROM --platform=linux/amd64 node:22-alpine AS build
 
-WORKDIR /app
+WORKDIR /usr/src/app
 
 # Copy package files
 COPY package*.json ./
+COPY nx.json ./
 COPY tsconfig*.json ./
+COPY eslint.config.mjs ./
 
-# Copy apps and libs
+# Install all dependencies (fix rollup arm64 musl issue)
+RUN npm ci --no-optional --ignore-scripts
+
+# Copy source code
 COPY apps/web ./apps/web
 COPY libs ./libs
 
-# Install dependencies
-RUN npm ci
+# Build arguments
+ARG VITE_API_URL=/api
 
-# Build the frontend
-ARG VITE_API_URL
-ENV VITE_API_URL=$VITE_API_URL
+# Build the application using NX
+RUN npx nx build web
 
-# Build frontend
-RUN npm run build:web
+###################
+# PRODUCTION
+###################
+FROM --platform=linux/amd64 nginx:alpine AS production
 
-# Production stage with Nginx
-FROM nginx:alpine
+# Copy built application
+COPY --from=build /usr/src/app/dist/apps/web /usr/share/nginx/html
 
-# Copy the built files to nginx
-COPY --from=builder /app/apps/web/dist /usr/share/nginx/html
+# Copy nginx configuration
+COPY apps/nginx/nginx.conf /etc/nginx/nginx.conf
 
-# Copy nginx config
-COPY apps/nginx/nginx.conf /etc/nginx/conf.d/default.conf
-
+# Expose port
 EXPOSE 80
 
+# Start nginx
 CMD ["nginx", "-g", "daemon off;"]

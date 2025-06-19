@@ -2,10 +2,12 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "composite": true,
+    "declaration": true,
     "skipLibCheck": true,
     "module": "ESNext",
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
+    "jsx": "react-jsx",
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
@@ -13,6 +15,9 @@
       "@app/shared/*": ["../../libs/shared/src/*"]
     }
   },
-  "include": ["src/**/*", "vite.config.ts"],
-  "exclude": ["dist", "node_modules"]
+  "include": ["src/**/*", "vite.config.ts", "../../libs/shared/src/**/*"],
+  "exclude": ["dist", "node_modules"],
+  "references": [
+    { "path": "../../libs/shared" }
+  ]
 }

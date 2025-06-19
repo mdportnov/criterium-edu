@@ -1,77 +1,69 @@
+version: '3.8'
+
 services:
-  # PostgreSQL Database
   postgres:
-    image: postgres:17-alpine
-    container_name: criterium-postgres
-    env_file:
-      - apps/api/.env.local
+    image: postgres:16-alpine
     environment:
-      POSTGRES_USER: ${DB_USERNAME:-postgres}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
-      POSTGRES_DB: ${DB_NAME:-criterium}
-      PGDATA: /var/lib/postgresql/data/pgdata
-    volumes:
-      - "./data/var/lib/postgresql/data/pg:/var/lib/postgresql/data"
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: criterium
     ports:
-      - "${DB_PORT:-5432}:5432"
+      - "5432:5432"
+    volumes:
+      - ./data/pg:/var/lib/postgresql/data
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
       timeout: 5s
       retries: 5
-    restart: unless-stopped
     networks:
       - criterium-network
 
-  # Backend API Service
-  backend:
+  api:
     build:
       context: .
       dockerfile: backend.Dockerfile
-    container_name: criterium-backend
-    platform: linux/amd64
-    env_file:
-      - apps/api/.env.local
+      target: build
+    volumes:
+      - ./apps/api:/usr/src/app/apps/api
+      - ./libs:/usr/src/app/libs
+      - ./dist:/usr/src/app/dist
+      - /usr/src/app/node_modules
+    ports:
+      - "3000:3000"
     environment:
-      NODE_ENV: ${NODE_ENV:-production}
-      BACKEND_PORT: ${BACKEND_PORT:-3000}
+      NODE_ENV: development
+      PORT: 3000
       DB_HOST: postgres
       DB_PORT: 5432
-      DB_USERNAME: ${DB_USERNAME:-postgres}
-      DB_PASSWORD: ${DB_PASSWORD:-postgres}
-      DB_NAME: ${DB_NAME:-criterium}
-      JWT_SECRET: ${JWT_SECRET:-your-local-secret-key}
-      JWT_EXPIRATION_TIME: ${JWT_EXPIRATION_TIME:-1d}
-      LOG_LEVEL: ${LOG_LEVEL:-info}
-    ports:
-      - "${BACKEND_PORT:-3000}:3000"
-    restart: always
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: criterium
+      JWT_SECRET: your-development-secret
     depends_on:
       postgres:
         condition: service_healthy
     networks:
       - criterium-network
+    command: npx nx serve api --host 0.0.0.0
 
-  # Frontend Web Service
-  frontend:
+  web:
     build:
       context: .
-      dockerfile: frontend.Dockerfile
-      args:
-        VITE_API_URL: ${VITE_API_URL:-http://localhost/api}
-    container_name: criterium-frontend
-    platform: linux/amd64
-    env_file:
-      - apps/web/.env.local
+      dockerfile: Dockerfile.dev.web
+    volumes:
+      - ./apps/web:/usr/src/app/apps/web
+      - ./libs:/usr/src/app/libs
+      - /usr/src/app/node_modules
     ports:
-      - "${FRONTEND_PORT:-5173}:5173"
-    restart: always
-    depends_on:
-      - backend
+      - "5173:5173"
+    environment:
+      NODE_ENV: development
+      VITE_API_URL: http://localhost:3000
     networks:
       - criterium-network
+    command: npx nx serve web --host 0.0.0.0
 
 networks:
   criterium-network:
     driver: bridge
-    attachable: true

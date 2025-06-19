@@ -1,0 +1,14 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "composite": true,
+    "declaration": true,
+    "skipLibCheck": true,
+    "strictPropertyInitialization": false,
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "outDir": "../../dist/libs/shared"
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "test", "**/*spec.ts"]
+}

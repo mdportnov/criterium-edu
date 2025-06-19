@@ -95,6 +95,8 @@ const ProcessingStatusPage = () => {
         return <CheckCircle className="w-4 h-4 text-green-500" />;
       case 'failed':
         return <AlertCircle className="w-4 h-4 text-red-500" />;
+      default:
+        return <Clock className="w-4 h-4 text-gray-500" />;
     }
   };
 
