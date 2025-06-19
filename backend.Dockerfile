@@ -70,11 +70,11 @@ ENV DB_NAME=${DB_NAME}
 EXPOSE 3000
 
 # Create startup script
-COPY --chown=nestjs:nodejs start-nx.sh ./
-RUN chmod +x start-nx.sh
+COPY --chown=nestjs:nodejs start.sh ./
+RUN chmod +x start.sh
 
 # Switch to non-root user
 USER nestjs
 
 # Use dumb-init and the startup script
-CMD ["dumb-init", "./start-nx.sh"]
+CMD ["dumb-init", "./start.sh"]

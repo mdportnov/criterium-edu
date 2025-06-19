@@ -1,4 +1,4 @@
-name: Deploy Backend (NX)
+name: Deploy Backend
 
 on:
   push:
@@ -94,14 +94,14 @@ jobs:
             sudo chown -R ${{ secrets.SSH_USER }}:${{ secrets.SSH_USER }} /var/www/criterium
 
             cp -f ~/criterium/docker-compose.yml /var/www/criterium/docker-compose.yml
-            cp -f ~/criterium/start-nx.sh /var/www/criterium/
+            cp -f ~/criterium/start.sh /var/www/criterium/
             cp -f ~/criterium/apps/api/.env.production /var/www/criterium/apps/api/
             
             cd /var/www/criterium
             
             mkdir -p ./data/pg
             chmod -R 777 ./data
-            chmod +x start-nx.sh
+            chmod +x start.sh
             
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             
