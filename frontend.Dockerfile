@@ -1,4 +1,4 @@
-FROM --platform=linux/amd64 node:22-alpine AS build
+FROM node:24-alpine AS build
 
 WORKDIR /usr/src/app
 
@@ -8,8 +8,8 @@ COPY nx.json ./
 COPY tsconfig*.json ./
 COPY eslint.config.mjs ./
 
-# Install all dependencies (fix rollup arm64 musl issue)
-RUN npm ci --no-optional --ignore-scripts
+# Install all dependencies
+RUN npm ci
 
 # Copy source code
 COPY apps/web ./apps/web
