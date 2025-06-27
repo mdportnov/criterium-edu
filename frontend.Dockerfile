@@ -4,6 +4,7 @@ WORKDIR /usr/src/app
 
 # Copy package files
 COPY package*.json ./
+COPY apps/web/package.json ./apps/web/
 COPY nx.json ./
 COPY tsconfig*.json ./
 COPY eslint.config.mjs ./
@@ -24,7 +25,7 @@ RUN npx nx build web
 ###################
 # PRODUCTION
 ###################
-FROM --platform=linux/amd64 nginx:alpine AS production
+FROM nginx:alpine AS production
 
 # Copy built application
 COPY --from=build /usr/src/app/dist/apps/web /usr/share/nginx/html
