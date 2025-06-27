@@ -1,15 +1,16 @@
-FROM --platform=linux/amd64 node:22-alpine AS build
+FROM node:24-alpine AS build
 
 WORKDIR /usr/src/app
 
 # Copy package files
 COPY package*.json ./
+COPY apps/web/package.json ./apps/web/
 COPY nx.json ./
 COPY tsconfig*.json ./
 COPY eslint.config.mjs ./
 
-# Install all dependencies (fix rollup arm64 musl issue)
-RUN npm ci --no-optional --ignore-scripts
+# Install all dependencies
+RUN npm ci
 
 # Copy source code
 COPY apps/web ./apps/web
@@ -24,7 +25,7 @@ RUN npx nx build web
 ###################
 # PRODUCTION
 ###################
-FROM --platform=linux/amd64 nginx:alpine AS production
+FROM nginx:alpine AS production
 
 # Copy built application
 COPY --from=build /usr/src/app/dist/apps/web /usr/share/nginx/html
