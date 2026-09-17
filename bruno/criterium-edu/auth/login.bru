@@ -16,36 +16,38 @@ headers {
 
 body:json {
   {
-    "email": "admin@criterium-edu.com",
-    "password": "admin123"
+    "email": "admin@example.com",
+    "password": "Passw0rd!23"
   }
 }
 
 tests {
-  test("Response status is 201", function() {
-    expect(res.status).to.equal(201);
+  test("returns 200", function() {
+    expect(res.status).to.equal(200);
   });
-  
-  test("Response has access_token", function() {
-    expect(res.body).to.have.property('access_token');
+
+  test("returns the profile, and no token in the body", function() {
+    expect(res.body).to.have.property('email');
+    expect(res.body).to.not.have.property('access_token');
   });
-  
-  // Store the token for later use
-  bru.setEnvVar("authToken", res.body.access_token);
+
+  test("sets an httpOnly session cookie", function() {
+    const cookies = res.headers['set-cookie'] || [];
+    const session = cookies.find((c) => c.startsWith('criterium_session='));
+    expect(session, 'criterium_session cookie').to.be.a('string');
+    expect(session).to.include('HttpOnly');
+  });
+
+  // Writes need this echoed back in an X-CSRF-Token header.
+  const csrf = (res.headers['set-cookie'] || [])
+    .find((c) => c.startsWith('criterium_csrf='));
+  if (csrf) {
+    bru.setVar("csrfToken", csrf.split(';')[0].split('=')[1]);
+  }
 }
 
 docs {
-  # Login API
-  
-  This endpoint authenticates a user and returns a JWT token.
-  
-  ## Request Body
-  
-  - `email`: The user's email address
-  - `password`: The user's password
-  
-  ## Response
-  
-  - `access_token`: JWT token for authenticated requests
-  - `user`: User details
+  Signing in sets two cookies: criterium_session (httpOnly, the actual
+  session) and criterium_csrf (readable, echoed back on every write).
+  Bruno stores and resends them automatically.
 }

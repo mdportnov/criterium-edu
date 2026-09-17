@@ -1,6 +1,8 @@
 vars {
-  // These variables will be set dynamically during test execution
-  authToken: ""
+  // Set during test execution. There is no auth token here on purpose: the
+  // session is an httpOnly cookie the client stores, and writes echo the
+  // readable CSRF cookie back in an X-CSRF-Token header.
+  csrfToken: ""
   taskId: ""
   solutionId: ""
   reviewId: ""

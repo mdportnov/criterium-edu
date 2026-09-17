@@ -7,16 +7,13 @@ meta {
 get {
   url: {{baseUrl}}/users
   body: none
-  auth: bearer
+  auth: none
 }
 
 headers {
   Content-Type: application/json
 }
 
-auth:bearer {
-  token: {{authToken}}
-}
 
 docs {
   # Get All Users API

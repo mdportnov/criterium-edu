@@ -7,16 +7,13 @@ meta {
 get {
   url: {{baseUrl}}/tasks/1
   body: none
-  auth: bearer
+  auth: none
 }
 
 headers {
   Content-Type: application/json
 }
 
-auth:bearer {
-  token: {{authToken}}
-}
 
 tests {
   test("Response status is 200", function() {

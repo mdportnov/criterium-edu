@@ -16,37 +16,24 @@ headers {
 
 body:json {
   {
-    "email": "admin@criterium-edu.com",
-    "firstName": "Admin",
-    "lastName": "Adminov",
-    "password": "admin123"
+    "email": "new.user@example.com",
+    "firstName": "New",
+    "lastName": "User",
+    "password": "Passw0rd!23"
   }
 }
 
 tests {
-  test("Response status is 201", function() {
+  test("returns 201", function() {
     expect(res.status).to.equal(201);
   });
-  
-  test("Response has access_token", function() {
-    expect(res.body).to.have.property('access_token');
+
+  test("new accounts are students", function() {
+    expect(res.body.role).to.equal('student');
   });
 }
 
 docs {
-  # Register API
-  
-  This endpoint registers a new user and returns a JWT token.
-  
-  ## Request Body
-  
-  - `email`: The user's email address
-  - `firstName`: The user's first name
-  - `lastName`: The user's last name
-  - `password`: The user's password
-  
-  ## Response
-  
-  - `access_token`: JWT token for authenticated requests
-  - `user`: User details
+  Registration can be switched off in the admin settings, in which case this
+  returns 403. It always creates a student, whatever the payload asks for.
 }

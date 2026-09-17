@@ -7,16 +7,14 @@ meta {
 post {
   url: {{baseUrl}}/checker/process/{{solutionId}}
   body: none
-  auth: bearer
+  auth: none
 }
 
 headers {
+  X-CSRF-Token: {{csrfToken}}
   Content-Type: application/json
 }
 
-auth:bearer {
-  token: {{authToken}}
-}
 
 docs {
   # Process Task Solution API
