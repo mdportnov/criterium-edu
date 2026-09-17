@@ -29,6 +29,7 @@ import { UserRole } from '@app/shared/interfaces';
 import { ProcessingOperation } from './entities/processing-operation.entity';
 import { User } from '../users/entities/user.entity';
 import { Logger } from 'nestjs-pino';
+import { errorMessage, errorStack } from '../../common/errors';
 
 @Injectable()
 export class BulkOperationsService {
@@ -96,11 +97,11 @@ export class BulkOperationsService {
           {
             message: 'Error importing task',
             taskTitle: bulkTask.title,
-            error: error instanceof Error ? error.message : String(error),
+            error: error instanceof Error ? errorMessage(error) : String(error),
           },
           BulkOperationsService.name,
         );
-        errors.push({ taskTitle: bulkTask.title, error: error.message });
+        errors.push({ taskTitle: bulkTask.title, error: errorMessage(error) });
       }
     }
 
@@ -204,7 +205,8 @@ export class BulkOperationsService {
               studentName: solution.studentName,
               studentId: solution.studentId,
               taskId: solution.taskId,
-              error: error instanceof Error ? error.message : String(error),
+              error:
+                error instanceof Error ? errorMessage(error) : String(error),
               progress: `${i + 1}/${solutionsData.length}`,
             },
             BulkOperationsService.name,
@@ -213,7 +215,7 @@ export class BulkOperationsService {
           errors.push({
             studentName: solution.studentName,
             studentId: solution.studentId,
-            error: error.message,
+            error: errorMessage(error),
           });
         }
 
@@ -244,7 +246,7 @@ export class BulkOperationsService {
         {
           message: 'Solution import process failed',
           operationId,
-          error: error instanceof Error ? error.message : String(error),
+          error: error instanceof Error ? errorMessage(error) : String(error),
         },
         BulkOperationsService.name,
       );
@@ -253,7 +255,7 @@ export class BulkOperationsService {
         operationId,
         ProcessingStatus.FAILED,
         undefined,
-        error.message,
+        errorMessage(error),
       );
     }
   }
@@ -467,7 +469,7 @@ export class BulkOperationsService {
         {
           message: 'LLM assessment process failed',
           operationId,
-          error: error instanceof Error ? error.message : String(error),
+          error: error instanceof Error ? errorMessage(error) : String(error),
         },
         BulkOperationsService.name,
       );
@@ -476,7 +478,7 @@ export class BulkOperationsService {
         operationId,
         ProcessingStatus.FAILED,
         undefined,
-        error.message,
+        errorMessage(error),
       );
     }
   }
@@ -572,7 +574,7 @@ export class BulkOperationsService {
             message: 'Failed to stop assessment session',
             operationId,
             assessmentSessionId: operation.metadata.assessmentSessionId,
-            error: error.message,
+            error: errorMessage(error),
           },
           BulkOperationsService.name,
         );
@@ -652,7 +654,7 @@ export class BulkOperationsService {
           operationId,
           ProcessingStatus.FAILED,
           operation.metadata,
-          `Restart failed: ${error.message}`,
+          `Restart failed: ${errorMessage(error)}`,
         );
       }
     } else if (operation.type === OperationType.BULK_SOLUTION_IMPORT) {
@@ -755,7 +757,7 @@ export class BulkOperationsService {
                 message: 'Failed to stop stuck assessment session',
                 operationId: operation.id,
                 assessmentSessionId: operation.metadata.assessmentSessionId,
-                error: error.message,
+                error: errorMessage(error),
               },
               BulkOperationsService.name,
             );
@@ -768,7 +770,7 @@ export class BulkOperationsService {
           {
             message: 'Failed to handle stuck operation',
             operationId: operation.id,
-            error: error.message,
+            error: errorMessage(error),
           },
           BulkOperationsService.name,
         );

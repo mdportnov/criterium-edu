@@ -54,8 +54,8 @@ export class UsersService {
   }
 
   /** Without the hash - for everything except checking a password. */
-  async findByEmail(email: string): Promise<User> {
-    return await this.usersRepository.findOneBy({ email });
+  async findByEmail(email: string): Promise<User | null> {
+    return this.usersRepository.findOneBy({ email });
   }
 
   /**

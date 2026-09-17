@@ -20,13 +20,13 @@ export const UpdateTaskSolutionReviewDtoSchema = z.object({
   feedbackToStudent: z.string().optional(),
   reviewerComment: z.string().optional(),
   source: z.nativeEnum(ReviewSource).optional(),
-  reviewerId: z.string().optional(),
+  reviewerId: z.string().nullish(),
 });
 
 export const TaskSolutionReviewDtoSchema = z.object({
   id: z.string(),
   taskSolutionId: z.string(),
-  reviewerId: z.string().optional(),
+  reviewerId: z.string().nullish(),
   criteriaScores: z.array(CriterionScoreDtoSchema),
   totalScore: z.number(),
   feedbackToStudent: z.string(),

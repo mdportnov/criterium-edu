@@ -29,9 +29,14 @@ export interface ApiUsageCreateData {
   metadata?: Record<string, any>;
 }
 
+interface ModelPricing {
+  prompt: number;
+  completion: number;
+}
+
 @Injectable()
 export class CostTrackingService {
-  private readonly PRICING = {
+  private readonly PRICING: Record<string, Record<string, ModelPricing>> = {
     openai: {
       'gpt-4': {
         prompt: 0.03 / 1000, // $0.03 per 1K tokens

@@ -21,7 +21,7 @@ export const ProcessingOperationDtoSchema = z.object({
   processedItems: z.number(),
   failedItems: z.number(),
   timeoutMinutes: z.number(),
-  errorMessage: z.string().optional(),
+  errorMessage: z.string().nullish(),
   metadata: z.record(z.any()).optional(),
   createdAt: z.date(),
   updatedAt: z.date(),

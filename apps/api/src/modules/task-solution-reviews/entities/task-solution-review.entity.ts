@@ -26,7 +26,7 @@ export class TaskSolutionReview {
   taskSolution: TaskSolution;
 
   @Column({ type: 'uuid', nullable: true })
-  reviewerId: string;
+  reviewerId: string | null;
 
   @ManyToOne(() => User, { nullable: true })
   @JoinColumn({ name: 'reviewerId' })

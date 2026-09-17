@@ -92,20 +92,20 @@ export class AssessmentSession {
   updatedAt: Date;
 
   @Column({ type: 'timestamp', name: 'completion_time', nullable: true })
-  completedAt?: Date;
+  completedAt?: Date | null;
 
   @Column({ type: 'text', name: 'error_message', nullable: true })
-  errorMessage?: string;
+  errorMessage?: string | null;
 
   @Column({ type: 'json', nullable: true })
   errors?: Array<{
     solutionId: string;
     error: string;
     timestamp: Date;
-  }>;
+  }> | null;
 
   @Column({ type: 'json', nullable: true })
-  statistics?: {
+  statistics?: null | {
     totalTime?: number;
     averageProcessingTime?: number;
     averageScore?: number;

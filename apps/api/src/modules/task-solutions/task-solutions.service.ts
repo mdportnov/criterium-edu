@@ -27,8 +27,10 @@ export class TaskSolutionsService {
   ) {}
 
   // Helper to map TaskSolution entity to TaskSolutionDto
+  // Every caller has already resolved the entity - findOne throws NotFound -
+  // so the old `if (!solution) return null` branch was unreachable, and it
+  // pushed a null into a return type that said it could not be null.
   private mapTaskSolutionToDto(solution: TaskSolution): TaskSolutionDto {
-    if (!solution) return null;
     return {
       id: solution.id,
       taskId: solution.task?.id, // Safely access task id

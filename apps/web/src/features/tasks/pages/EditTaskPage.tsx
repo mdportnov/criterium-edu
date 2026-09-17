@@ -29,7 +29,21 @@ const EditTaskPage: React.FC = () => {
   const [error, setError] = useState('');
   const [task, setTask] = useState<Task | null>(null);
 
-  const [formData, setFormData] = useState<UpdateTaskRequest>({
+  /**
+   * The form always holds concrete values; UpdateTaskRequest makes every field
+   * optional because it describes a partial update. Typing the state as the
+   * request shape meant every read had to cope with undefined that could not
+   * occur.
+   */
+  type TaskFormState = Required<
+    Pick<UpdateTaskRequest, 'title' | 'description' | 'criteria'>
+  > &
+    Pick<UpdateTaskRequest, 'authorSolution'> & {
+      categories: string[];
+      tags: string[];
+    };
+
+  const [formData, setFormData] = useState<TaskFormState>({
     title: '',
     description: '',
     authorSolution: '',

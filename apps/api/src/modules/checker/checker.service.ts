@@ -10,6 +10,7 @@ import { TasksService } from '../tasks/tasks.service';
 import { TaskSolutionsService } from '../task-solutions/task-solutions.service';
 import { TaskSolutionReviewsService } from '../task-solution-reviews/task-solution-reviews.service';
 import { OpenaiApiService } from '../openai/services/openai.service';
+import { errorMessage, errorStack } from '../../common/errors';
 
 @Injectable()
 export class CheckerService {
@@ -60,7 +61,7 @@ export class CheckerService {
     } catch (error) {
       this.logger.error(
         `Error processing task solution ID: ${taskSolutionId}`,
-        error.stack,
+        errorStack(error),
       );
       throw error;
     }
@@ -137,7 +138,7 @@ Return ONLY the JSON string. For example: {"score": ${Math.floor(criterion.maxPo
           parsedResponse = JSON.parse(cleanedAiResponse);
         } catch (parseError) {
           this.logger.error(
-            `Failed to parse AI JSON response for criterion "${criterion.name}" (ID: ${criterion.id}): ${parseError.message}. Response: ${aiResponse}. Assigning default score 0.`,
+            `Failed to parse AI JSON response for criterion "${criterion.name}" (ID: ${criterion.id}): ${errorMessage(parseError)}. Response: ${aiResponse}. Assigning default score 0.`,
           );
           criteriaScores.push({
             criterionId: criterion.id,
@@ -177,13 +178,13 @@ Return ONLY the JSON string. For example: {"score": ${Math.floor(criterion.maxPo
         );
       } catch (error) {
         this.logger.error(
-          `Error evaluating criterion "${criterion.name}" (ID: ${criterion.id}) with AI: ${error.message}`,
-          error.stack,
+          `Error evaluating criterion "${criterion.name}" (ID: ${criterion.id}) with AI: ${errorMessage(error)}`,
+          errorStack(error),
         );
         criteriaScores.push({
           criterionId: criterion.id,
           score: 0,
-          comment: `Error during AI evaluation for this criterion: ${error.message}`,
+          comment: `Error during AI evaluation for this criterion: ${errorMessage(error)}`,
         });
       }
     }
@@ -252,10 +253,10 @@ Return ONLY the feedback text. Do not include any preamble like "Here is the fee
       return aiFeedback;
     } catch (error) {
       this.logger.error(
-        `Error generating AI feedback for task solution ID: ${taskSolution.id}: ${error.message}`,
-        error.stack,
+        `Error generating AI feedback for task solution ID: ${taskSolution.id}: ${errorMessage(error)}`,
+        errorStack(error),
       );
-      return `An error occurred while generating AI feedback: ${error.message}`;
+      return `An error occurred while generating AI feedback: ${errorMessage(error)}`;
     }
   }
 }

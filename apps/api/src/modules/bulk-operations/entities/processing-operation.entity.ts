@@ -38,7 +38,7 @@ export class ProcessingOperation {
   failedItems: number;
 
   @Column({ type: 'text', nullable: true })
-  errorMessage?: string;
+  errorMessage?: string | null;
 
   @Column({ type: 'timestamp', nullable: true })
   lastProgressUpdate?: Date;

@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DeepPartial, Repository } from 'typeorm';
 import {
   BatchImportSolutionsDto,
   ImportSolutionDto,
@@ -91,12 +91,12 @@ export class SolutionImportService {
     // Create new solution
     const solution = this.solutionRepository.create({
       content: importDto.content,
-      externalId: importDto.externalId || null,
+      externalId: importDto.externalId,
       task,
       user,
       source,
       status: TaskSolutionStatus.SUBMITTED,
-    });
+    } as DeepPartial<TaskSolution>);
 
     return this.solutionRepository.save(solution);
   }

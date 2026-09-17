@@ -30,12 +30,6 @@ import { GetCurrentUser } from '../auth/decorators/current-user.decorator';
 
 // Helper function to map a single TaskSolution entity to TaskSolutionDto
 function mapTaskSolutionToDto(solution: TaskSolution): TaskSolutionDto {
-  if (!solution) {
-    // Or throw an error, or ensure relations are always loaded by the service
-    // For now, returning null and filtering later, but this might hide issues
-    // if task or user are unexpectedly null.
-    return null;
-  }
   return {
     id: solution.id,
     // Ensure 'task' and 'user' relations are loaded by the service methods

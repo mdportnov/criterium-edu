@@ -400,7 +400,7 @@ export const PromptsTab: React.FC = () => {
               >
                 <Input
                   id="variables"
-                  value={formData.variables.join(', ')}
+                  value={(formData.variables ?? []).join(', ')}
                   onChange={(e) =>
                     setFormData({
                       ...formData,

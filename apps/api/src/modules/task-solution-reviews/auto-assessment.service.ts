@@ -75,18 +75,28 @@ export class AutoAssessmentService {
       throw new NotFoundException('No solutions found for the provided IDs');
     }
 
-    const taskInfo = solutions.reduce((acc, solution) => {
-      const taskId = solution.task.id;
-      if (!acc[taskId]) {
-        acc[taskId] = {
-          id: taskId,
-          title: solution.task.title,
-          description: solution.task.description,
-          criteria: solution.task.criteria || [],
-        };
-      }
-      return acc;
-    }, {});
+    interface TaskSummary {
+      id: string;
+      title: string;
+      description: string;
+      criteria: unknown[];
+    }
+
+    const taskInfo = solutions.reduce<Record<string, TaskSummary>>(
+      (acc, solution) => {
+        const taskId = solution.task.id;
+        if (!acc[taskId]) {
+          acc[taskId] = {
+            id: taskId,
+            title: solution.task.title,
+            description: solution.task.description,
+            criteria: solution.task.criteria || [],
+          };
+        }
+        return acc;
+      },
+      {},
+    );
 
     const firstTask = Object.values(taskInfo)[0] as any;
 

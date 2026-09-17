@@ -43,9 +43,10 @@ export class TasksService {
       categories: task.categories,
       tags: task.tags,
       createdBy: task.createdBy,
-      criteria: task.criteria
-        ? task.criteria.map(this.mapTaskCriterionToDto)
-        : [],
+      criteria: (task.criteria ?? []).map((criterion) => ({
+        ...this.mapTaskCriterionToDto(criterion),
+        id: criterion.id,
+      })),
       createdAt: task.createdAt,
       updatedAt: task.updatedAt,
     };
@@ -146,6 +147,10 @@ export class TasksService {
       where: { id: savedTask.id },
       relations: ['criteria', 'creator'],
     });
+    if (!fullSavedTask) {
+      throw new NotFoundException(`Task with ID ${savedTask.id} not found`);
+    }
+
     return this.mapTaskToDto(fullSavedTask);
   }
 
@@ -240,6 +245,10 @@ export class TasksService {
       where: { id: updatedTask.id },
       relations: ['criteria', 'creator'],
     });
+    if (!fullUpdatedTask) {
+      throw new NotFoundException(`Task with ID ${updatedTask.id} not found`);
+    }
+
     return this.mapTaskToDto(fullUpdatedTask);
   }
 

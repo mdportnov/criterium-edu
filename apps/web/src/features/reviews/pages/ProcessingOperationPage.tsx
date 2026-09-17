@@ -184,7 +184,8 @@ const ProcessingOperationPage = () => {
     const taskIds: string[] = Array.isArray(metadata.taskIds)
       ? metadata.taskIds.map(String)
       : [];
-    const text = (value: unknown) => (value == null ? null : String(value));
+    const text = (value: unknown): string | null =>
+      value == null ? null : String(value);
 
     return (
       <div className="space-y-3">
@@ -203,7 +204,7 @@ const ProcessingOperationPage = () => {
           </div>
         )}
 
-        {metadata.llmModel && (
+        {Boolean(metadata.llmModel) && (
           <div>
             <p className="mb-1 text-xs font-medium text-foreground">AI model</p>
             <Badge>{text(metadata.llmModel)}</Badge>
