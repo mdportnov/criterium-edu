@@ -139,6 +139,15 @@ GHCR, and restart the stack over SSH.
 Images carry no secrets. The server keeps its own `/var/www/criterium/.env`,
 and a deploy aborts if that file is missing.
 
+## Documentation
+
+| File                          | What it is                                                                       |
+| ----------------------------- | -------------------------------------------------------------------------------- |
+| `docs/PRD.md`                 | what the product is meant to do                                                  |
+| `docs/AUDIT-2026-09.md`       | the September 2026 technical audit: what was wrong, what was fixed, what remains |
+| `docs/ACADEMY-INTEGRATION.md` | design note for pulling data from Academy                                        |
+| `apps/web/DESIGN.md`          | the frontend design rules                                                        |
+
 ## Licence
 
 MIT
