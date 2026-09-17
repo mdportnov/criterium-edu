@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -60,7 +60,7 @@ const EditTaskPage: React.FC = () => {
     maxPoints: 10,
   });
 
-  const fetchTask = async () => {
+  const fetchTask = useCallback(async () => {
     if (!id) return;
 
     setIsLoading(true);
@@ -85,11 +85,11 @@ const EditTaskPage: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [id]);
 
   useEffect(() => {
     void fetchTask();
-  }, [id]);
+  }, [fetchTask]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,

@@ -56,10 +56,10 @@ export class AuditLog {
   statusCode?: number;
 
   @Column({ name: 'request_data', type: 'jsonb', nullable: true })
-  requestData?: any;
+  requestData?: Record<string, unknown> | null;
 
   @Column({ name: 'response_data', type: 'jsonb', nullable: true })
-  responseData?: any;
+  responseData?: Record<string, unknown> | null;
 
   @Column({ name: 'error_message', type: 'text', nullable: true })
   errorMessage?: string;

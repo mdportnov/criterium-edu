@@ -4,8 +4,6 @@ import {
   Query,
   Param,
   UseGuards,
-  ParseIntPipe,
-  DefaultValuePipe,
   ParseUUIDPipe,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';

@@ -7,6 +7,16 @@ import type {
   UpdateTaskSolutionReviewRequest,
 } from '@/types';
 
+export interface BatchRejectionResult {
+  rejectedCount: number;
+  errors: { reviewId: string; error: string }[];
+}
+
+export interface BatchApprovalResult {
+  approvedCount: number;
+  errors: { reviewId: string; error: string }[];
+}
+
 export const TaskSolutionReviewService = {
   async getReviews(
     pagination?: PaginationParams,
@@ -104,20 +114,16 @@ export const TaskSolutionReviewService = {
     });
   },
 
-  async batchApproveReviews(
-    reviewIds: string[],
-  ): Promise<{ approvedCount: number; errors: any[] }> {
-    return apiRequest<{ approvedCount: number; errors: any[] }>({
+  async batchApproveReviews(reviewIds: string[]): Promise<BatchApprovalResult> {
+    return apiRequest<BatchApprovalResult>({
       method: 'POST',
       url: '/task-solution-reviews/batch-approve',
       data: { reviewIds },
     });
   },
 
-  async batchRejectReviews(
-    reviewIds: string[],
-  ): Promise<{ rejectedCount: number; errors: any[] }> {
-    return apiRequest<{ rejectedCount: number; errors: any[] }>({
+  async batchRejectReviews(reviewIds: string[]): Promise<BatchRejectionResult> {
+    return apiRequest<BatchRejectionResult>({
       method: 'POST',
       url: '/task-solution-reviews/batch-reject',
       data: { reviewIds },

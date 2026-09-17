@@ -26,7 +26,7 @@ export interface ApiUsageCreateData {
   totalTokens: number;
   costUsd: number;
   requestDuration?: number;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 interface ModelPricing {

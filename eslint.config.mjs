@@ -39,7 +39,9 @@ export default tseslint.config(
     },
     rules: {
       'no-console': ['warn', { allow: ['warn', 'error'] }],
-      '@typescript-eslint/no-explicit-any': 'warn',
+      // The workspace is at zero. Keep it there: `unknown` plus a narrowing
+      // step is always available, and `any` disables every other rule here.
+      '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/no-unused-vars': 'off',
       'unused-imports/no-unused-imports': 'warn',
       'unused-imports/no-unused-vars': [
@@ -75,6 +77,17 @@ export default tseslint.config(
         { allowConstantExport: true },
       ],
     },
+  },
+
+  // shadcn primitives export their cva variants next to the component, and a
+  // context file exports its hook next to its provider. Both are the accepted
+  // shape for those files; the rule only affects how granular hot reload is.
+  {
+    files: [
+      'apps/web/src/components/ui/**/*.tsx',
+      'apps/web/src/contexts/**/*.tsx',
+    ],
+    rules: { 'react-refresh/only-export-components': 'off' },
   },
 
   // Migrations are generated: raw SQL strings and long lines are expected.

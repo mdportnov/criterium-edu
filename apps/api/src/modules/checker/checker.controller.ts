@@ -4,6 +4,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from '@app/shared';
+import type { TaskSolutionReviewDto } from '@app/shared';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('checker')
@@ -17,7 +18,7 @@ export class CheckerController {
   @Roles(UserRole.ADMIN, UserRole.REVIEWER)
   async processTaskSolution(
     @Param('taskSolutionId') taskSolutionId: string,
-  ): Promise<any> {
+  ): Promise<TaskSolutionReviewDto> {
     return this.checkerService.processTaskSolution(taskSolutionId);
   }
 }

@@ -25,11 +25,11 @@ export class AuditMiddleware implements NestMiddleware {
     }
 
     const startTime = Date.now();
-    let responseData: any;
+    let responseData: unknown;
 
     // Capture original send method
     const originalSend = res.send.bind(res);
-    res.send = function (data: any) {
+    res.send = function (data: unknown) {
       responseData = data;
       return originalSend(data);
     };
@@ -70,7 +70,12 @@ export class AuditMiddleware implements NestMiddleware {
           statusCode: res.statusCode,
           requestData: sanitizedRequestData,
           responseData: sanitizedResponseData,
-          errorMessage: res.statusCode >= 400 ? responseData : undefined,
+          errorMessage:
+            res.statusCode >= 400
+              ? typeof responseData === 'string'
+                ? responseData
+                : JSON.stringify(responseData)
+              : undefined,
           durationMs: duration,
         });
       } catch (error) {
@@ -142,8 +147,12 @@ export class AuditMiddleware implements NestMiddleware {
     return { resourceType, resourceId };
   }
 
-  private static sanitizeRequestData(data: any): any {
-    if (!data || typeof data !== 'object') return data;
+  private static sanitizeRequestData(
+    data: unknown,
+  ): Record<string, unknown> | undefined {
+    if (!data || typeof data !== 'object' || Array.isArray(data)) {
+      return undefined;
+    }
 
     const sensitiveFields = [
       'password',
@@ -152,7 +161,9 @@ export class AuditMiddleware implements NestMiddleware {
       'key',
       'authorization',
     ];
-    const sanitized = { ...data };
+    const sanitized: Record<string, unknown> = {
+      ...(data as Record<string, unknown>),
+    };
 
     for (const field of sensitiveFields) {
       if (sanitized[field]) {
@@ -163,23 +174,27 @@ export class AuditMiddleware implements NestMiddleware {
     return sanitized;
   }
 
-  private static sanitizeResponseData(data: any): any {
+  /** A shape summary, never the body: responses can carry anything. */
+  private static sanitizeResponseData(
+    data: unknown,
+  ): Record<string, unknown> | undefined {
     if (!data) return undefined;
 
     try {
-      const parsed = typeof data === 'string' ? JSON.parse(data) : data;
+      const parsed: unknown =
+        typeof data === 'string' ? JSON.parse(data) : data;
 
-      // Only log basic response info for successful operations
-      if (parsed && typeof parsed === 'object') {
-        return {
-          id: parsed.id,
-          status: parsed.status,
-          message: parsed.message,
-          count: Array.isArray(parsed) ? parsed.length : undefined,
-        };
+      if (!parsed || typeof parsed !== 'object') {
+        return undefined;
       }
 
-      return undefined;
+      const record = parsed as Record<string, unknown>;
+      return {
+        id: record.id,
+        status: record.status,
+        message: record.message,
+        count: Array.isArray(parsed) ? parsed.length : undefined,
+      };
     } catch {
       return undefined;
     }

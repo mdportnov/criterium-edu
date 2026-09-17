@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindOneOptions, Repository } from 'typeorm';
+import { FindOneOptions, FindOptionsWhere, Repository } from 'typeorm';
 import { TaskSolutionReview } from './entities/task-solution-review.entity';
 import { CriterionScore } from './entities/criterion-score.entity';
 import {
@@ -15,6 +15,16 @@ import {
 } from '@app/shared';
 import { TaskSolution } from '../task-solutions/entities/task-solution.entity';
 import { TaskSolutionsService } from '../task-solutions/task-solutions.service';
+
+export interface BatchRejectionResult {
+  rejectedCount: number;
+  errors: { reviewId: string; error: string }[];
+}
+
+export interface BatchApprovalResult {
+  approvedCount: number;
+  errors: { reviewId: string; error: string }[];
+}
 
 @Injectable()
 export class TaskSolutionReviewsService {
@@ -66,7 +76,7 @@ export class TaskSolutionReviewsService {
     const skip = (page - 1) * size;
 
     // Build query conditions
-    const where: any = {};
+    const where: FindOptionsWhere<TaskSolutionReview> = {};
     if (taskId) {
       where.taskSolution = { task: { id: taskId } };
     }
@@ -324,7 +334,7 @@ export class TaskSolutionReviewsService {
   async batchApproveReviews(
     reviewIds: string[],
     reviewerId: string,
-  ): Promise<{ approvedCount: number; errors: any[] }> {
+  ): Promise<BatchApprovalResult> {
     const results = [];
     const errors = [];
 
@@ -360,9 +370,7 @@ export class TaskSolutionReviewsService {
     };
   }
 
-  async batchRejectReviews(
-    reviewIds: string[],
-  ): Promise<{ rejectedCount: number; errors: any[] }> {
+  async batchRejectReviews(reviewIds: string[]): Promise<BatchRejectionResult> {
     const results = [];
     const errors = [];
 
@@ -402,7 +410,7 @@ export class TaskSolutionReviewsService {
     const skip = (page - 1) * size;
 
     // Build query conditions for auto-reviews
-    const where: any = {
+    const where: FindOptionsWhere<TaskSolutionReview> = {
       source: ReviewSource.AUTO,
     };
 

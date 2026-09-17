@@ -70,7 +70,7 @@ export class PromptsController {
     if (variables) {
       try {
         parsedVariables = JSON.parse(variables);
-      } catch (error) {
+      } catch {
         parsedVariables = undefined;
       }
     }

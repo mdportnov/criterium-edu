@@ -1,4 +1,5 @@
 import { randomBytes } from 'crypto';
+import type { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
 import type { StartLlmAssessmentInput } from '../../common/dto';
 import {
   BadRequestException,
@@ -26,10 +27,13 @@ import {
   TaskDto,
 } from '@app/shared/dto';
 import { UserRole } from '@app/shared/interfaces';
-import { ProcessingOperation } from './entities/processing-operation.entity';
+import {
+  ProcessingOperation,
+  type ProcessingOperationMetadata,
+} from './entities/processing-operation.entity';
 import { User } from '../users/entities/user.entity';
 import { Logger } from 'nestjs-pino';
-import { errorMessage, errorStack } from '../../common/errors';
+import { errorMessage } from '../../common/errors';
 
 @Injectable()
 export class BulkOperationsService {
@@ -49,7 +53,7 @@ export class BulkOperationsService {
   ): Promise<{
     successfullyImported: number;
     totalTasks: number;
-    errors: any[];
+    errors: { taskTitle: string; error: string }[];
   }> {
     if (!Array.isArray(tasksData) || tasksData.length === 0) {
       throw new BadRequestException(
@@ -263,7 +267,7 @@ export class BulkOperationsService {
   async createProcessingOperation(data: {
     type: OperationType;
     totalItems: number;
-    metadata?: Record<string, any>;
+    metadata?: ProcessingOperationMetadata;
   }): Promise<ProcessingOperation> {
     const operation = this.processingOperationRepository.create({
       type: data.type,
@@ -278,14 +282,17 @@ export class BulkOperationsService {
   async updateOperationStatus(
     operationId: string,
     status: ProcessingStatus,
-    metadata?: Record<string, any>,
+    metadata?: ProcessingOperationMetadata,
     errorMessage?: string,
   ): Promise<void> {
     await this.processingOperationRepository.update(operationId, {
       status,
-      ...(metadata && { metadata }),
+      // The metadata interface carries an index signature so operation types
+      // can record their own fields; TypeORM's partial-entity type rejects
+      // that, so it is narrowed here rather than weakened everywhere.
+      ...(metadata && { metadata: metadata as ProcessingOperationMetadata }),
       ...(errorMessage && { errorMessage }),
-    });
+    } as QueryDeepPartialEntity<ProcessingOperation>);
   }
 
   async updateOperationProgress(
@@ -638,7 +645,7 @@ export class BulkOperationsService {
           llmModel: operation.metadata.llmModel,
           taskId: operation.metadata.taskId,
           systemPrompt: operation.metadata.systemPrompt,
-          userId: operation.metadata.userId,
+          userId: operation.metadata.userId ?? '',
           sessionName:
             operation.metadata.sessionName ||
             `Restarted Assessment ${operationId}`,

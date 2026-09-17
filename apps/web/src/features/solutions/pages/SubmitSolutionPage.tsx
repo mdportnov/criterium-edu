@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/label';
@@ -33,7 +33,7 @@ const SubmitSolutionPage: React.FC = () => {
     solutionText: '',
   });
 
-  const fetchTask = async () => {
+  const fetchTask = useCallback(async () => {
     if (!taskId) return;
 
     setIsLoading(true);
@@ -49,11 +49,11 @@ const SubmitSolutionPage: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [taskId]);
 
   useEffect(() => {
     void fetchTask();
-  }, [taskId]);
+  }, [fetchTask]);
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const { name, value } = e.target;

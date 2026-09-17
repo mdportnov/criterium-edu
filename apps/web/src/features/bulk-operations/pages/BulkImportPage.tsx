@@ -26,6 +26,51 @@ import {
 import { UserRole } from '@app/shared/interfaces';
 import { getErrorMessage } from '@/lib/errors';
 
+/*
+ * The two template buttons were rendered with no handler at all - they looked
+ * like functionality and did nothing. The contents mirror BulkImportTaskDto.
+ */
+const CSV_TEMPLATE = [
+  'title,description,categories,tags,criteria_name,criteria_description,criteria_points',
+  '"Sorting algorithm","Implement merge sort and explain its complexity","algorithms;sorting","week-1","Correctness","Produces a correctly sorted array for every input",10',
+  '"Sorting algorithm","Implement merge sort and explain its complexity","algorithms;sorting","week-1","Complexity analysis","States and justifies the time and space complexity",5',
+].join('\n');
+
+const JSON_TEMPLATE = JSON.stringify(
+  [
+    {
+      title: 'Sorting algorithm',
+      description: 'Implement merge sort and explain its complexity',
+      authorSolution: 'A reference solution, shown to reviewers only',
+      categories: ['algorithms', 'sorting'],
+      tags: ['week-1'],
+      criteria: [
+        {
+          name: 'Correctness',
+          description: 'Produces a correctly sorted array for every input',
+          maxPoints: 10,
+        },
+        {
+          name: 'Complexity analysis',
+          description: 'States and justifies the time and space complexity',
+          maxPoints: 5,
+        },
+      ],
+    },
+  ],
+  null,
+  2,
+);
+
+function downloadTemplate(filename: string, mimeType: string, body: string) {
+  const url = URL.createObjectURL(new Blob([body], { type: mimeType }));
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
 const BulkImportPage: React.FC = () => {
   const { hasRole } = useAuth();
   const [file, setFile] = useState<File | null>(null);
@@ -465,12 +510,32 @@ const BulkImportPage: React.FC = () => {
               </p>
 
               <div className="flex flex-col gap-3 sm:flex-row">
-                <Button variant="outline" className="flex-1">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() =>
+                    downloadTemplate(
+                      'criterium-tasks-template.csv',
+                      'text/csv',
+                      CSV_TEMPLATE,
+                    )
+                  }
+                >
                   <Download />
                   CSV template
                 </Button>
 
-                <Button variant="outline" className="flex-1">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() =>
+                    downloadTemplate(
+                      'criterium-tasks-template.json',
+                      'application/json',
+                      JSON_TEMPLATE,
+                    )
+                  }
+                >
                   <Download />
                   JSON template
                 </Button>

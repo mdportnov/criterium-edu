@@ -1,3 +1,17 @@
+/**
+ * What an operation records about itself. These are the keys the UI reads; the
+ * index signature keeps the rest of the column addressable without pretending
+ * to know its shape.
+ */
+export interface ProcessingOperationMetadata {
+  taskIds?: string[];
+  llmModel?: string;
+  successfullyImported?: number;
+  successfullyProcessed?: number;
+  errors?: { item?: string; error: string }[];
+  [key: string]: unknown;
+}
+
 export interface BulkImportTaskCriterion {
   name: string;
   description: string;
@@ -50,7 +64,7 @@ export interface ProcessingOperation {
   totalItems: number;
   processedItems: number;
   errorMessage?: string;
-  metadata?: Record<string, any>;
+  metadata?: ProcessingOperationMetadata;
   createdAt: Date;
   updatedAt: Date;
 }

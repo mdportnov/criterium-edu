@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from 'react';
 
 type Theme = 'light' | 'dark' | 'system';
 
@@ -45,20 +51,25 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     return themeValue;
   };
 
-  // Update theme and apply to document
-  const updateTheme = (newTheme: Theme) => {
-    const resolved = resolveTheme(newTheme);
+  const applyTheme = useCallback((resolved: 'light' | 'dark') => {
     setCurrentTheme(resolved);
-
-    // Apply theme class to document
     const root = document.documentElement;
     root.classList.remove('light', 'dark');
     root.classList.add(resolved);
+  }, []);
 
-    // Save to localStorage
-    localStorage.setItem('theme', newTheme);
-    setTheme(newTheme);
-  };
+  const updateTheme = useCallback(
+    (newTheme: Theme) => {
+      applyTheme(resolveTheme(newTheme));
+      try {
+        localStorage.setItem('theme', newTheme);
+      } catch {
+        // Private mode or blocked storage: the choice just will not persist.
+      }
+      setTheme(newTheme);
+    },
+    [applyTheme],
+  );
 
   // Listen for system theme changes
   useEffect(() => {
@@ -66,22 +77,15 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
 
     const handleChange = () => {
       if (theme === 'system') {
-        const resolved = resolveTheme('system');
-        setCurrentTheme(resolved);
-
-        const root = document.documentElement;
-        root.classList.remove('light', 'dark');
-        root.classList.add(resolved);
+        applyTheme(resolveTheme('system'));
       }
     };
 
     mediaQuery.addEventListener('change', handleChange);
-
-    // Set initial theme
-    updateTheme(theme);
+    applyTheme(resolveTheme(theme));
 
     return () => mediaQuery.removeEventListener('change', handleChange);
-  }, [theme]);
+  }, [theme, applyTheme]);
 
   return (
     <ThemeContext.Provider

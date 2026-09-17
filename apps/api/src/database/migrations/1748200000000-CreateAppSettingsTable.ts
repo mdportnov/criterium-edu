@@ -1,4 +1,4 @@
-import { MigrationInterface, QueryRunner, Table, TableIndex } from 'typeorm';
+import { MigrationInterface, QueryRunner, Table } from 'typeorm';
 
 export class CreateAppSettingsTable1748200000000 implements MigrationInterface {
   name = 'CreateAppSettingsTable1748200000000';

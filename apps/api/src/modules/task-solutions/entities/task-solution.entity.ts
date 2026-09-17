@@ -13,12 +13,18 @@ import type { TaskSolutionReview } from '../../task-solution-reviews/entities/ta
 import type { SolutionSource } from './solution-source.entity';
 import { TaskSolutionStatus } from '@app/shared';
 
-// Interface to avoid circular import with Task
-interface ITask {
+// Declared here rather than imported, to avoid a circular import with Task.
+export interface ITask {
   id: string;
   title: string;
   description: string;
-  criteria: any[];
+  authorSolution?: string;
+  criteria: Array<{
+    id: string;
+    name: string;
+    description: string;
+    maxPoints: number;
+  }>;
 }
 
 @Entity('task_solutions')

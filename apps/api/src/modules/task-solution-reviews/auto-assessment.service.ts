@@ -79,7 +79,7 @@ export class AutoAssessmentService {
       id: string;
       title: string;
       description: string;
-      criteria: unknown[];
+      criteria: Array<{ name: string; description: string; maxPoints: number }>;
     }
 
     const taskInfo = solutions.reduce<Record<string, TaskSummary>>(
@@ -98,7 +98,7 @@ export class AutoAssessmentService {
       {},
     );
 
-    const firstTask = Object.values(taskInfo)[0] as any;
+    const firstTask: TaskSummary | undefined = Object.values(taskInfo)[0];
 
     const session = this.sessionRepository.create({
       name: dto.name,
@@ -147,7 +147,7 @@ export class AutoAssessmentService {
     });
 
     const results: AutoAssessment[] = [];
-    const errors: any[] = [];
+    const errors: { solutionId: string; error: string; timestamp: Date }[] = [];
     const processingTimes: number[] = [];
     let totalTokens = 0;
     let totalCost = 0;
@@ -476,14 +476,16 @@ export class AutoAssessmentService {
     return this.assessmentRepository.save(newAssessment);
   }
 
-  private createAssessmentPrompt(task: any, solution: TaskSolution): string {
+  private createAssessmentPrompt(
+    task: TaskSolution['task'],
+    solution: TaskSolution,
+  ): string {
     // Get task details
     const taskDescription = task.description || 'No task description provided';
     const taskCriteriaString = task.criteria
       ? task.criteria
           .map(
-            (c: any) =>
-              `${c.name} (Max Points: ${c.maxPoints}): ${c.description}`,
+            (c) => `${c.name} (Max Points: ${c.maxPoints}): ${c.description}`,
           )
           .join('\n')
       : 'No specific criteria provided';

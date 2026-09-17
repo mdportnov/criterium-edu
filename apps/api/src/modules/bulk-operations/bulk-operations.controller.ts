@@ -19,6 +19,7 @@ import {
 } from '@nestjs/swagger';
 import { Response } from 'express';
 import { PaginatedResponse } from '@app/shared/dto';
+import type { ProcessingOperationDto } from '@app/shared/dto';
 import {
   BulkImportSolutionsDto,
   BulkImportTasksDto,
@@ -92,7 +93,7 @@ export class BulkOperationsController {
   @ApiResponse({ status: 200, description: 'Operations list retrieved' })
   async getAllOperations(
     @Query() paginationDto: PaginationDto,
-  ): Promise<PaginatedResponse<any>> {
+  ): Promise<PaginatedResponse<ProcessingOperationDto>> {
     const result =
       await this.bulkOperationsService.getAllOperations(paginationDto);
 

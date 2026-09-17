@@ -13,8 +13,8 @@ export interface CreateAuditLogDto {
   method: string;
   url: string;
   statusCode?: number;
-  requestData?: any;
-  responseData?: any;
+  requestData?: Record<string, unknown> | null;
+  responseData?: Record<string, unknown> | null;
   errorMessage?: string;
   durationMs?: number;
 }

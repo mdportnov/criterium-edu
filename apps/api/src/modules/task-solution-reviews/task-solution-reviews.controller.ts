@@ -9,7 +9,11 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { TaskSolutionReviewsService } from './task-solution-reviews.service';
+import {
+  type BatchApprovalResult,
+  type BatchRejectionResult,
+  TaskSolutionReviewsService,
+} from './task-solution-reviews.service';
 import {
   CurrentUser,
   PaginatedResponse,
@@ -168,7 +172,7 @@ export class TaskSolutionReviewsController {
   async batchApproveAutoReviews(
     @Body() data: { reviewIds: string[] },
     @GetCurrentUser() user: CurrentUser,
-  ): Promise<{ approvedCount: number; errors: any[] }> {
+  ): Promise<BatchApprovalResult> {
     return this.reviewsService.batchApproveReviews(data.reviewIds, user.id);
   }
 
@@ -176,7 +180,7 @@ export class TaskSolutionReviewsController {
   @Roles(UserRole.ADMIN, UserRole.REVIEWER)
   async batchRejectAutoReviews(
     @Body() data: { reviewIds: string[] },
-  ): Promise<{ rejectedCount: number; errors: any[] }> {
+  ): Promise<BatchRejectionResult> {
     return this.reviewsService.batchRejectReviews(data.reviewIds);
   }
 

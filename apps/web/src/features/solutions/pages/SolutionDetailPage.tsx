@@ -21,11 +21,14 @@ import {
 import { TaskSolutionService, TaskSolutionReviewService } from '@/services';
 import { UserRole } from '@app/shared/interfaces';
 import { getErrorMessage } from '@/lib/errors';
+import { TaskService } from '@/services/task.service';
+import type { TaskCriterion } from '@/types';
 
 const SolutionDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { user, hasRole } = useAuth();
   const [solution, setSolution] = useState<TaskSolution | null>(null);
+  const [criteria, setCriteria] = useState<TaskCriterion[]>([]);
   const [review, setReview] = useState<TaskSolutionReview | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
@@ -45,6 +48,16 @@ const SolutionDetailPage: React.FC = () => {
     try {
       const solutionData = await TaskSolutionService.getTaskSolutionById(id);
       setSolution(solutionData);
+
+      // The solution carries a task stub without criteria, so the names come
+      // from the task itself. This screen used to read them off the stub and
+      // silently fall through to "Criterion 1", "Criterion 2" every time.
+      try {
+        const task = await TaskService.getTaskById(solutionData.taskId);
+        setCriteria(task.criteria);
+      } catch {
+        setCriteria([]);
+      }
 
       // Check if there's a review for this solution
       try {
@@ -141,7 +154,7 @@ const SolutionDetailPage: React.FC = () => {
   };
 
   const getCriterionTitle = (criterionId: string, index: number) =>
-    solution.task?.criteria?.find((c) => c.id === criterionId)?.title ||
+    criteria.find((criterion) => criterion.id === criterionId)?.name ||
     `Criterion ${index + 1}`;
 
   const formatDateTime = (dateStr: string) =>

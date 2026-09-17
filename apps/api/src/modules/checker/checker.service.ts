@@ -5,6 +5,7 @@ import {
   ReviewSource,
   TaskDto,
   TaskSolutionDto,
+  TaskSolutionReviewDto,
 } from '@app/shared';
 import { TasksService } from '../tasks/tasks.service';
 import { TaskSolutionsService } from '../task-solutions/task-solutions.service';
@@ -27,7 +28,9 @@ export class CheckerService {
   /**
    * Process a task solution to generate an automated review
    */
-  async processTaskSolution(taskSolutionId: string): Promise<any> {
+  async processTaskSolution(
+    taskSolutionId: string,
+  ): Promise<TaskSolutionReviewDto> {
     this.logger.log(`Processing task solution with ID: ${taskSolutionId}`);
 
     try {
@@ -129,7 +132,7 @@ Return ONLY the JSON string. For example: {"score": ${Math.floor(criterion.maxPo
           `Raw AI response for criterion "${criterion.name}" (ID: ${criterion.id}): ${aiResponse}`,
         );
 
-        let parsedResponse: { score: any; comment: string };
+        let parsedResponse: { score: unknown; comment: unknown };
         try {
           const cleanedAiResponse = aiResponse.replace(
             /^```json\s*|```\s*$/g,

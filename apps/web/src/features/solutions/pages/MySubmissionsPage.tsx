@@ -68,7 +68,9 @@ const MySubmissionsPage: React.FC = () => {
     void fetchSolutions();
   }, [fetchSolutions]);
 
-  const solutions = paginatedData?.data || [];
+  // useMemo cannot depend on a fresh [] literal every render, so the fallback
+  // has to be a stable reference.
+  const solutions = useMemo(() => paginatedData?.data ?? [], [paginatedData]);
   const totalPages = paginatedData?.totalPages || 0;
   const total = paginatedData?.total || 0;
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -55,7 +55,7 @@ const ReviewSolutionPage: React.FC = () => {
     source: ReviewSource.MANUAL,
   });
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     if (!id) return;
 
     setIsLoading(true);
@@ -125,11 +125,11 @@ const ReviewSolutionPage: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [id]);
 
   useEffect(() => {
     void fetchData();
-  }, [id]);
+  }, [fetchData]);
 
   const handleFeedbackChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setFormData((prev) => ({ ...prev, feedbackToStudent: e.target.value }));

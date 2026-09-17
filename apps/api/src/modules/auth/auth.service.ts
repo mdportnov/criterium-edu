@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
+import type { User } from '../users/entities/user.entity';
 import { SettingsService } from '../settings/settings.service';
 import { randomBytes } from 'crypto';
 import { UserRole } from '@app/shared';
@@ -156,7 +157,7 @@ export class AuthService {
     };
   }
 
-  private async validateUser(email: string, password: string): Promise<any> {
+  private async validateUser(email: string, password: string): Promise<User> {
     const user = await this.usersService.findByEmailWithPassword(email);
     if (!user) {
       this.logger.warn(

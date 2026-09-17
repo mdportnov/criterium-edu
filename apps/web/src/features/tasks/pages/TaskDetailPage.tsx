@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -27,7 +27,7 @@ const TaskDetailPage: React.FC = () => {
   const isStudent = hasRole(UserRole.STUDENT);
   const isAdminOrReviewer = hasRole([UserRole.ADMIN, UserRole.REVIEWER]);
 
-  const fetchTaskData = async () => {
+  const fetchTaskData = useCallback(async () => {
     if (!id) return;
 
     setIsLoading(true);
@@ -55,11 +55,11 @@ const TaskDetailPage: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [id, isStudent, user]);
 
   useEffect(() => {
     void fetchTaskData();
-  }, [id, isStudent, user]);
+  }, [fetchTaskData]);
 
   if (isLoading) {
     return (

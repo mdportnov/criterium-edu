@@ -24,6 +24,7 @@ import type {
 } from '@/types';
 import { ReviewSource } from '@/types';
 import { Save } from 'lucide-react';
+import { TaskService } from '@/services/task.service';
 
 const CreateReviewPage: React.FC = () => {
   const navigate = useNavigate();
@@ -59,21 +60,28 @@ const CreateReviewPage: React.FC = () => {
       const solutionData = await TaskSolutionService.getTaskSolutionById(id);
       setTaskSolution(solutionData);
 
-      if (solutionData.task) {
-        // NOTE: `task` state is never set, so every `taskSolution && task` branch below
-        // is dead — the criteria scoring form and the submit button cannot render. It
-        // cannot be fixed here: `TaskSolution['task'].criteria` declares `{id, title}`
-        // while this screen reads `name` and `maxPoints`. Needs a types/API change.
-        const initialScores =
-          solutionData.task.criteria?.map((criterion) => ({
+      // The solution carries only a stub of its task, without the criteria's
+      // names or point values, so the task is fetched in full. Until this was
+      // here `task` was never set and every `taskSolution && task` branch on
+      // this screen was dead - the scoring form and the submit button could
+      // not render at all.
+      const taskData = await TaskService.getTaskById(solutionData.taskId);
+      setTask(taskData);
+
+      setFormData((prev) => ({
+        ...prev,
+        criteriaScores: taskData.criteria
+          .filter((criterion): criterion is typeof criterion & { id: string } =>
+            Boolean(criterion.id),
+          )
+          .map((criterion) => ({
             criterionId: criterion.id,
             score: 0,
             comment: '',
-          })) || [];
-        setFormData((prev) => ({ ...prev, criteriaScores: initialScores }));
-      }
+          })),
+      }));
     } catch {
-      setError('Failed to load the task solution.');
+      setError('Failed to load the task solution and its criteria.');
     } finally {
       setLoading(false);
     }

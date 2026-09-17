@@ -50,7 +50,7 @@ export class ApiUsage {
   requestDuration?: number;
 
   @Column({ type: 'jsonb', nullable: true })
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 
   @CreateDateColumn()
   createdAt: Date;
