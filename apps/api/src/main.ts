@@ -1,59 +1,53 @@
 import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
 import { Logger } from 'nestjs-pino';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ZodValidationPipe } from 'nestjs-zod';
-import dataSource from './database/data-source';
+import helmet from 'helmet';
+import { AppModule } from './app.module';
+import type { AppConfig } from './config/configuration';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
 
-  try {
-    // Get configuration
-    const configService = app.get(ConfigService);
+  const configService = app.get(ConfigService);
+  const config: AppConfig = {
+    nodeEnv: configService.getOrThrow('nodeEnv'),
+    port: configService.getOrThrow('port'),
+    isProduction: configService.getOrThrow('isProduction'),
+    database: configService.getOrThrow('database'),
+    jwt: configService.getOrThrow('jwt'),
+    security: configService.getOrThrow('security'),
+    swagger: configService.getOrThrow('swagger'),
+    logging: configService.getOrThrow('logging'),
+  };
 
-    // Make sure configService is defined before using it
-    if (!configService) {
-      console.error(
-        'ConfigService is undefined. Check your AppModule imports.',
-      );
-      process.exit(1);
-    }
+  const logger = app.get(Logger);
+  app.useLogger(logger);
+  app.flushLogs();
 
-    const port = configService.get<number>('port') || 3000;
+  app.use(
+    helmet({
+      // The API serves JSON only; CSP belongs to the frontend's nginx.
+      contentSecurityPolicy: false,
+      crossOriginResourcePolicy: { policy: 'cross-origin' },
+    }),
+  );
 
-    // Use Pino logger - wrap in try/catch in case it's not available
-    let logger: Logger | undefined;
-    try {
-      logger = app.get(Logger);
-      if (logger) {
-        app.useLogger(logger);
-      }
-    } catch (error) {
-      console.warn('Logger not available, using default logger');
-    }
+  app.enableCors({
+    origin: config.security.corsOrigins,
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    allowedHeaders: 'Content-Type,Authorization,Accept,Origin,X-Requested-With',
+    credentials: true,
+    preflightContinue: false,
+    optionsSuccessStatus: 204,
+  });
 
-    app.enableCors({
-      origin: [
-        'https://criterium.command.mephi.ru',
-        'http://localhost:3000',
-        'http://localhost:5173',
-        'http://localhost:5174',
-      ],
-      methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-      allowedHeaders:
-        'Content-Type,Authorization,Accept,Origin,X-Requested-With',
-      credentials: true,
-      preflightContinue: false, // Ensure preflight requests are not passed to route handlers
-      optionsSuccessStatus: 204, // Standard success status for OPTIONS requests
-    });
+  app.useGlobalPipes(new ZodValidationPipe());
+  app.enableShutdownHooks();
 
-    // Enable Zod validation
-    app.useGlobalPipes(new ZodValidationPipe());
-
-    // Swagger API documentation
+  if (config.swagger.enabled) {
     const swaggerConfig = new DocumentBuilder()
       .setTitle('Criterium API')
       .setDescription('API for the Criterium platform')
@@ -61,83 +55,19 @@ async function bootstrap() {
       .addBearerAuth()
       .build();
 
-    const document = SwaggerModule.createDocument(app, swaggerConfig);
-    SwaggerModule.setup('api/docs', app, document);
-
-    // Run migrations in production before starting the server
-    if (process.env.NODE_ENV === 'production' && logger) {
-      await runDatabaseMigrations(logger, dataSource);
-    }
-
-    // Start server
-    await app.listen(port);
-    if (logger) {
-      logger.log(`Application is running on: http://localhost:${port}`);
-    } else {
-      console.log(`Application is running on: http://localhost:${port}`);
-    }
-  } catch (error) {
-    console.error('Failed to start application:', error);
-    process.exit(1);
+    SwaggerModule.setup(
+      'api/docs',
+      app,
+      SwaggerModule.createDocument(app, swaggerConfig),
+    );
+    logger.log('Swagger UI enabled at /api/docs');
   }
+
+  await app.listen(config.port);
+  logger.log(`Application listening on port ${config.port}`);
 }
 
-bootstrap().catch((err) => {
-  console.error('Failed to bootstrap application:', err);
+bootstrap().catch((error) => {
+  console.error('Failed to bootstrap application:', error);
   process.exit(1);
 });
-
-// Helper function to run database migrations
-async function runDatabaseMigrations(logger: Logger, dataSource: any) {
-  logger.log({
-    message:
-      'Production environment detected. Checking and running database migrations.',
-    context: 'DB Migration',
-  });
-
-  try {
-    if (!dataSource.isInitialized) {
-      logger.log({
-        message: 'Initializing data source for migrations.',
-        context: 'DB Migration',
-      });
-
-      await dataSource.initialize();
-
-      logger.log({
-        message: 'Data source initialized successfully.',
-        context: 'DB Migration',
-      });
-    }
-
-    logger.log({
-      message: 'Running pending migrations.',
-      context: 'DB Migration',
-    });
-
-    const migrationsRun = await dataSource.runMigrations();
-
-    if (migrationsRun.length > 0) {
-      logger.log({
-        message: `Successfully ran ${migrationsRun.length} migration(s).`,
-        migrations: migrationsRun.map((m: any) => m.name),
-        context: 'DB Migration',
-      });
-    } else {
-      logger.log({
-        message: 'No pending migrations to run. Database schema is up to date.',
-        context: 'DB Migration',
-      });
-    }
-  } catch (migrationError) {
-    const error = migrationError as Error;
-    logger.error({
-      message: 'CRITICAL: Failed to run database migrations.',
-      error: error.message,
-      stack: error.stack,
-      context: 'DB Migration',
-    });
-
-    process.exit(1); // Exit if migrations fail in production
-  }
-}

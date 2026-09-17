@@ -51,7 +51,10 @@ export class TaskSolution {
   @JoinColumn({ name: 'source_id' })
   source: SolutionSource;
 
-  @OneToMany('TaskSolutionReview', (review: TaskSolutionReview) => review.taskSolution)
+  @OneToMany(
+    'TaskSolutionReview',
+    (review: TaskSolutionReview) => review.taskSolution,
+  )
   reviews: TaskSolutionReview[];
 
   @CreateDateColumn()

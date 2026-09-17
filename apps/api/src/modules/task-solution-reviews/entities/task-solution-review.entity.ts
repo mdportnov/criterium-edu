@@ -32,10 +32,14 @@ export class TaskSolutionReview {
   @JoinColumn({ name: 'reviewerId' })
   reviewer: User;
 
-  @OneToMany('CriterionScore', (criterionScore: CriterionScore) => criterionScore.review, {
-    cascade: true,
-    eager: true,
-  })
+  @OneToMany(
+    'CriterionScore',
+    (criterionScore: CriterionScore) => criterionScore.review,
+    {
+      cascade: true,
+      eager: true,
+    },
+  )
   criteriaScores: CriterionScore[];
 
   @Column({ type: 'decimal', precision: 10, scale: 2 })

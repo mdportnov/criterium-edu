@@ -1,3 +1,4 @@
+import { randomBytes } from 'crypto';
 import {
   BadRequestException,
   Injectable,
@@ -506,7 +507,9 @@ export class BulkOperationsService {
     if (!user) {
       const createUserDto: CreateUserDto = {
         email,
-        password: 'defaultPassword123!',
+        // Imported accounts get an unguessable password nobody holds; the
+        // student has to go through a password reset to sign in.
+        password: randomBytes(24).toString('base64url'),
         role: UserRole.STUDENT,
         firstName: studentName.split(' ')[0] || studentName,
         lastName: studentName.split(' ').slice(1).join(' ') || 'Student',

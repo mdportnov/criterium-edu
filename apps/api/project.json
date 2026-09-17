@@ -63,21 +63,21 @@
     "typeorm:generate": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "npx typeorm-ts-node-esm migration:generate -d apps/api/src/database/data-source.local.ts"
+        "command": "npx ts-node -P apps/api/tsconfig.app.json -r tsconfig-paths/register ./node_modules/typeorm/cli.js migration:generate -d apps/api/src/database/data-source.ts"
       }
     },
     "typeorm:migrate": {
       "executor": "nx:run-commands",
       "dependsOn": ["build:migrations"],
       "options": {
-        "command": "npx typeorm migration:run -d dist/apps/api/src/database/data-source.prod.js"
+        "command": "npx typeorm migration:run -d dist/apps/api/src/database/data-source.js"
       }
     },
     "typeorm:revert": {
       "executor": "nx:run-commands",
       "dependsOn": ["build:migrations"],
       "options": {
-        "command": "npx typeorm migration:revert -d dist/apps/api/src/database/data-source.prod.js"
+        "command": "npx typeorm migration:revert -d dist/apps/api/src/database/data-source.js"
       }
     },
     "docker-build": {

@@ -1,12 +1,13 @@
-import { Module, MiddlewareConsumer, NestModule } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { TypeOrmModule, type TypeOrmModuleOptions } from '@nestjs/typeorm';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { LoggerModule } from 'nestjs-pino';
 
-import configuration from './config/configuration';
-import dataSource from './database/data-source';
+import configuration, { type AppConfig } from './config/configuration';
+import { connectionOptions } from './database/data-source';
 
-// Module imports
 import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { TasksModule } from './modules/tasks/tasks.module';
@@ -21,59 +22,71 @@ import { AdminModule } from './modules/admin/admin.module';
 import { SettingsModule } from './modules/settings/settings.module';
 import { PromptsModule } from './modules/prompts/prompts.module';
 import { CostTrackingModule } from './modules/cost-tracking/cost-tracking.module';
+import { HealthModule } from './modules/health/health.module';
 import { AuditMiddleware } from './modules/audit/audit.middleware';
 
 @Module({
   imports: [
-    // Configuration - make sure it's loaded first and globally available
     ConfigModule.forRoot({
       isGlobal: true,
       load: [configuration],
       cache: true,
-      envFilePath: '../.env.local', // Load .env.example for this test
+      // Values already in the environment (containers, CI) always win.
+      envFilePath: ['.env.local', '.env'],
     }),
 
-    // Database - with proper error handling
     TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => {
-        const dbConfig = configService.get('database');
-        if (!dbConfig) {
-          throw new Error('Database configuration is missing');
-        }
+      useFactory: (configService: ConfigService): TypeOrmModuleOptions => {
+        const database =
+          configService.getOrThrow<AppConfig['database']>('database');
         return {
-          ...dataSource.options,
+          ...connectionOptions,
+          host: database.host,
+          port: database.port,
+          username: database.username,
+          password: database.password,
+          database: database.database,
+          logging: database.logging,
           autoLoadEntities: true,
-          synchronize: process.env.NODE_ENV === 'development',
+          // Schema changes come from migrations only, never from sync.
+          synchronize: false,
         };
       },
     }),
 
-    // Logging - with proper error handling
+    ThrottlerModule.forRoot({
+      throttlers: [{ name: 'default', ttl: 60_000, limit: 120 }],
+    }),
+
     LoggerModule.forRootAsync({
-      imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
-        const loggingConfig = configService.get('logging');
+        const logging =
+          configService.getOrThrow<AppConfig['logging']>('logging');
+        const isProduction =
+          configService.getOrThrow<AppConfig['isProduction']>('isProduction');
         return {
           pinoHttp: {
-            transport:
-              process.env.NODE_ENV !== 'production'
-                ? {
-                    target: 'pino-pretty',
-                    options: {
-                      singleLine: true,
-                    },
-                  }
-                : undefined,
-            level: (loggingConfig && loggingConfig.level) || 'info',
+            level: logging.level,
+            transport: isProduction
+              ? undefined
+              : { target: 'pino-pretty', options: { singleLine: true } },
+            redact: {
+              paths: [
+                'req.headers.authorization',
+                'req.headers.cookie',
+                'req.body.password',
+                'res.headers["set-cookie"]',
+              ],
+              censor: '[REDACTED]',
+            },
           },
         };
       },
     }),
 
-    // Application modules
+    HealthModule,
     UsersModule,
     AuthModule,
     TasksModule,
@@ -89,6 +102,7 @@ import { AuditMiddleware } from './modules/audit/audit.middleware';
     PromptsModule,
     CostTrackingModule,
   ],
+  providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

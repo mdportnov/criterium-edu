@@ -15,7 +15,7 @@ echo "Database is ready!"
 
 # Run database migrations
 echo "Running database migrations..."
-npx typeorm migration:run -d dist/apps/api/src/database/data-source.migration.js
+npx typeorm migration:run -d dist/apps/api/src/database/data-source.js
 
 # Check if migrations ran successfully
 if [ $? -eq 0 ]; then

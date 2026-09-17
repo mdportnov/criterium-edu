@@ -19,7 +19,8 @@ import {
 } from '@nestjs/swagger';
 import { Response } from 'express';
 import {
-  BulkImportSolutionDto, BulkImportTaskDto,
+  BulkImportSolutionDto,
+  BulkImportTaskDto,
   PaginatedResponse,
   PaginationDto,
 } from '@app/shared/dto';
@@ -39,7 +40,7 @@ export class BulkOperationsController {
   @ApiOperation({ summary: 'Import tasks from a JSON file' })
   @ApiConsumes('application/json')
   @ApiBody({
-    description: 'JSON array of tasks to import'
+    description: 'JSON array of tasks to import',
   })
   @ApiResponse({ status: 201, description: 'Tasks imported successfully' })
   @ApiResponse({ status: 400, description: 'Invalid JSON data' })
@@ -76,7 +77,7 @@ export class BulkOperationsController {
   @ApiOperation({ summary: 'Import solutions from a JSON file' })
   @ApiConsumes('application/json')
   @ApiBody({
-    description: 'JSON array of solutions to import'
+    description: 'JSON array of solutions to import',
   })
   @ApiResponse({ status: 201, description: 'Solutions import started' })
   @ApiResponse({ status: 400, description: 'Invalid JSON data' })

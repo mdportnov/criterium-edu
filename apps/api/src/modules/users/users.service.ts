@@ -9,6 +9,7 @@ import {
   PaginatedResponse,
 } from '@app/shared';
 import * as bcrypt from 'bcrypt';
+import { ConfigService } from '@nestjs/config';
 import { Logger } from 'nestjs-pino';
 
 @Injectable()
@@ -16,6 +17,7 @@ export class UsersService {
   constructor(
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
+    private readonly configService: ConfigService,
     private readonly logger: Logger,
   ) {}
 
@@ -105,7 +107,9 @@ export class UsersService {
   }
 
   private async hashPassword(password: string): Promise<string> {
-    const salt = await bcrypt.genSalt();
-    return bcrypt.hash(password, salt);
+    const rounds = this.configService.getOrThrow<number>(
+      'security.bcryptRounds',
+    );
+    return bcrypt.hash(password, rounds);
   }
 }

@@ -52,10 +52,14 @@ export class Prompt {
   @Column({ default: true })
   isActive: boolean;
 
-  @OneToMany('PromptTranslation', (translation: PromptTranslation) => translation.prompt, {
-    cascade: true,
-    eager: true,
-  })
+  @OneToMany(
+    'PromptTranslation',
+    (translation: PromptTranslation) => translation.prompt,
+    {
+      cascade: true,
+      eager: true,
+    },
+  )
   translations: PromptTranslation[];
 
   @CreateDateColumn()

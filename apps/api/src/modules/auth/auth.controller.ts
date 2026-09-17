@@ -9,6 +9,7 @@ import {
   UserRole,
 } from '@app/shared';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RolesGuard } from './guards/roles.guard';
 import { Roles } from './decorators/roles.decorator';
@@ -24,11 +25,14 @@ export class AuthController {
     private readonly usersService: UsersService,
   ) {}
 
+  // Credential endpoints are the brute-force surface: 5 attempts per minute.
+  @Throttle({ default: { ttl: 60_000, limit: 5 } })
   @Post('login')
   async login(@Body() loginDto: LoginDto): Promise<TokenDto> {
     return this.authService.login(loginDto);
   }
 
+  @Throttle({ default: { ttl: 60_000, limit: 5 } })
   @Post('register')
   async register(@Body() registerDto: RegisterDto): Promise<TokenDto> {
     return this.authService.register(registerDto);
