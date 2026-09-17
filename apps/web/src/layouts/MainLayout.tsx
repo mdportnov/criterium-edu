@@ -104,7 +104,7 @@ const MainLayout: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       {/* Header */}
-      <header className="bg-blue-600 text-white shadow-lg sticky top-0 z-40 transition-all duration-300 backdrop-blur-none">
+      <header className="nav-header shadow-lg sticky top-0 z-40">
         <div className="container-responsive max-w-7xl mx-auto">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
@@ -127,9 +127,7 @@ const MainLayout: React.FC = () => {
                     key={item.path}
                     to={item.path}
                     className={`nav-link flex items-center gap-2 px-3 py-2 text-sm font-medium transition-all duration-200 rounded-md ${
-                      isActiveRoute(item.path)
-                        ? 'bg-white/20 text-white'
-                        : 'text-white/80 hover:text-white hover:bg-white/10'
+                      isActiveRoute(item.path) ? 'active' : ''
                     }`}
                   >
                     <Icon className="w-4 h-4" />
@@ -147,9 +145,9 @@ const MainLayout: React.FC = () => {
               <div className="relative ml-4" ref={dropdownRef}>
                 <button
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-white/80 hover:text-white hover:bg-white/10 rounded-md transition-all duration-200"
+                  className="nav-link flex items-center gap-2 px-3 py-2 text-sm font-medium"
                 >
-                  <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                  <div className="w-8 h-8 bg-nav-foreground/20 rounded-full flex items-center justify-center">
                     <User className="w-4 h-4" />
                   </div>
                   <span className="hidden xl:inline">
@@ -199,11 +197,7 @@ const MainLayout: React.FC = () => {
               <ThemeToggle />
               <Sheet open={isOpen} onOpenChange={setIsOpen}>
                 <SheetTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-white hover:bg-white/10 p-2"
-                  >
+                  <Button variant="ghost" size="icon" className="nav-link p-2">
                     <HamburgerMenu isOpen={isOpen} onClick={() => {}} />
                     <span className="sr-only">Menu</span>
                   </Button>

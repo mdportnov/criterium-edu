@@ -42,13 +42,18 @@ import { AuditMiddleware } from './modules/audit/audit.middleware';
           configService.getOrThrow<AppConfig['database']>('database');
         return {
           ...connectionOptions,
+          // Entities come from the Nest modules that register them. The glob
+          // on connectionOptions is for the TypeORM CLI, which has no Nest
+          // container; letting it through here made the running app load
+          // whatever *.entity.js happened to be sitting under dist.
+          entities: [],
+          autoLoadEntities: true,
           host: database.host,
           port: database.port,
           username: database.username,
           password: database.password,
           database: database.database,
           logging: database.logging,
-          autoLoadEntities: true,
           // Schema changes come from migrations only, never from sync.
           synchronize: false,
         };
