@@ -1,6 +1,12 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Card } from '@/components/ui/card';
+import {
+  Card,
+  CardAction,
+  CardHeader,
+  CardHeaderText,
+  CardTitle,
+} from '@/components/ui/card';
 import {
   Select,
   SelectContent,
@@ -9,17 +15,18 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { EmptyState, ErrorState, LoadingState } from '@/components/ui/states';
 import {
-  DollarSign,
-  TrendingUp,
-  Activity,
-  Zap,
-  Calendar,
-  BarChart3,
-  PieChart,
-} from 'lucide-react';
+  Table,
+  TableWrap,
+  TBody,
+  Td,
+  Th,
+  THead,
+  Tr,
+} from '@/components/ui/table';
+import { Stat, StatRow } from '@/components/ui/stat';
 import { costTrackingService } from '@/services/cost-tracking.service';
-import type { SystemCostsDto } from '@app/shared';
 
 export const CostsTab: React.FC = () => {
   const [timeRange, setTimeRange] = useState<string>('30');
@@ -28,6 +35,7 @@ export const CostsTab: React.FC = () => {
     data: systemCosts,
     isLoading,
     error,
+    refetch,
   } = useQuery({
     queryKey: ['system-costs', timeRange],
     queryFn: () => costTrackingService.getSystemCosts(parseInt(timeRange)),
@@ -55,20 +63,19 @@ export const CostsTab: React.FC = () => {
 
   if (error) {
     return (
-      <div className="text-center py-8">
-        <p className="text-destructive">Failed to load cost data</p>
-      </div>
+      <ErrorState
+        title="Could not load cost data"
+        message="The billing service did not respond."
+        onRetry={refetch}
+      />
     );
   }
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        <span className="ml-3 text-muted-foreground">
-          Loading cost analytics...
-        </span>
-      </div>
+      <Card>
+        <LoadingState label="Loading cost analytics…" />
+      </Card>
     );
   }
 
@@ -90,17 +97,28 @@ export const CostsTab: React.FC = () => {
       )
     : [];
 
+  const totalRequests = modelEntries.reduce(
+    (sum, [, data]) => sum + data.requests,
+    0,
+  );
+  const totalTokens = modelEntries.reduce(
+    (sum, [, data]) => sum + data.tokens,
+    0,
+  );
+  const dailyAverage =
+    systemCosts && dailyCostsArray.length > 0
+      ? systemCosts.totalCost / parseInt(timeRange)
+      : 0;
+  const maxDailyCost = dailyCostsArray.length
+    ? Math.max(...dailyCostsArray.map(([, c]) => c))
+    : 0;
+
   return (
-    <div className="space-y-6">
-      {/* Header with Time Range Selector */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-2xl font-bold text-foreground">Cost Analytics</h2>
-          <p className="text-muted-foreground">Monitor API usage and costs</p>
-        </div>
+    <div className="space-y-4">
+      <div className="flex items-center justify-end">
         <Select value={timeRange} onValueChange={setTimeRange}>
           <SelectTrigger className="w-40">
-            <SelectValue placeholder="Time Range" />
+            <SelectValue placeholder="Time range" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="7">Last 7 days</SelectItem>
@@ -110,211 +128,167 @@ export const CostsTab: React.FC = () => {
         </Select>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">
-                Total Cost
-              </p>
-              <p className="text-2xl font-bold text-foreground">
-                {systemCosts
-                  ? formatLargeCurrency(systemCosts.totalCost)
-                  : '$0.00'}
-              </p>
-            </div>
-            <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
-              <DollarSign className="w-6 h-6 text-primary" />
-            </div>
-          </div>
+      <StatRow columns={4}>
+        <Stat
+          label="Total cost"
+          value={
+            systemCosts ? formatLargeCurrency(systemCosts.totalCost) : '$0.00'
+          }
+        />
+        <Stat label="Daily average" value={formatCurrency(dailyAverage)} />
+        <Stat label="Total requests" value={totalRequests.toLocaleString()} />
+        <Stat label="Total tokens" value={totalTokens.toLocaleString()} />
+      </StatRow>
+
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardHeaderText>
+              <CardTitle>Daily costs</CardTitle>
+            </CardHeaderText>
+          </CardHeader>
+          {dailyCostsArray.length > 0 ? (
+            <TableWrap>
+              <Table>
+                <THead>
+                  <tr>
+                    <Th>Date</Th>
+                    <Th numeric>Cost</Th>
+                  </tr>
+                </THead>
+                <TBody>
+                  {dailyCostsArray.slice(-7).map(([date, cost]) => (
+                    <Tr key={date}>
+                      <Td>
+                        <time dateTime={date} className="text-muted-foreground">
+                          {new Date(date).toLocaleDateString('en-GB', {
+                            month: 'short',
+                            day: 'numeric',
+                          })}
+                        </time>
+                      </Td>
+                      <Td numeric>
+                        <div className="flex items-center justify-end gap-2">
+                          <div
+                            className="h-1.5 rounded-full bg-primary/40"
+                            style={{
+                              width: `${Math.max(12, (cost / Math.max(maxDailyCost, 0.0001)) * 64)}px`,
+                            }}
+                          />
+                          <span className="tabular-nums text-foreground">
+                            {formatCurrency(cost)}
+                          </span>
+                        </div>
+                      </Td>
+                    </Tr>
+                  ))}
+                </TBody>
+              </Table>
+            </TableWrap>
+          ) : (
+            <EmptyState
+              title="No spend in this period"
+              description="A day appears here once an assessment run bills the provider. Widen the period to see earlier activity."
+            />
+          )}
         </Card>
 
-        <Card className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">
-                Daily Average
-              </p>
-              <p className="text-2xl font-bold text-foreground">
-                {systemCosts && dailyCostsArray.length > 0
-                  ? formatCurrency(systemCosts.totalCost / parseInt(timeRange))
-                  : '$0.00'}
-              </p>
-            </div>
-            <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-              <TrendingUp className="w-6 h-6 text-green-600" />
-            </div>
-          </div>
-        </Card>
-
-        <Card className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">
-                Total Requests
-              </p>
-              <p className="text-2xl font-bold text-foreground">
-                {modelEntries
-                  .reduce((sum, [, data]) => sum + data.requests, 0)
-                  .toLocaleString()}
-              </p>
-            </div>
-            <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-              <Activity className="w-6 h-6 text-blue-600" />
-            </div>
-          </div>
-        </Card>
-
-        <Card className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">
-                Total Tokens
-              </p>
-              <p className="text-2xl font-bold text-foreground">
-                {modelEntries
-                  .reduce((sum, [, data]) => sum + data.tokens, 0)
-                  .toLocaleString()}
-              </p>
-            </div>
-            <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
-              <Zap className="w-6 h-6 text-orange-600" />
-            </div>
-          </div>
+        <Card>
+          <CardHeader>
+            <CardHeaderText>
+              <CardTitle>Model breakdown</CardTitle>
+            </CardHeaderText>
+          </CardHeader>
+          {modelEntries.length > 0 ? (
+            <TableWrap>
+              <Table>
+                <THead>
+                  <tr>
+                    <Th>Model</Th>
+                    <Th numeric>Requests</Th>
+                    <Th numeric>Tokens</Th>
+                    <Th numeric>Cost</Th>
+                  </tr>
+                </THead>
+                <TBody>
+                  {modelEntries.map(([model, data]) => (
+                    <Tr key={model}>
+                      <Td>
+                        <Badge variant="outline">{model}</Badge>
+                      </Td>
+                      <Td numeric className="text-muted-foreground">
+                        {data.requests.toLocaleString()}
+                      </Td>
+                      <Td numeric className="text-muted-foreground">
+                        {data.tokens.toLocaleString()}
+                      </Td>
+                      <Td numeric>{formatCurrency(data.cost)}</Td>
+                    </Tr>
+                  ))}
+                </TBody>
+              </Table>
+            </TableWrap>
+          ) : (
+            <EmptyState
+              title="No models used yet"
+              description="Each model that has answered a request in this period is listed here with what it cost."
+            />
+          )}
         </Card>
       </div>
 
-      {/* Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Daily Costs */}
-        <Card className="p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <BarChart3 className="w-5 h-5 text-primary" />
-            <h3 className="text-lg font-semibold">Daily Costs</h3>
-          </div>
-          <div className="space-y-3">
-            {dailyCostsArray.length > 0 ? (
-              dailyCostsArray.slice(-7).map(([date, cost]) => (
-                <div key={date} className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-sm text-muted-foreground">
-                      {new Date(date).toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                      })}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="h-2 bg-primary rounded-full"
-                      style={{
-                        width: `${Math.max(20, (cost / Math.max(...dailyCostsArray.map(([, c]) => c))) * 100)}px`,
-                      }}
-                    />
-                    <span className="text-sm font-medium min-w-[60px] text-right">
-                      {formatCurrency(cost)}
-                    </span>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <p className="text-muted-foreground text-center py-4">
-                No cost data available
-              </p>
-            )}
-          </div>
-        </Card>
-
-        {/* Model Breakdown */}
-        <Card className="p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <PieChart className="w-5 h-5 text-primary" />
-            <h3 className="text-lg font-semibold">Model Breakdown</h3>
-          </div>
-          <div className="space-y-3">
-            {modelEntries.length > 0 ? (
-              modelEntries.map(([model, data]) => (
-                <div
-                  key={model}
-                  className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
-                >
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="text-xs">
-                        {model}
+      <Card>
+        <CardHeader>
+          <CardHeaderText>
+            <CardTitle>Operations breakdown</CardTitle>
+          </CardHeaderText>
+          <CardAction>
+            <span className="text-xs text-muted-foreground">
+              % of total cost
+            </span>
+          </CardAction>
+        </CardHeader>
+        {operationEntries.length > 0 ? (
+          <TableWrap>
+            <Table>
+              <THead>
+                <tr>
+                  <Th>Operation</Th>
+                  <Th numeric>Requests</Th>
+                  <Th numeric>Cost</Th>
+                  <Th numeric>Share</Th>
+                </tr>
+              </THead>
+              <TBody>
+                {operationEntries.map(([operation, data]) => (
+                  <Tr key={operation}>
+                    <Td>
+                      <Badge>
+                        {operation
+                          .replace(/_/g, ' ')
+                          .replace(/\b\w/g, (l) => l.toUpperCase())}
                       </Badge>
-                      <span className="text-sm text-muted-foreground">
-                        {data.requests} requests
-                      </span>
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {data.tokens.toLocaleString()} tokens
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm font-medium">
-                      {formatCurrency(data.cost)}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
+                    </Td>
+                    <Td numeric className="text-muted-foreground">
+                      {data.requests.toLocaleString()}
+                    </Td>
+                    <Td numeric>{formatCurrency(data.cost)}</Td>
+                    <Td numeric className="text-muted-foreground">
                       {systemCosts && systemCosts.totalCost > 0
                         ? `${((data.cost / systemCosts.totalCost) * 100).toFixed(1)}%`
                         : '0%'}
-                    </p>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <p className="text-muted-foreground text-center py-4">
-                No model data available
-              </p>
-            )}
-          </div>
-        </Card>
-      </div>
-
-      {/* Operations Breakdown */}
-      <Card className="p-6">
-        <div className="flex items-center gap-2 mb-4">
-          <Activity className="w-5 h-5 text-primary" />
-          <h3 className="text-lg font-semibold">Operations Breakdown</h3>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {operationEntries.length > 0 ? (
-            operationEntries.map(([operation, data]) => (
-              <div
-                key={operation}
-                className="p-4 border border-border rounded-lg"
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <Badge variant="secondary" className="text-xs">
-                    {operation
-                      .replace(/_/g, ' ')
-                      .replace(/\b\w/g, (l) => l.toUpperCase())}
-                  </Badge>
-                  <span className="text-sm font-medium">
-                    {formatCurrency(data.cost)}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <span>{data.requests} requests</span>
-                  <span>
-                    {systemCosts && systemCosts.totalCost > 0
-                      ? `${((data.cost / systemCosts.totalCost) * 100).toFixed(1)}%`
-                      : '0%'}
-                  </span>
-                </div>
-              </div>
-            ))
-          ) : (
-            <div className="col-span-full">
-              <p className="text-muted-foreground text-center py-4">
-                No operation data available
-              </p>
-            </div>
-          )}
-        </div>
+                    </Td>
+                  </Tr>
+                ))}
+              </TBody>
+            </Table>
+          </TableWrap>
+        ) : (
+          <EmptyState
+            title="No operations in this period"
+            description="Bulk imports and assessment runs are broken down here by what share of the bill each one accounts for."
+          />
+        )}
       </Card>
     </div>
   );

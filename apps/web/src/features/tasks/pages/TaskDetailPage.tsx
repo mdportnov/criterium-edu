@@ -2,6 +2,16 @@ import React, { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardHeader,
+  CardHeaderText,
+  CardTitle,
+  CardContent,
+} from '@/components/ui/card';
+import { Badge, StatusBadge } from '@/components/ui/badge';
+import { PageHeader } from '@/components/ui/page-header';
+import { EmptyState, ErrorState, LoadingState } from '@/components/ui/states';
 import { type Task, type TaskSolution } from '@/types';
 import { TaskService, TaskSolutionService } from '@/services';
 import { UserRole } from '@app/shared';
@@ -17,178 +27,187 @@ const TaskDetailPage: React.FC = () => {
   const isStudent = hasRole(UserRole.STUDENT);
   const isAdminOrReviewer = hasRole([UserRole.ADMIN, UserRole.REVIEWER]);
 
-  useEffect(() => {
-    const fetchTaskData = async () => {
-      if (!id) return;
+  const fetchTaskData = async () => {
+    if (!id) return;
 
-      setIsLoading(true);
-      setError('');
+    setIsLoading(true);
+    setError('');
 
-      try {
-        const taskData = await TaskService.getTaskById(id);
-        setTask(taskData);
+    try {
+      const taskData = await TaskService.getTaskById(id);
+      setTask(taskData);
 
-        // If user is a student, fetch their solutions for this task
-        if (isStudent && user) {
-          const solutions =
-            await TaskSolutionService.getTaskSolutionsByTaskId(id);
-          const solutionsArray = Array.isArray(solutions)
-            ? solutions
-            : solutions.data;
-          const userSolutions = solutionsArray.filter(
-            (solution: TaskSolution) => solution.studentId === user.id,
-          );
-          setMySolutions(userSolutions);
-        }
-      } catch (err) {
-        console.error('Error fetching task data:', err);
-        setError('Failed to load task details. Please try again later.');
-      } finally {
-        setIsLoading(false);
+      // If user is a student, fetch their solutions for this task
+      if (isStudent && user) {
+        const solutions =
+          await TaskSolutionService.getTaskSolutionsByTaskId(id);
+        const solutionsArray = Array.isArray(solutions)
+          ? solutions
+          : solutions.data;
+        const userSolutions = solutionsArray.filter(
+          (solution: TaskSolution) => solution.studentId === user.id,
+        );
+        setMySolutions(userSolutions);
       }
-    };
+    } catch (err) {
+      console.error('Error fetching task data:', err);
+      setError('Failed to load task details. Please try again later.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    fetchTaskData();
+  useEffect(() => {
+    void fetchTaskData();
   }, [id, isStudent, user]);
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      <div>
+        <PageHeader title="Task" backTo="/dashboard/tasks" />
+        <LoadingState label="Loading task…" />
       </div>
     );
   }
 
   if (error || !task) {
     return (
-      <div className="bg-destructive/15 text-destructive p-4 rounded-md">
-        <p>{error || 'Task not found'}</p>
-        <Button asChild variant="outline" className="mt-4">
-          <Link to="/dashboard/tasks">Back to Tasks</Link>
-        </Button>
+      <div>
+        <PageHeader title="Task" backTo="/dashboard/tasks" />
+        <ErrorState
+          title="Could not load task"
+          message={error || 'Task not found'}
+          onRetry={() => void fetchTaskData()}
+        />
       </div>
     );
   }
 
   return (
     <div>
-      <div className="flex justify-between items-start mb-6">
-        <div>
-          <div className="flex items-center gap-2 text-muted-foreground mb-2">
-            <Link to="/dashboard/tasks" className="hover:text-primary">
-              Tasks
-            </Link>
-            <span>/</span>
-            <span>Task #{task.id}</span>
-          </div>
-          <h1 className="text-3xl font-bold">{task.title}</h1>
-        </div>
-
-        <div className="flex gap-2">
-          {isStudent && (
-            <Button asChild>
-              <Link to={`/dashboard/tasks/${task.id}/submit-solution`}>
-                {mySolutions.length > 0 ? 'Submit New Solution' : 'Solve Task'}
-              </Link>
-            </Button>
-          )}
-
-          {isAdminOrReviewer && (
-            <Button asChild variant="outline">
-              <Link to={`/dashboard/tasks/${task.id}/edit`}>Edit Task</Link>
-            </Button>
-          )}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-8">
-          {/* Task Description */}
-          <div className="bg-card rounded-lg shadow-sm border border-border p-6">
-            <h2 className="text-xl font-semibold mb-4">Description</h2>
-            <div className="prose max-w-none">
-              <p className="whitespace-pre-line">{task.description}</p>
-            </div>
-          </div>
-
-          {/* Task Criteria */}
-          <div className="bg-card rounded-lg shadow-sm border border-border p-6">
-            <h2 className="text-xl font-semibold mb-4">Evaluation Criteria</h2>
-
-            {task.criteria.length === 0 ? (
-              <p className="text-muted-foreground">
-                No criteria specified for this task.
-              </p>
-            ) : (
-              <div className="space-y-6">
-                {task.criteria.map((criterion, index) => (
-                  <div
-                    key={criterion.id || index}
-                    className="border-b border-border pb-4 last:border-0 last:pb-0"
-                  >
-                    <div className="flex justify-between items-start mb-2">
-                      <h3 className="font-medium">{criterion.name}</h3>
-                      <span className="bg-primary/10 text-primary text-sm px-2 py-1 rounded">
-                        {criterion.maxPoints} points
-                      </span>
-                    </div>
-                    <p className="text-muted-foreground">
-                      {criterion.description}
-                    </p>
-                  </div>
-                ))}
-              </div>
+      <PageHeader
+        title={task.title}
+        description={`Task #${task.id}`}
+        backTo="/dashboard/tasks"
+        actions={
+          <>
+            {isStudent && (
+              <Button asChild>
+                <Link to={`/dashboard/tasks/${task.id}/submit-solution`}>
+                  {mySolutions.length > 0
+                    ? 'Submit New Solution'
+                    : 'Solve Task'}
+                </Link>
+              </Button>
             )}
-          </div>
+            {isAdminOrReviewer && (
+              <Button asChild variant="outline">
+                <Link to={`/dashboard/tasks/${task.id}/edit`}>Edit Task</Link>
+              </Button>
+            )}
+          </>
+        }
+      />
 
-          {/* Author Solution (only visible to admin/reviewer) */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <div className="space-y-4 lg:col-span-2">
+          <Card>
+            <CardHeader>
+              <CardHeaderText>
+                <CardTitle>Description</CardTitle>
+              </CardHeaderText>
+            </CardHeader>
+            <CardContent>
+              <div className="prose-body">{task.description}</div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardHeaderText>
+                <CardTitle>Evaluation criteria</CardTitle>
+              </CardHeaderText>
+            </CardHeader>
+            <CardContent>
+              {task.criteria.length === 0 ? (
+                <EmptyState title="No criteria specified for this task." />
+              ) : (
+                <div className="space-y-3">
+                  {task.criteria.map((criterion, index) => (
+                    <div
+                      key={criterion.id || index}
+                      className="border-b border-border pb-3 last:border-0 last:pb-0"
+                    >
+                      <div className="mb-1 flex items-start justify-between gap-3">
+                        <h3 className="text-[13px] font-medium text-foreground">
+                          {criterion.name}
+                        </h3>
+                        <span className="shrink-0 tabular-nums text-xs text-muted-foreground">
+                          {criterion.maxPoints} pts
+                        </span>
+                      </div>
+                      <p className="text-[13px] text-muted-foreground">
+                        {criterion.description}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
           {isAdminOrReviewer && task.authorSolution && (
-            <div className="bg-card rounded-lg shadow-sm border border-border p-6">
-              <h2 className="text-xl font-semibold mb-4">Author Solution</h2>
-              <pre className="bg-muted p-4 rounded-md overflow-x-auto">
-                <code>{task.authorSolution}</code>
-              </pre>
-            </div>
+            <Card>
+              <CardHeader>
+                <CardHeaderText>
+                  <CardTitle>Author solution</CardTitle>
+                </CardHeaderText>
+              </CardHeader>
+              <CardContent>
+                <pre className="code-block">
+                  <code>{task.authorSolution}</code>
+                </pre>
+              </CardContent>
+            </Card>
           )}
         </div>
 
-        <div className="space-y-8">
-          {/* Task Metadata */}
-          <div className="bg-card rounded-lg shadow-sm border border-border p-6">
-            <h2 className="text-lg font-semibold mb-4">Task Details</h2>
-
-            <div className="space-y-4">
+        <div className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardHeaderText>
+                <CardTitle>Task details</CardTitle>
+              </CardHeaderText>
+            </CardHeader>
+            <CardContent className="space-y-3">
               <div>
-                <h3 className="text-sm font-medium text-muted-foreground">
+                <h3 className="text-xs font-medium text-muted-foreground">
                   Created
                 </h3>
-                <p className="mt-1">
+                <p className="mt-0.5 text-[13px] tabular-nums text-foreground">
                   {new Date(task.createdAt).toLocaleDateString()}
                 </p>
               </div>
 
               <div>
-                <h3 className="text-sm font-medium text-muted-foreground">
-                  Last Updated
+                <h3 className="text-xs font-medium text-muted-foreground">
+                  Last updated
                 </h3>
-                <p className="mt-1">
+                <p className="mt-0.5 text-[13px] tabular-nums text-foreground">
                   {new Date(task.updatedAt).toLocaleDateString()}
                 </p>
               </div>
 
               {task.categories && task.categories.length > 0 && (
                 <div>
-                  <h3 className="text-sm font-medium text-muted-foreground">
+                  <h3 className="text-xs font-medium text-muted-foreground">
                     Categories
                   </h3>
-                  <div className="flex flex-wrap gap-2 mt-2">
+                  <div className="mt-1.5 flex flex-wrap gap-1.5">
                     {task.categories.map((category) => (
-                      <span
-                        key={category}
-                        className="bg-primary/10 text-primary text-xs px-2 py-1 rounded-full"
-                      >
+                      <Badge key={category} variant="accent">
                         {category}
-                      </span>
+                      </Badge>
                     ))}
                   </div>
                 </div>
@@ -196,75 +215,69 @@ const TaskDetailPage: React.FC = () => {
 
               {task.tags && task.tags.length > 0 && (
                 <div>
-                  <h3 className="text-sm font-medium text-muted-foreground">
+                  <h3 className="text-xs font-medium text-muted-foreground">
                     Tags
                   </h3>
-                  <div className="flex flex-wrap gap-2 mt-2">
+                  <div className="mt-1.5 flex flex-wrap gap-1.5">
                     {task.tags.map((tag) => (
-                      <span
-                        key={tag}
-                        className="bg-muted text-muted-foreground text-xs px-2 py-1 rounded-full"
-                      >
+                      <Badge key={tag} variant="neutral">
                         {tag}
-                      </span>
+                      </Badge>
                     ))}
                   </div>
                 </div>
               )}
-            </div>
-          </div>
+            </CardContent>
+          </Card>
 
-          {/* My Solutions (only for students) */}
           {isStudent && (
-            <div className="bg-card rounded-lg shadow-sm border border-border p-6">
-              <h2 className="text-lg font-semibold mb-4">My Solutions</h2>
-
-              {mySolutions.length === 0 ? (
-                <div className="text-center py-4">
-                  <p className="text-muted-foreground mb-4">
-                    You haven't submitted any solutions yet.
-                  </p>
-                  <Button asChild>
-                    <Link to={`/dashboard/tasks/${task.id}/submit-solution`}>
-                      Solve Task
-                    </Link>
-                  </Button>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {mySolutions.map((solution) => (
-                    <div
-                      key={solution.id}
-                      className="border-b border-border pb-4 last:border-0 last:pb-0"
-                    >
-                      <div className="flex justify-between items-center mb-2">
+            <Card>
+              <CardHeader>
+                <CardHeaderText>
+                  <CardTitle>My solutions</CardTitle>
+                </CardHeaderText>
+              </CardHeader>
+              <CardContent>
+                {mySolutions.length === 0 ? (
+                  <EmptyState
+                    title="No solutions submitted yet"
+                    description="Submit your solution to this task to see it here."
+                    action={
+                      <Button asChild size="sm">
                         <Link
-                          to={`/solutions/${solution.id}`}
-                          className="font-medium hover:text-primary"
+                          to={`/dashboard/tasks/${task.id}/submit-solution`}
                         >
-                          Solution #{solution.id}
+                          Solve Task
                         </Link>
-                        <span
-                          className={`text-sm font-medium px-2 py-1 rounded ${
-                            solution.status === 'reviewed'
-                              ? 'bg-green-100 text-green-800'
-                              : solution.status === 'in_review'
-                                ? 'bg-amber-100 text-amber-800'
-                                : 'bg-blue-100 text-blue-800'
-                          }`}
-                        >
-                          {solution.status.replace('_', ' ')}
-                        </span>
+                      </Button>
+                    }
+                  />
+                ) : (
+                  <div className="space-y-3">
+                    {mySolutions.map((solution) => (
+                      <div
+                        key={solution.id}
+                        className="border-b border-border pb-3 last:border-0 last:pb-0"
+                      >
+                        <div className="mb-1 flex items-center justify-between gap-2">
+                          <Link
+                            to={`/solutions/${solution.id}`}
+                            className="text-[13px] font-medium text-foreground hover:text-primary"
+                          >
+                            Solution #{solution.id}
+                          </Link>
+                          <StatusBadge status={solution.status} />
+                        </div>
+                        <p className="text-xs tabular-nums text-muted-foreground">
+                          Submitted:{' '}
+                          {new Date(solution.submittedAt).toLocaleString()}
+                        </p>
                       </div>
-                      <p className="text-sm text-muted-foreground">
-                        Submitted:{' '}
-                        {new Date(solution.submittedAt).toLocaleString()}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           )}
         </div>
       </div>

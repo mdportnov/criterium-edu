@@ -1,14 +1,29 @@
-import React, { useEffect, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Link, useParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { type TaskSolution, type TaskSolutionReview } from '@/types';
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardHeader,
+  CardHeaderText,
+  CardTitle,
+} from '@/components/ui/card';
+import { PageHeader } from '@/components/ui/page-header';
+import { StatusBadge } from '@/components/ui/badge';
+import { EmptyState, ErrorState, LoadingState } from '@/components/ui/states';
+import {
+  TaskSolutionStatus,
+  type TaskSolution,
+  type TaskSolutionReview,
+} from '@/types';
 import { TaskSolutionService, TaskSolutionReviewService } from '@/services';
 import { UserRole } from '@app/shared';
+import { getErrorMessage } from '@/lib/errors';
 
 const SolutionDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
   const { user, hasRole } = useAuth();
   const [solution, setSolution] = useState<TaskSolution | null>(null);
   const [review, setReview] = useState<TaskSolutionReview | null>(null);
@@ -21,60 +36,64 @@ const SolutionDetailPage: React.FC = () => {
   const canReview = isReviewer || isAdmin;
   const isOwnSolution = solution?.studentId === user?.id;
 
-  useEffect(() => {
-    const fetchSolutionData = async () => {
-      if (!id) return;
+  const fetchSolutionData = useCallback(async () => {
+    if (!id) return;
 
-      setIsLoading(true);
-      setError('');
+    setIsLoading(true);
+    setError('');
 
+    try {
+      const solutionData = await TaskSolutionService.getTaskSolutionById(id);
+      setSolution(solutionData);
+
+      // Check if there's a review for this solution
       try {
-        const solutionData = await TaskSolutionService.getTaskSolutionById(id);
-        setSolution(solutionData);
-
-        // Check if there's a review for this solution
-        try {
-          const reviews =
-            await TaskSolutionReviewService.getTaskSolutionReviewsBySolutionId(
-              id,
-            );
-          const reviewsArray = Array.isArray(reviews) ? reviews : reviews.data;
-          if (reviewsArray.length > 0) {
-            setReview(reviewsArray[0]);
-          }
-        } catch (reviewErr) {
-          console.error('Error fetching review:', reviewErr);
-          // Don't set an error for review fetch failure
+        const reviews =
+          await TaskSolutionReviewService.getTaskSolutionReviewsBySolutionId(
+            id,
+          );
+        const reviewsArray = Array.isArray(reviews) ? reviews : reviews.data;
+        if (reviewsArray.length > 0) {
+          setReview(reviewsArray[0]);
         }
-      } catch (err: any) {
-        console.error('Error fetching solution:', err);
-        setError(
-          err.response?.data?.message ||
-            'Failed to load solution. Please try again.',
-        );
-      } finally {
-        setIsLoading(false);
+      } catch (reviewErr) {
+        console.error('Error fetching review:', reviewErr);
+        // Don't set an error for review fetch failure
       }
-    };
-
-    fetchSolutionData();
+    } catch (err) {
+      console.error('Error fetching solution:', err);
+      setError(
+        getErrorMessage(err, 'Failed to load solution. Please try again.'),
+      );
+    } finally {
+      setIsLoading(false);
+    }
   }, [id]);
+
+  useEffect(() => {
+    void fetchSolutionData();
+  }, [fetchSolutionData]);
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      <div>
+        <PageHeader title="Solution" backTo="/tasks" />
+        <Card>
+          <LoadingState label="Loading solution…" />
+        </Card>
       </div>
     );
   }
 
   if (error || !solution) {
     return (
-      <div className="bg-destructive/15 text-destructive p-4 rounded-md">
-        <p>{error || 'Solution not found'}</p>
-        <Button asChild variant="outline" className="mt-4">
-          <Link to="/tasks">Back to Tasks</Link>
-        </Button>
+      <div>
+        <PageHeader title="Solution" backTo="/tasks" />
+        <ErrorState
+          title="Could not load the solution"
+          message={error || 'Solution not found'}
+          onRetry={() => void fetchSolutionData()}
+        />
       </div>
     );
   }
@@ -82,11 +101,19 @@ const SolutionDetailPage: React.FC = () => {
   // Only allow access to the solution owner, reviewers, or admins
   if (!isOwnSolution && !canReview) {
     return (
-      <div className="bg-destructive/15 text-destructive p-4 rounded-md">
-        <p>You don't have permission to view this solution.</p>
-        <Button asChild variant="outline" className="mt-4">
-          <Link to="/tasks">Back to Tasks</Link>
-        </Button>
+      <div>
+        <PageHeader title="Solution" backTo="/tasks" />
+        <Card>
+          <EmptyState
+            title="You don't have permission to view this solution"
+            description="Only the student who submitted it, reviewers and admins can open it."
+            action={
+              <Button asChild variant="outline">
+                <Link to="/tasks">Back to tasks</Link>
+              </Button>
+            }
+          />
+        </Card>
       </div>
     );
   }
@@ -113,182 +140,183 @@ const SolutionDetailPage: React.FC = () => {
     return (getTotalScore() / maxScore) * 100;
   };
 
-  const getScoreColor = () => {
-    const percentage = getScorePercentage();
+  const getCriterionTitle = (criterionId: string, index: number) =>
+    solution.task?.criteria?.find((c) => c.id === criterionId)?.title ||
+    `Criterion ${index + 1}`;
 
-    if (percentage >= 80) return 'text-green-600';
-    if (percentage >= 60) return 'text-amber-600';
-    return 'text-red-600';
-  };
+  const formatDateTime = (dateStr: string) =>
+    new Date(dateStr).toLocaleString('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
 
   return (
     <div>
-      <div className="flex items-center gap-2 text-muted-foreground mb-2">
-        <Link to="/tasks" className="hover:text-primary">
-          Tasks
-        </Link>
-        <span>/</span>
-        <Link
-          to={`/dashboard/tasks/${solution.taskId}`}
-          className="hover:text-primary"
-        >
-          Task #{solution.taskId}
-        </Link>
-        <span>/</span>
-        <span>Solution #{solution.id}</span>
-      </div>
+      <PageHeader
+        title={`Solution #${solution.id}`}
+        description={
+          <>
+            <Link
+              to={`/dashboard/tasks/${solution.taskId}`}
+              className="hover:text-foreground"
+            >
+              Task #{solution.taskId}
+            </Link>
+          </>
+        }
+        backTo="/tasks"
+        actions={
+          <>
+            {canReview && solution.status !== TaskSolutionStatus.REVIEWED && (
+              <Button asChild>
+                <Link to={`/dashboard/solutions/${solution.id}/review`}>
+                  {solution.status === TaskSolutionStatus.IN_REVIEW
+                    ? 'Continue review'
+                    : 'Start review'}
+                </Link>
+              </Button>
+            )}
+            {isStudent && isOwnSolution && (
+              <Button asChild variant="outline">
+                <Link
+                  to={`/dashboard/tasks/${solution.taskId}/submit-solution`}
+                >
+                  Submit new solution
+                </Link>
+              </Button>
+            )}
+          </>
+        }
+      />
 
-      <div className="flex justify-between items-start mb-6">
-        <h1 className="text-3xl font-bold">Solution #{solution.id}</h1>
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <div className="space-y-4 lg:col-span-2">
+          <Card>
+            <CardHeader>
+              <CardHeaderText>
+                <CardTitle>Solution</CardTitle>
+              </CardHeaderText>
+            </CardHeader>
+            <CardContent>
+              <pre className="code-block">
+                <code>{solution.solutionText}</code>
+              </pre>
+            </CardContent>
+          </Card>
 
-        <div className="flex gap-2">
-          {canReview && solution.status !== 'reviewed' && (
-            <Button asChild>
-              <Link to={`/dashboard/solutions/${solution.id}/review`}>
-                {solution.status === 'in_review'
-                  ? 'Continue Review'
-                  : 'Start Review'}
-              </Link>
-            </Button>
-          )}
-
-          {isStudent && isOwnSolution && (
-            <Button asChild variant="outline">
-              <Link to={`/dashboard/tasks/${solution.taskId}/submit-solution`}>
-                Submit New Solution
-              </Link>
-            </Button>
-          )}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-8">
-          {/* Solution Code */}
-          <div className="bg-card rounded-lg shadow-sm border border-border p-6">
-            <h2 className="text-xl font-semibold mb-4">Solution Code</h2>
-            <pre className="bg-muted p-4 rounded-md overflow-x-auto font-mono text-sm">
-              <code>{solution.solutionText}</code>
-            </pre>
-          </div>
-
-          {/* Review */}
           {review && (
-            <div className="bg-card rounded-lg shadow-sm border border-border p-6">
-              <h2 className="text-xl font-semibold mb-4">Review</h2>
-
-              <div className="space-y-6">
-                {/* Criteria Scores */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-medium">Criteria Evaluation</h3>
+            <Card>
+              <CardHeader>
+                <CardHeaderText>
+                  <CardTitle>Review</CardTitle>
+                </CardHeaderText>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-3">
+                  <h3 className="text-xs font-medium text-muted-foreground">
+                    Criteria evaluation
+                  </h3>
 
                   {review.criteriaScores.map((score, index) => (
                     <div
-                      key={index}
-                      className="border-b border-border pb-4 last:border-0 last:pb-0"
+                      key={score.criterionId ?? index}
+                      className="border-b border-border pb-3 last:border-0 last:pb-0"
                     >
-                      <div className="flex justify-between items-start mb-2">
-                        <h4 className="font-medium">Criterion</h4>
-                        <span className="font-medium">
-                          {score.score} points
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="text-[13px] font-medium text-foreground">
+                          {getCriterionTitle(score.criterionId, index)}
+                        </p>
+                        <span className="shrink-0 tabular-nums text-[13px] font-medium text-foreground">
+                          {score.score} pts
                         </span>
                       </div>
-                      <p className="text-muted-foreground">{score.comment}</p>
+                      {score.comment && (
+                        <p className="mt-1 text-[13px] leading-5 text-muted-foreground">
+                          {score.comment}
+                        </p>
+                      )}
                     </div>
                   ))}
                 </div>
 
-                {/* Overall Feedback */}
-                <div className="space-y-2">
-                  <h3 className="text-lg font-medium">Overall Feedback</h3>
-                  <p className="whitespace-pre-line">
-                    {review.feedbackToStudent}
-                  </p>
+                <div className="space-y-1.5">
+                  <h3 className="text-xs font-medium text-muted-foreground">
+                    Overall feedback
+                  </h3>
+                  <div className="prose-body">{review.feedbackToStudent}</div>
                 </div>
 
-                {/* Reviewer */}
-                <div className="text-sm text-muted-foreground">
-                  Reviewed on {new Date(review.updatedAt).toLocaleString()}
-                </div>
-              </div>
-            </div>
+                <p className="text-xs text-muted-foreground">
+                  Reviewed on {formatDateTime(review.updatedAt)}
+                </p>
+              </CardContent>
+            </Card>
           )}
         </div>
 
-        <div>
-          {/* Solution Metadata */}
-          <div className="bg-card rounded-lg shadow-sm border border-border p-6 sticky top-6">
-            <h2 className="text-lg font-semibold mb-4">Solution Details</h2>
-
-            <div className="space-y-4">
+        <Card className="lg:self-start">
+          <CardHeader>
+            <CardHeaderText>
+              <CardTitle>Details</CardTitle>
+            </CardHeaderText>
+            <CardAction>
+              <StatusBadge status={solution.status} />
+            </CardAction>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {review && (
               <div>
-                <h3 className="text-sm font-medium text-muted-foreground">
-                  Status
+                <h3 className="text-xs font-medium text-muted-foreground">
+                  Score
                 </h3>
-                <p className="mt-1 capitalize font-medium">
-                  <span
-                    className={`inline-block px-2 py-1 rounded-full text-xs ${
-                      solution.status === 'reviewed'
-                        ? 'bg-green-100 text-green-800'
-                        : solution.status === 'in_review'
-                          ? 'bg-amber-100 text-amber-800'
-                          : 'bg-blue-100 text-blue-800'
-                    }`}
-                  >
-                    {solution.status.replace('_', ' ')}
-                  </span>
+                <p className="mt-0.5 tabular-nums text-[13px] font-medium text-foreground">
+                  {getTotalScore()} / {getMaxPossibleScore()} (
+                  {getScorePercentage().toFixed(1)}%)
                 </p>
               </div>
+            )}
 
-              {review && (
-                <div>
-                  <h3 className="text-sm font-medium text-muted-foreground">
-                    Score
-                  </h3>
-                  <p className={`mt-1 font-bold text-lg ${getScoreColor()}`}>
-                    {getTotalScore()} / {getMaxPossibleScore()} (
-                    {getScorePercentage().toFixed(1)}%)
-                  </p>
-                </div>
-              )}
-
-              <div>
-                <h3 className="text-sm font-medium text-muted-foreground">
-                  Submitted By
-                </h3>
-                <p className="mt-1">Student #{solution.studentId}</p>
-              </div>
-
-              <div>
-                <h3 className="text-sm font-medium text-muted-foreground">
-                  Submitted On
-                </h3>
-                <p className="mt-1">
-                  {new Date(solution.submittedAt).toLocaleString()}
-                </p>
-              </div>
-
-              {solution.updatedAt !== solution.submittedAt && (
-                <div>
-                  <h3 className="text-sm font-medium text-muted-foreground">
-                    Last Updated
-                  </h3>
-                  <p className="mt-1">
-                    {new Date(solution.updatedAt).toLocaleString()}
-                  </p>
-                </div>
-              )}
-
-              <div className="pt-4 border-t border-border">
-                <Button asChild variant="outline" className="w-full">
-                  <Link to={`/dashboard/tasks/${solution.taskId}`}>
-                    View Task
-                  </Link>
-                </Button>
-              </div>
+            <div>
+              <h3 className="text-xs font-medium text-muted-foreground">
+                Submitted by
+              </h3>
+              <p className="mt-0.5 text-[13px] text-foreground">
+                Student #{solution.studentId}
+              </p>
             </div>
-          </div>
-        </div>
+
+            <div>
+              <h3 className="text-xs font-medium text-muted-foreground">
+                Submitted on
+              </h3>
+              <p className="mt-0.5 text-[13px] text-foreground">
+                {formatDateTime(solution.submittedAt)}
+              </p>
+            </div>
+
+            {solution.updatedAt !== solution.submittedAt && (
+              <div>
+                <h3 className="text-xs font-medium text-muted-foreground">
+                  Last updated
+                </h3>
+                <p className="mt-0.5 text-[13px] text-foreground">
+                  {formatDateTime(solution.updatedAt)}
+                </p>
+              </div>
+            )}
+
+            <div className="border-t border-border pt-3">
+              <Button asChild variant="outline" className="w-full">
+                <Link to={`/dashboard/tasks/${solution.taskId}`}>
+                  View task
+                </Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

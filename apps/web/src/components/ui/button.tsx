@@ -4,27 +4,32 @@ import { cva, type VariantProps } from 'class-variance-authority';
 
 import { cn } from '@/lib/utils';
 
+/*
+ * Exactly one variant is filled with the accent (`default`). Everything else is a
+ * hairline or a ghost, so a screen can only ever have one loud button. `destructive`
+ * is deliberately an outline in danger colour rather than a red fill: destructive
+ * actions should be findable, not attention-grabbing.
+ */
 const buttonVariants = cva(
-  'inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed transform active:scale-95',
+  "inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-md text-[13px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-']):not([class*='h-'])]:size-4",
   {
     variants: {
       variant: {
-        default:
-          'bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-md shadow-sm',
+        default: 'bg-primary text-primary-foreground hover:bg-primary/90',
         destructive:
-          'bg-destructive text-destructive-foreground hover:bg-destructive/90 hover:shadow-md shadow-sm',
+          'border border-danger/40 text-danger hover:bg-danger-soft hover:border-danger/60',
         outline:
-          'border border-input bg-background hover:bg-accent hover:text-accent-foreground hover:border-accent hover:shadow-sm',
-        secondary:
-          'bg-secondary text-secondary-foreground hover:bg-secondary/80 hover:shadow-sm',
-        ghost: 'hover:bg-accent hover:text-accent-foreground',
-        link: 'text-primary underline-offset-4 hover:underline',
+          'border border-input bg-card text-foreground hover:bg-muted hover:text-foreground',
+        secondary: 'bg-secondary text-secondary-foreground hover:bg-accent',
+        ghost: 'text-muted-foreground hover:bg-muted hover:text-foreground',
+        link: 'text-primary underline-offset-4 hover:underline h-auto p-0',
       },
       size: {
-        default: 'h-10 px-4 py-2',
-        sm: 'h-9 rounded-md px-3 text-xs',
-        lg: 'h-11 rounded-md px-8 text-base',
-        icon: 'h-10 w-10',
+        default: 'h-8 px-3',
+        sm: 'h-7 px-2.5 text-xs',
+        lg: 'h-9 px-4 text-sm',
+        icon: 'h-8 w-8 p-0',
+        'icon-sm': 'h-7 w-7 p-0',
       },
     },
     defaultVariants: {
@@ -48,7 +53,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       <Comp
         className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
-        {...(props as any)}
+        {...props}
       />
     );
   },

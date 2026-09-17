@@ -1,10 +1,25 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Field } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardHeaderText,
+  CardTitle,
+} from '@/components/ui/card';
+import { PageHeader } from '@/components/ui/page-header';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { ErrorState, LoadingState } from '@/components/ui/states';
 import { TaskService } from '@/services';
 import type { Task, TaskCriterion, UpdateTaskRequest } from '@/types';
+import { X } from 'lucide-react';
+import { getErrorMessage } from '@/lib/errors';
 
 const EditTaskPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -31,38 +46,35 @@ const EditTaskPage: React.FC = () => {
     maxPoints: 10,
   });
 
+  const fetchTask = async () => {
+    if (!id) return;
+
+    setIsLoading(true);
+    setError('');
+
+    try {
+      const taskData = await TaskService.getTaskById(id);
+      setTask(taskData);
+
+      // Initialize form data with task data
+      setFormData({
+        title: taskData.title,
+        description: taskData.description,
+        authorSolution: taskData.authorSolution || '',
+        categories: taskData.categories || [],
+        tags: taskData.tags || [],
+        criteria: taskData.criteria || [],
+      });
+    } catch (err) {
+      console.error('Error fetching task:', err);
+      setError(getErrorMessage(err, 'Failed to load task. Please try again.'));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchTask = async () => {
-      if (!id) return;
-
-      setIsLoading(true);
-      setError('');
-
-      try {
-        const taskData = await TaskService.getTaskById(id);
-        setTask(taskData);
-
-        // Initialize form data with task data
-        setFormData({
-          title: taskData.title,
-          description: taskData.description,
-          authorSolution: taskData.authorSolution || '',
-          categories: taskData.categories || [],
-          tags: taskData.tags || [],
-          criteria: taskData.criteria || [],
-        });
-      } catch (err: any) {
-        console.error('Error fetching task:', err);
-        setError(
-          err.response?.data?.message ||
-            'Failed to load task. Please try again.',
-        );
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchTask();
+    void fetchTask();
   }, [id]);
 
   const handleChange = (
@@ -153,6 +165,11 @@ const EditTaskPage: React.FC = () => {
     }));
   };
 
+  const totalPoints = formData.criteria.reduce(
+    (sum, criterion) => sum + criterion.maxPoints,
+    0,
+  );
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -178,12 +195,11 @@ const EditTaskPage: React.FC = () => {
 
     try {
       await TaskService.updateTask(task.id, formData);
-      navigate(`/dashboard/tasks/${task.id}`);
-    } catch (err: any) {
+      void navigate(`/dashboard/tasks/${task.id}`);
+    } catch (err) {
       console.error('Error updating task:', err);
       setError(
-        err.response?.data?.message ||
-          'Failed to update task. Please try again.',
+        getErrorMessage(err, 'Failed to update task. Please try again.'),
       );
     } finally {
       setIsSaving(false);
@@ -205,12 +221,11 @@ const EditTaskPage: React.FC = () => {
 
     try {
       await TaskService.deleteTask(task.id);
-      navigate('/dashboard/tasks');
-    } catch (err: any) {
+      void navigate('/dashboard/tasks');
+    } catch (err) {
       console.error('Error deleting task:', err);
       setError(
-        err.response?.data?.message ||
-          'Failed to delete task. Please try again.',
+        getErrorMessage(err, 'Failed to delete task. Please try again.'),
       );
       setIsSaving(false);
     }
@@ -218,62 +233,58 @@ const EditTaskPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      <div className="mx-auto max-w-3xl">
+        <PageHeader title="Edit task" backTo="/dashboard/tasks" />
+        <LoadingState label="Loading task…" />
       </div>
     );
   }
 
   if (error && !task) {
     return (
-      <div className="bg-destructive/15 text-destructive p-4 rounded-md">
-        <p>{error}</p>
-        <Button asChild variant="outline" className="mt-4">
-          <Link to="/dashboard/tasks">Back to Tasks</Link>
-        </Button>
+      <div className="mx-auto max-w-3xl">
+        <PageHeader title="Edit task" backTo="/dashboard/tasks" />
+        <ErrorState
+          title="Could not load task"
+          message={error}
+          onRetry={() => void fetchTask()}
+        />
       </div>
     );
   }
 
   return (
-    <div>
-      <div className="flex items-center gap-2 text-muted-foreground mb-2">
-        <Link to="/dashboard/tasks" className="hover:text-primary">
-          Tasks
-        </Link>
-        <span>/</span>
-        <Link to={`/dashboard/tasks/${id}`} className="hover:text-primary">
-          Task #{id}
-        </Link>
-        <span>/</span>
-        <span>Edit</span>
-      </div>
-
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Edit Task</h1>
-
-        <Button
-          variant="destructive"
-          onClick={handleDelete}
-          disabled={isSaving}
-        >
-          Delete Task
-        </Button>
-      </div>
+    <div className="mx-auto max-w-3xl">
+      <PageHeader
+        title="Edit task"
+        description={task ? task.title : undefined}
+        backTo={`/dashboard/tasks/${id}`}
+        actions={
+          <Button
+            variant="destructive"
+            onClick={() => void handleDelete()}
+            disabled={isSaving}
+          >
+            Delete task
+          </Button>
+        }
+      />
 
       {error && (
-        <div className="bg-destructive/15 text-destructive p-4 rounded-md mb-6">
-          {error}
-        </div>
+        <Alert variant="destructive" className="mb-4">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-8">
-        <div className="bg-card rounded-lg shadow-sm border border-border p-6">
-          <h2 className="text-xl font-semibold mb-4">Basic Information</h2>
-
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="title">Title</Label>
+      <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
+        <Card>
+          <CardHeader>
+            <CardHeaderText>
+              <CardTitle>Basic information</CardTitle>
+            </CardHeaderText>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Field label="Title" htmlFor="title" required>
               <Input
                 id="title"
                 name="title"
@@ -282,30 +293,31 @@ const EditTaskPage: React.FC = () => {
                 placeholder="Enter task title"
                 required
               />
-            </div>
+            </Field>
 
-            <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
-              <textarea
+            <Field label="Description" htmlFor="description" required>
+              <Textarea
                 id="description"
                 name="description"
                 value={formData.description}
                 onChange={handleChange}
                 placeholder="Enter detailed task description"
-                className="flex min-h-32 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                className="min-h-32"
                 required
               />
-            </div>
-          </div>
-        </div>
+            </Field>
+          </CardContent>
+        </Card>
 
-        <div className="bg-card rounded-lg shadow-sm border border-border p-6">
-          <h2 className="text-xl font-semibold mb-4">Categories & Tags</h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="categoryInput">Categories</Label>
+        <Card>
+          <CardHeader>
+            <CardHeaderText>
+              <CardTitle>Categories & tags</CardTitle>
+            </CardHeaderText>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <Field label="Categories" htmlFor="categoryInput">
                 <div className="flex gap-2">
                   <Input
                     id="categoryInput"
@@ -317,30 +329,33 @@ const EditTaskPage: React.FC = () => {
                     Add
                   </Button>
                 </div>
-              </div>
+              </Field>
 
-              <div className="flex flex-wrap gap-2 mt-2">
-                {formData.categories?.map((category) => (
-                  <span
-                    key={category}
-                    className="bg-primary/10 text-primary text-sm px-2 py-1 rounded-full flex items-center gap-1"
-                  >
-                    {category}
-                    <button
-                      type="button"
-                      onClick={() => removeCategory(category)}
-                      className="text-primary hover:text-primary/80 focus:outline-none"
+              {formData.categories && formData.categories.length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {formData.categories.map((category) => (
+                    <Badge
+                      key={category}
+                      variant="accent"
+                      className="gap-1 pr-1"
                     >
-                      ×
-                    </button>
-                  </span>
-                ))}
-              </div>
+                      {category}
+                      <button
+                        type="button"
+                        onClick={() => removeCategory(category)}
+                        className="rounded-sm hover:bg-primary/15"
+                        aria-label={`Remove category ${category}`}
+                      >
+                        <X className="size-3" />
+                      </button>
+                    </Badge>
+                  ))}
+                </div>
+              )}
             </div>
 
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="tagInput">Tags</Label>
+            <div className="space-y-2">
+              <Field label="Tags" htmlFor="tagInput">
                 <div className="flex gap-2">
                   <Input
                     id="tagInput"
@@ -352,135 +367,159 @@ const EditTaskPage: React.FC = () => {
                     Add
                   </Button>
                 </div>
-              </div>
+              </Field>
 
-              <div className="flex flex-wrap gap-2 mt-2">
-                {formData.tags?.map((tag) => (
-                  <span
-                    key={tag}
-                    className="bg-muted text-muted-foreground text-sm px-2 py-1 rounded-full flex items-center gap-1"
-                  >
-                    {tag}
-                    <button
-                      type="button"
-                      onClick={() => removeTag(tag)}
-                      className="text-muted-foreground hover:text-foreground focus:outline-none"
-                    >
-                      ×
-                    </button>
-                  </span>
-                ))}
-              </div>
+              {formData.tags && formData.tags.length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {formData.tags.map((tag) => (
+                    <Badge key={tag} variant="neutral" className="gap-1 pr-1">
+                      {tag}
+                      <button
+                        type="button"
+                        onClick={() => removeTag(tag)}
+                        className="rounded-sm hover:bg-border"
+                        aria-label={`Remove tag ${tag}`}
+                      >
+                        <X className="size-3" />
+                      </button>
+                    </Badge>
+                  ))}
+                </div>
+              )}
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
-        <div className="bg-card rounded-lg shadow-sm border border-border p-6">
-          <h2 className="text-xl font-semibold mb-4">Evaluation Criteria</h2>
+        <Card>
+          <CardHeader>
+            <CardHeaderText>
+              <CardTitle>Evaluation criteria</CardTitle>
+            </CardHeaderText>
+            {formData.criteria.length > 0 && (
+              <span className="text-xs text-muted-foreground">
+                Total{' '}
+                <span className="tabular-nums font-medium text-foreground">
+                  {totalPoints}
+                </span>{' '}
+                pts
+              </span>
+            )}
+          </CardHeader>
 
-          <div className="space-y-6 mb-6">
-            {formData.criteria.map((criterion, index) => (
-              <div key={index} className="border border-border rounded-md p-4">
-                <div className="flex justify-between items-start mb-2">
-                  <h3 className="font-medium">{criterion.name}</h3>
-                  <div className="flex items-center gap-2">
-                    <span className="bg-primary/10 text-primary text-sm px-2 py-1 rounded">
-                      {criterion.maxPoints} points
+          {formData.criteria.length > 0 && (
+            <div className="divide-y divide-border border-b border-border">
+              {formData.criteria.map((criterion, index) => (
+                <div
+                  key={index}
+                  className="flex items-start justify-between gap-3 px-4 py-3"
+                >
+                  <div className="min-w-0">
+                    <p className="text-[13px] font-medium text-foreground">
+                      {criterion.name}
+                    </p>
+                    <p className="mt-0.5 text-xs leading-5 text-muted-foreground">
+                      {criterion.description}
+                    </p>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-2">
+                    <span className="tabular-nums text-xs text-muted-foreground">
+                      {criterion.maxPoints} pts
                     </span>
-                    <button
+                    <Button
                       type="button"
+                      variant="ghost"
+                      size="icon-sm"
                       onClick={() => removeCriterion(index)}
-                      className="text-destructive hover:text-destructive/80 focus:outline-none"
+                      aria-label={`Remove criterion ${criterion.name}`}
                     >
-                      ×
-                    </button>
+                      <X className="size-3.5" />
+                    </Button>
                   </div>
                 </div>
-                <p className="text-muted-foreground">{criterion.description}</p>
-              </div>
-            ))}
-          </div>
-
-          <div className="border-t border-border pt-6">
-            <h3 className="font-medium mb-4">Add New Criterion</h3>
-
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="criterionName">Name</Label>
-                <Input
-                  id="criterionName"
-                  name="name"
-                  value={newCriterion.name}
-                  onChange={handleCriterionChange}
-                  placeholder="e.g., Code Quality"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="criterionDescription">Description</Label>
-                <textarea
-                  id="criterionDescription"
-                  name="description"
-                  value={newCriterion.description}
-                  onChange={handleCriterionChange}
-                  placeholder="Describe what this criterion evaluates"
-                  className="flex min-h-20 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="criterionMaxPoints">Maximum Points</Label>
-                <Input
-                  id="criterionMaxPoints"
-                  name="maxPoints"
-                  type="number"
-                  min="1"
-                  value={newCriterion.maxPoints}
-                  onChange={handleCriterionChange}
-                />
-              </div>
-
-              <Button
-                type="button"
-                onClick={addCriterion}
-                variant="outline"
-                className="w-full"
-              >
-                Add Criterion
-              </Button>
+              ))}
             </div>
-          </div>
-        </div>
+          )}
 
-        <div className="bg-card rounded-lg shadow-sm border border-border p-6">
-          <h2 className="text-xl font-semibold mb-4">Author Solution</h2>
+          <CardContent className="space-y-4">
+            <p className="text-xs font-medium text-muted-foreground">
+              Add new criterion
+            </p>
 
-          <div className="space-y-2">
-            <Label htmlFor="authorSolution">Reference Solution</Label>
-            <textarea
-              id="authorSolution"
-              name="authorSolution"
-              value={formData.authorSolution}
-              onChange={handleChange}
-              placeholder="Provide a reference solution or implementation (only visible to reviewers and admins)"
-              className="flex min-h-32 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 font-mono"
-            />
-          </div>
-        </div>
+            <Field label="Name" htmlFor="criterionName">
+              <Input
+                id="criterionName"
+                name="name"
+                value={newCriterion.name}
+                onChange={handleCriterionChange}
+                placeholder="e.g., Code Quality"
+              />
+            </Field>
 
-        <div className="flex justify-end gap-3">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => navigate(`/dashboard/tasks/${id}`)}
-            disabled={isSaving}
-          >
-            Cancel
-          </Button>
-          <Button type="submit" disabled={isSaving}>
-            {isSaving ? 'Saving...' : 'Save Changes'}
-          </Button>
-        </div>
+            <Field label="Description" htmlFor="criterionDescription">
+              <Textarea
+                id="criterionDescription"
+                name="description"
+                value={newCriterion.description}
+                onChange={handleCriterionChange}
+                placeholder="Describe what this criterion evaluates"
+                className="min-h-20"
+              />
+            </Field>
+
+            <Field label="Maximum points" htmlFor="criterionMaxPoints">
+              <Input
+                id="criterionMaxPoints"
+                name="maxPoints"
+                type="number"
+                min="1"
+                value={newCriterion.maxPoints}
+                onChange={handleCriterionChange}
+              />
+            </Field>
+
+            <Button
+              type="button"
+              onClick={addCriterion}
+              variant="outline"
+              className="w-full"
+            >
+              Add criterion
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardHeaderText>
+              <CardTitle>Author solution</CardTitle>
+            </CardHeaderText>
+          </CardHeader>
+          <CardContent>
+            <Field label="Reference solution" htmlFor="authorSolution">
+              <Textarea
+                id="authorSolution"
+                name="authorSolution"
+                value={formData.authorSolution}
+                onChange={handleChange}
+                placeholder="Provide a reference solution or implementation (only visible to reviewers and admins)"
+                className="min-h-32 font-mono"
+              />
+            </Field>
+          </CardContent>
+          <CardFooter className="justify-end gap-2">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => void navigate(`/dashboard/tasks/${id}`)}
+              disabled={isSaving}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" disabled={isSaving}>
+              {isSaving ? 'Saving...' : 'Save changes'}
+            </Button>
+          </CardFooter>
+        </Card>
       </form>
     </div>
   );

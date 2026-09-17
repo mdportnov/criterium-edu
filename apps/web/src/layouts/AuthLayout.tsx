@@ -1,48 +1,41 @@
 import React from 'react';
 import { Outlet, Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { LoadingState } from '@/components/ui/states';
+import { Wordmark } from '@/components/Logo';
 
+/*
+ * Sign-in is the one screen a first-time user meets, but it is still the front door of
+ * an internal tool, not a landing page: a plain surface, a single card, no gradient
+ * wash and no hover lift on the card.
+ */
 const AuthLayout: React.FC = () => {
   const { isAuthenticated, isLoading } = useAuth();
 
-  // If loading, show a loading indicator
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="loading-spinner"></div>
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <LoadingState label="Checking your session…" />
       </div>
     );
   }
 
-  // If already authenticated, redirect to dashboard
   if (isAuthenticated) {
     return <Navigate to="/dashboard" replace />;
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-primary/10">
-      <div className="w-full max-w-md px-4">
-        <div className="text-center mb-8 fade-in">
-          <div className="inline-flex items-center justify-center gap-4 mb-4">
-            <img
-              src="/logo.svg"
-              alt="Criterium EDU Logo"
-              className="h-12 w-auto"
-            />
-          </div>
-          <p className="text-muted-foreground text-lg">
-            Educational Assessment Platform
-          </p>
-        </div>
-        <div className="bg-card rounded-xl shadow-xl p-8 border border-border/50 backdrop-blur-sm fade-in transition-all duration-300 hover:shadow-2xl">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4 py-10">
+      <div className="w-full max-w-sm">
+        <Wordmark size="lg" className="mb-6" />
+
+        <div className="rounded-md border border-border bg-card p-5">
           <Outlet />
         </div>
-        <div className="text-center mt-6 text-sm text-muted-foreground">
-          <p>
-            &copy; {new Date().getFullYear()} Criterium EDU. All rights
-            reserved.
-          </p>
-        </div>
+
+        <p className="mt-6 text-xs text-muted-foreground">
+          Internal assessment tool · {new Date().getFullYear()}
+        </p>
       </div>
     </div>
   );

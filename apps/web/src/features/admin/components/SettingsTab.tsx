@@ -2,24 +2,20 @@ import React, { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Field } from '@/components/ui/label';
 import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
+  CardHeaderText,
   CardTitle,
 } from '@/components/ui/card';
-import { Alert } from '@/components/ui/alert';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { ErrorState, LoadingState } from '@/components/ui/states';
 import { settingsService, type AppSettings } from '@/services/settings.service';
-import {
-  Settings,
-  Save,
-  Eye,
-  EyeOff,
-  ToggleLeft,
-  ToggleRight,
-} from 'lucide-react';
+import { Eye, EyeOff } from 'lucide-react';
 
 const SettingsTab: React.FC = () => {
   const queryClient = useQueryClient();
@@ -30,6 +26,7 @@ const SettingsTab: React.FC = () => {
     data: settings,
     isLoading,
     error,
+    refetch,
   } = useQuery({
     queryKey: ['settings'],
     queryFn: () => settingsService.getSettings(),
@@ -70,51 +67,48 @@ const SettingsTab: React.FC = () => {
     localSettings.openai_api_key ?? settings?.data.openai_api_key ?? '';
 
   if (isLoading) {
-    return <div className="flex justify-center py-8">Loading settings...</div>;
+    return (
+      <Card>
+        <LoadingState label="Loading settings…" />
+      </Card>
+    );
   }
 
   if (error) {
     return (
-      <Alert variant="destructive">
-        Failed to load settings. Please try again.
-      </Alert>
+      <ErrorState
+        title="Could not load settings"
+        message="The admin service did not respond."
+        onRetry={refetch}
+      />
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Settings className="w-5 h-5" />
-              Registration Settings
-            </CardTitle>
-            <CardDescription>
-              Control whether new users can register for accounts
-            </CardDescription>
+            <CardHeaderText>
+              <CardTitle>Registration</CardTitle>
+              <CardDescription>
+                Control whether new users can register for accounts.
+              </CardDescription>
+            </CardHeaderText>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <Label className="text-sm font-medium">User Registration</Label>
-                <p className="text-sm text-muted-foreground">
-                  {registrationEnabled
-                    ? 'Users can create new accounts'
-                    : 'Registration is disabled'}
-                </p>
-              </div>
+          <CardContent>
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-[13px] text-muted-foreground">
+                {registrationEnabled
+                  ? 'Users can create new accounts.'
+                  : 'Registration is disabled.'}
+              </p>
               <Button
-                variant="ghost"
+                variant="outline"
                 size="sm"
                 onClick={handleToggleRegistration}
-                className="p-1"
               >
-                {registrationEnabled ? (
-                  <ToggleRight className="w-8 h-8 text-green-500" />
-                ) : (
-                  <ToggleLeft className="w-8 h-8 text-gray-400" />
-                )}
+                {registrationEnabled ? 'Disable' : 'Enable'}
               </Button>
             </div>
           </CardContent>
@@ -122,68 +116,71 @@ const SettingsTab: React.FC = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Settings className="w-5 h-5" />
-              LLM Configuration
-            </CardTitle>
-            <CardDescription>
-              Configure OpenAI API settings for AI-powered features
-            </CardDescription>
+            <CardHeaderText>
+              <CardTitle>LLM configuration</CardTitle>
+              <CardDescription>
+                Configure the OpenAI API key used by AI-powered features.
+              </CardDescription>
+            </CardHeaderText>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="openai-api-key">OpenAI API Key</Label>
+          <CardContent>
+            <Field
+              label="OpenAI API key"
+              htmlFor="openai-api-key"
+              hint="Required for AI-powered code analysis and review features."
+            >
               <div className="relative">
                 <Input
                   id="openai-api-key"
                   type={showApiKey ? 'text' : 'password'}
                   value={apiKeyValue}
                   onChange={(e) => handleApiKeyChange(e.target.value)}
-                  placeholder="sk-..."
-                  className="pr-10"
+                  placeholder="sk-…"
+                  className="pr-9"
                 />
-                <Button
+                <button
                   type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                   onClick={() => setShowApiKey(!showApiKey)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
                 >
                   {showApiKey ? (
-                    <EyeOff className="h-4 w-4" />
+                    <EyeOff className="size-3.5" />
                   ) : (
-                    <Eye className="h-4 w-4" />
+                    <Eye className="size-3.5" />
                   )}
-                </Button>
+                  <span className="sr-only">
+                    {showApiKey ? 'Hide API key' : 'Show API key'}
+                  </span>
+                </button>
               </div>
-              <p className="text-sm text-muted-foreground">
-                Required for AI-powered code analysis and review features
-              </p>
-            </div>
+            </Field>
           </CardContent>
+          {hasChanges && (
+            <CardFooter className="justify-end">
+              <Button
+                onClick={handleSave}
+                disabled={updateSettingsMutation.isPending}
+              >
+                {updateSettingsMutation.isPending ? 'Saving…' : 'Save changes'}
+              </Button>
+            </CardFooter>
+          )}
         </Card>
       </div>
 
-      {hasChanges && (
-        <div className="flex justify-end">
-          <Button
-            onClick={handleSave}
-            disabled={updateSettingsMutation.isPending}
-            className="min-w-[120px]"
-          >
-            <Save className="w-4 h-4 mr-2" />
-            {updateSettingsMutation.isPending ? 'Saving...' : 'Save Changes'}
-          </Button>
-        </div>
-      )}
-
       {updateSettingsMutation.isSuccess && (
-        <Alert>Settings have been updated successfully.</Alert>
+        <Alert variant="success">
+          <AlertDescription>
+            Settings have been updated successfully.
+          </AlertDescription>
+        </Alert>
       )}
 
       {updateSettingsMutation.isError && (
         <Alert variant="destructive">
-          Failed to update settings. Please try again.
+          <AlertDescription>
+            Failed to update settings. Please try again.
+          </AlertDescription>
         </Alert>
       )}
     </div>

@@ -1,11 +1,23 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
+import { Field } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardHeaderText,
+  CardTitle,
+} from '@/components/ui/card';
+import { PageHeader } from '@/components/ui/page-header';
+import { ErrorState, LoadingState } from '@/components/ui/states';
 import { TaskService, TaskSolutionService } from '@/services';
 import type { CreateTaskSolutionRequest, Task } from '@/types';
 import { AlertCircle, CheckCircle2 } from 'lucide-react';
+import { getErrorMessage } from '@/lib/errors';
 
 const SubmitSolutionPage: React.FC = () => {
   const { taskId } = useParams<{ taskId: string }>();
@@ -21,29 +33,26 @@ const SubmitSolutionPage: React.FC = () => {
     solutionText: '',
   });
 
+  const fetchTask = async () => {
+    if (!taskId) return;
+
+    setIsLoading(true);
+    setError('');
+
+    try {
+      const taskData = await TaskService.getTaskById(taskId);
+      setTask(taskData);
+      setFormData((prev) => ({ ...prev, taskId }));
+    } catch (err) {
+      console.error('Error fetching task:', err);
+      setError(getErrorMessage(err, 'Failed to load task. Please try again.'));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchTask = async () => {
-      if (!taskId) return;
-
-      setIsLoading(true);
-      setError('');
-
-      try {
-        const taskData = await TaskService.getTaskById(taskId);
-        setTask(taskData);
-        setFormData((prev) => ({ ...prev, taskId }));
-      } catch (err: any) {
-        console.error('Error fetching task:', err);
-        setError(
-          err.response?.data?.message ||
-            'Failed to load task. Please try again.',
-        );
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchTask();
+    void fetchTask();
   }, [taskId]);
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -69,11 +78,10 @@ const SubmitSolutionPage: React.FC = () => {
       setTimeout(() => {
         navigate(`/dashboard/solutions/${solution.id}`);
       }, 1500);
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error submitting solution:', err);
       setError(
-        err.response?.data?.message ||
-          'Failed to submit solution. Please try again.',
+        getErrorMessage(err, 'Failed to submit solution. Please try again.'),
       );
     } finally {
       setIsSubmitting(false);
@@ -82,80 +90,76 @@ const SubmitSolutionPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      <div className="mx-auto max-w-5xl">
+        <PageHeader title="Submit Solution" backTo="/dashboard/tasks" />
+        <LoadingState />
       </div>
     );
   }
 
   if (error && !task) {
     return (
-      <div className="bg-destructive/15 text-destructive p-4 rounded-md">
-        <p>{error}</p>
-        <Button asChild variant="outline" className="mt-4">
-          <Link to="/dashboard/tasks">Back to Tasks</Link>
-        </Button>
+      <div className="mx-auto max-w-5xl">
+        <PageHeader title="Submit Solution" backTo="/dashboard/tasks" />
+        <ErrorState
+          title="Could not load task"
+          message={error}
+          onRetry={() => void fetchTask()}
+        />
       </div>
     );
   }
 
   return (
-    <div>
-      <div className="flex items-center gap-2 text-muted-foreground mb-2">
-        <Link to="/dashboard/tasks" className="hover:text-primary">
-          Tasks
-        </Link>
-        <span>/</span>
-        <Link to={`/dashboard/tasks/${taskId}`} className="hover:text-primary">
-          Task #{taskId}
-        </Link>
-        <span>/</span>
-        <span>Submit Solution</span>
-      </div>
-
-      <h1 className="text-3xl font-bold mb-6">Submit Solution</h1>
+    <div className="space-y-4">
+      <PageHeader
+        title="Submit Solution"
+        description={task?.title ? `For "${task.title}"` : undefined}
+        backTo={`/dashboard/tasks/${taskId}`}
+      />
 
       {error && (
-        <Alert variant="destructive" className="mb-6">
-          <AlertCircle className="h-4 w-4" />
+        <Alert variant="destructive">
+          <AlertCircle className="size-4" />
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
 
       {success && (
-        <Alert className="mb-6 border-green-200 bg-green-50 text-green-800">
-          <CheckCircle2 className="h-4 w-4" />
+        <Alert variant="success">
+          <CheckCircle2 className="size-4" />
           <AlertDescription>{success}</AlertDescription>
         </Alert>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2">
-          <form onSubmit={handleSubmit} className="space-y-8">
-            <div className="bg-card rounded-lg shadow-sm border border-border p-6">
-              <h2 className="text-xl font-semibold mb-4">Your Solution</h2>
-
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="solution">Solution Code</Label>
-                  <textarea
-                    id="solutionText"
-                    name="solutionText"
-                    value={formData.solutionText}
-                    onChange={handleChange}
-                    placeholder="Enter your solution code here..."
-                    className="flex min-h-64 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 font-mono"
-                    required
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-3">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <form onSubmit={(e) => void handleSubmit(e)} className="lg:col-span-2">
+          <Card>
+            <CardHeader>
+              <CardHeaderText>
+                <CardTitle>Your Solution</CardTitle>
+              </CardHeaderText>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Field label="Solution Code" htmlFor="solutionText" required>
+                <Textarea
+                  id="solutionText"
+                  name="solutionText"
+                  value={formData.solutionText}
+                  onChange={handleChange}
+                  placeholder="Enter your solution code here..."
+                  className="min-h-64 font-mono"
+                  required
+                />
+              </Field>
+            </CardContent>
+            <CardFooter className="justify-end gap-2">
               <Button
                 type="button"
-                variant="outline"
-                onClick={() => navigate(`/dashboard/tasks/${taskId}`)}
+                variant="ghost"
+                onClick={() => {
+                  navigate(`/dashboard/tasks/${taskId}`);
+                }}
                 disabled={isSubmitting}
               >
                 Cancel
@@ -163,49 +167,58 @@ const SubmitSolutionPage: React.FC = () => {
               <Button type="submit" disabled={isSubmitting}>
                 {isSubmitting ? 'Submitting...' : 'Submit Solution'}
               </Button>
-            </div>
-          </form>
-        </div>
+            </CardFooter>
+          </Card>
+        </form>
 
         <div>
-          <div className="bg-card rounded-lg shadow-sm border border-border p-6 sticky top-6">
-            <h2 className="text-lg font-semibold mb-4">Task Information</h2>
-
-            <div className="space-y-4">
+          <Card className="sticky top-6">
+            <CardHeader>
+              <CardHeaderText>
+                <CardTitle>Task Information</CardTitle>
+              </CardHeaderText>
+            </CardHeader>
+            <CardContent className="space-y-4">
               <div>
-                <h3 className="text-sm font-medium text-muted-foreground">
+                <h3 className="text-xs font-medium text-muted-foreground">
                   Title
                 </h3>
-                <p className="mt-1 font-medium">{task?.title}</p>
+                <p className="mt-1 text-[13px] font-medium">{task?.title}</p>
               </div>
 
               <div>
-                <h3 className="text-sm font-medium text-muted-foreground">
+                <h3 className="text-xs font-medium text-muted-foreground">
                   Description
                 </h3>
-                <p className="mt-1 text-sm line-clamp-4">{task?.description}</p>
-                <Button asChild variant="link" className="px-0 text-sm h-auto">
+                <div className="prose-body mt-1 line-clamp-4 text-[13px]">
+                  {task?.description}
+                </div>
+                <Button
+                  asChild
+                  variant="link"
+                  className="px-0 h-auto text-[13px]"
+                >
                   <Link to={`/dashboard/tasks/${taskId}`}>View Full Task</Link>
                 </Button>
               </div>
 
               <div>
-                <h3 className="text-sm font-medium text-muted-foreground">
+                <h3 className="text-xs font-medium text-muted-foreground">
                   Evaluation Criteria
                 </h3>
-                <ul className="mt-1 space-y-2 text-sm">
+                <ul className="mt-1 space-y-2 text-[13px]">
                   {task?.criteria.map((criterion, index) => (
                     <li key={index} className="flex justify-between">
                       <span>{criterion.name}</span>
-                      <span className="font-medium">
+                      <span className="font-medium tabular-nums">
                         {criterion.maxPoints} points
                       </span>
                     </li>
                   ))}
                 </ul>
               </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
