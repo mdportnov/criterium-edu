@@ -105,8 +105,11 @@ Return ONLY the JSON string. For example: {"score": ${Math.floor(criterion.maxPo
 `;
 
       try {
-        const aiResponse =
-          await this.openaiApiService.getChatCompletion(prompt);
+        const { content: aiResponse } = await this.openaiApiService.complete({
+          prompt,
+          taskId: task.id,
+          operationType: 'checker_criterion',
+        });
 
         if (!aiResponse) {
           this.logger.warn(
@@ -232,7 +235,11 @@ Return ONLY the feedback text. Do not include any preamble like "Here is the fee
 `;
 
     try {
-      const aiFeedback = await this.openaiApiService.getChatCompletion(prompt);
+      const { content: aiFeedback } = await this.openaiApiService.complete({
+        prompt,
+        taskId: task.id,
+        operationType: 'checker_feedback',
+      });
       if (!aiFeedback) {
         this.logger.warn(
           `AI did not return feedback for task solution ID: ${taskSolution.id}. Using default message.`,

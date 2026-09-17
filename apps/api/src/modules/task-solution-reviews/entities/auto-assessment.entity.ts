@@ -33,8 +33,12 @@ export class AutoAssessment {
   @Column({ type: 'text', nullable: true })
   promptUsed: string;
 
-  @Column({ type: 'json', nullable: true })
-  rawResponse: object;
+  // The model's reply verbatim. It was declared json, but what actually gets
+  // stored is the message text, which is not a JSON document - models wrap
+  // the payload in prose or fences often enough that it frequently was not
+  // even valid JSON.
+  @Column({ type: 'text', nullable: true })
+  rawResponse: string | null;
 
   @Column({ type: 'int', nullable: true })
   tokenUsage: number;

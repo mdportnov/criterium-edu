@@ -1,12 +1,53 @@
-import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import OpenAI from 'openai';
 import { SettingsService } from '../../settings/settings.service';
 import { PromptsService } from '../../prompts/prompts.service';
-import { CostTrackingService } from '../../cost-tracking/cost-tracking.service';
+import {
+  CostTrackingService,
+  type TokenUsage,
+} from '../../cost-tracking/cost-tracking.service';
 
+export interface CompletionRequest {
+  prompt: string;
+  /** Defaults to the model configured in application settings. */
+  model?: string;
+  systemPrompt?: string;
+  temperature?: number;
+  maxTokens?: number;
+  /** Cost attribution. Without these the spend lands in the system total only. */
+  taskId?: string;
+  userId?: string;
+  operationType?: string;
+}
+
+export interface CompletionResult {
+  content: string | null;
+  model: string;
+  finishReason: string;
+  usage: TokenUsage | null;
+  costUsd: number;
+  requestDurationMs: number;
+}
+
+const MAX_ATTEMPTS = 3;
+const RETRYABLE_STATUS = new Set([408, 409, 429, 500, 502, 503, 504]);
+
+/**
+ * The single OpenAI client for the application.
+ *
+ * There used to be two: this one, which recorded token usage and cost, and a
+ * near-copy in modules/shared that recorded nothing. Auto-assessment - the
+ * bulk path, and by far the larger consumer - used the silent one, so its
+ * spend never reached the cost dashboard. Every call now goes through here
+ * and every call is recorded.
+ */
 @Injectable()
-export class OpenaiApiService implements OnModuleInit {
-  private openai: OpenAI;
+export class OpenaiApiService {
+  private client: OpenAI | null = null;
   private readonly logger = new Logger(OpenaiApiService.name);
 
   constructor(
@@ -15,204 +56,170 @@ export class OpenaiApiService implements OnModuleInit {
     private readonly costTrackingService: CostTrackingService,
   ) {}
 
-  async onModuleInit() {
-    this.logger.log(
-      'OpenAI service initialized. API key will be checked when service is used.',
-    );
-  }
+  async complete(request: CompletionRequest): Promise<CompletionResult> {
+    const client = await this.getClient();
+    const model =
+      request.model ?? (await this.settingsService.getOpenAIDefaultModel());
 
-  /**
-   * Gets a chat completion from the OpenAI API.
-   * @param prompt The user prompt to send to the model.
-   * @param model The model to use for the completion (e.g., 'gpt-3.5-turbo', 'gpt-4').
-   * @param taskId Optional task ID for cost tracking.
-   * @param userId Optional user ID for cost tracking.
-   * @param operationType Optional operation type for cost tracking.
-   * @returns The content of the chat completion or null if not available.
-   * @throws Error if the OpenAI client is not initialized or if the API call fails.
-   */
-  async getChatCompletion(
-    prompt: string,
-    model: string = 'gpt-3.5-turbo',
-    taskId?: string,
-    userId?: string,
-    operationType?: string,
-  ): Promise<string | null> {
-    if (!this.openai) {
-      const apiKey = await this.settingsService.getOpenAIApiKey();
-      if (!apiKey) {
-        this.logger.error(
-          'OpenAI API key is not configured. Please set it in the application settings.',
-        );
-        throw new Error('OpenAI API key is not configured.');
-      }
-      try {
-        this.openai = new OpenAI({
-          apiKey: apiKey,
-        });
-        this.logger.log('OpenAI client initialized successfully.');
-      } catch (error) {
-        this.logger.error('Failed to initialize OpenAI client:', error);
-        throw error;
-      }
+    const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [];
+    if (request.systemPrompt) {
+      messages.push({ role: 'system', content: request.systemPrompt });
     }
+    messages.push({ role: 'user', content: request.prompt });
 
-    this.logger.debug(
-      `Requesting chat completion with model: ${model}, prompt: "${prompt.substring(0, 100)}..."`,
+    const startedAt = Date.now();
+    const completion = await this.callWithRetry(() =>
+      client.chat.completions.create({
+        model,
+        messages,
+        ...(request.temperature === undefined
+          ? {}
+          : { temperature: request.temperature }),
+        ...(request.maxTokens === undefined
+          ? {}
+          : { max_tokens: request.maxTokens }),
+      }),
     );
+    const requestDurationMs = Date.now() - startedAt;
 
-    try {
-      const startTime = Date.now();
-      const completion = await this.openai.chat.completions.create({
-        model: model,
-        messages: [{ role: 'user', content: prompt }],
-        // temperature: 0.7, // Example: Adjust creativity. Higher values mean more random.
-        // max_tokens: 150,  // Example: Limit response length.
-      });
-      const endTime = Date.now();
-      const requestDuration = endTime - startTime;
+    const content = completion.choices[0]?.message?.content ?? null;
+    const finishReason = completion.choices[0]?.finish_reason ?? 'unknown';
 
-      const content = completion.choices[0]?.message?.content ?? null;
-      if (content) {
-        this.logger.debug(
-          `Received chat completion: "${content.substring(0, 100)}..."`,
-        );
-      } else {
-        this.logger.warn('Chat completion response did not contain content.');
-      }
-
-      // Track API usage and costs
-      if (completion.usage) {
-        this.logger.log(
-          `OpenAI API usage: ${JSON.stringify(completion.usage)}`,
-        );
-
-        const costResult = this.costTrackingService.calculateCost(
-          'openai',
-          model,
-          {
-            promptTokens: completion.usage.prompt_tokens,
-            completionTokens: completion.usage.completion_tokens,
-            totalTokens: completion.usage.total_tokens,
-          },
-        );
-
-        await this.costTrackingService.trackApiUsage({
-          taskId,
-          userId,
-          operationType: operationType || 'chat_completion',
-          provider: 'openai',
-          model,
+    const usage: TokenUsage | null = completion.usage
+      ? {
           promptTokens: completion.usage.prompt_tokens,
           completionTokens: completion.usage.completion_tokens,
           totalTokens: completion.usage.total_tokens,
-          costUsd: costResult.totalCost,
-          requestDuration,
-          metadata: {
-            promptLength: prompt.length,
-            responseLength: content?.length || 0,
-          },
-        });
+        }
+      : null;
 
-        this.logger.log(
-          `Cost tracking: $${costResult.totalCost.toFixed(6)} (${completion.usage.total_tokens} tokens)`,
-        );
-      }
+    const costUsd = usage
+      ? await this.recordUsage(request, completion.model ?? model, usage, {
+          requestDurationMs,
+          promptLength: request.prompt.length,
+          responseLength: content?.length ?? 0,
+        })
+      : 0;
 
-      return content;
-    } catch (error) {
-      this.logger.error(
-        `Error getting chat completion from OpenAI (model: ${model}):`,
-        error.message,
+    if (!content) {
+      this.logger.warn(
+        `Completion finished with reason "${finishReason}" and no content (model ${model}).`,
       );
-      // TODO: Implement more sophisticated error handling as per Subtask 6.1 (e.g., retry logic for rate limits/transient errors)
-      // For now, re-throwing the original error or a more specific one.
-      // Consider checking error.status or error.code for specific OpenAI error types.
-      if (error instanceof OpenAI.APIError) {
-        // Handle specific OpenAI API errors
-        // e.g., error.status, error.headers, error.error
-      }
-      throw error;
     }
+
+    return {
+      content,
+      model: completion.model ?? model,
+      finishReason,
+      usage,
+      costUsd,
+      requestDurationMs,
+    };
   }
 
-  /**
-   * Gets a chat completion using a prompt from the database.
-   * @param promptKey The key of the prompt to use from the database.
-   * @param variables Variables to interpolate into the prompt template.
-   * @param languageCode Language code for the prompt (defaults to 'en').
-   * @param model The model to use for the completion.
-   * @param taskId Optional task ID for cost tracking.
-   * @param userId Optional user ID for cost tracking.
-   * @returns The content of the chat completion or null if not available.
-   */
-  async getChatCompletionWithPrompt(
+  /** Runs a completion from a prompt template stored in the database. */
+  async completeFromPrompt(
     promptKey: string,
-    variables?: Record<string, string>,
-    languageCode: string = 'en',
-    model: string = 'gpt-3.5-turbo',
-    taskId?: string,
-    userId?: string,
-  ): Promise<string | null> {
-    try {
-      const promptContent = await this.promptsService.getPromptContent(
-        promptKey,
-        languageCode,
-        variables,
-      );
-
-      return this.getChatCompletion(
-        promptContent,
-        model,
-        taskId,
-        userId,
-        `prompt_${promptKey}`,
-      );
-    } catch (error) {
-      this.logger.error(
-        `Error getting chat completion with prompt ${promptKey}:`,
-        error.message,
-      );
-      throw error;
-    }
-  }
-
-  /**
-   * Gets multiple chat completions using prompts from the database.
-   * @param requests Array of prompt requests with their configurations.
-   * @param model The model to use for all completions.
-   * @returns Array of completion results.
-   */
-  async getBatchChatCompletions(
-    requests: Array<{
-      promptKey: string;
+    options: {
       variables?: Record<string, string>;
       languageCode?: string;
-    }>,
-    model: string = 'gpt-3.5-turbo',
-  ): Promise<
-    Array<{ promptKey: string; content: string | null; error?: string }>
-  > {
-    const results = [];
+    } & Omit<CompletionRequest, 'prompt' | 'operationType'> = {},
+  ): Promise<CompletionResult> {
+    const { variables, languageCode = 'en', ...completionOptions } = options;
+    const prompt = await this.promptsService.getPromptContent(
+      promptKey,
+      languageCode,
+      variables,
+    );
 
-    for (const request of requests) {
+    return this.complete({
+      ...completionOptions,
+      prompt,
+      operationType: `prompt_${promptKey}`,
+    });
+  }
+
+  private async recordUsage(
+    request: CompletionRequest,
+    model: string,
+    usage: TokenUsage,
+    metadata: Record<string, unknown>,
+  ): Promise<number> {
+    const cost = this.costTrackingService.calculateCost('openai', model, usage);
+
+    try {
+      await this.costTrackingService.trackApiUsage({
+        taskId: request.taskId,
+        userId: request.userId,
+        operationType: request.operationType ?? 'chat_completion',
+        provider: 'openai',
+        model,
+        promptTokens: usage.promptTokens,
+        completionTokens: usage.completionTokens,
+        totalTokens: usage.totalTokens,
+        costUsd: cost.totalCost,
+        requestDuration: metadata.requestDurationMs as number,
+        metadata,
+      });
+    } catch (error) {
+      // A bookkeeping failure must not discard a completion the account has
+      // already been billed for.
+      this.logger.error(
+        `Failed to record API usage for model ${model}: ${(error as Error).message}`,
+      );
+    }
+
+    return cost.totalCost;
+  }
+
+  private async getClient(): Promise<OpenAI> {
+    if (this.client) {
+      return this.client;
+    }
+
+    const apiKey = await this.settingsService.getOpenAIApiKey();
+    if (!apiKey) {
+      throw new ServiceUnavailableException(
+        'OpenAI API key is not configured. Set it in the application settings.',
+      );
+    }
+
+    this.client = new OpenAI({ apiKey });
+    return this.client;
+  }
+
+  /** Drops the cached client so a rotated key is picked up on the next call. */
+  resetClient(): void {
+    this.client = null;
+  }
+
+  private async callWithRetry<T>(call: () => Promise<T>): Promise<T> {
+    let lastError: unknown;
+
+    for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt += 1) {
       try {
-        const content = await this.getChatCompletionWithPrompt(
-          request.promptKey,
-          request.variables,
-          request.languageCode || 'en',
-          model,
-        );
-        results.push({ promptKey: request.promptKey, content });
+        return await call();
       } catch (error) {
-        results.push({
-          promptKey: request.promptKey,
-          content: null,
-          error: error.message,
-        });
+        lastError = error;
+        const status =
+          error instanceof OpenAI.APIError ? error.status : undefined;
+
+        if (
+          attempt === MAX_ATTEMPTS ||
+          status === undefined ||
+          !RETRYABLE_STATUS.has(status)
+        ) {
+          throw error;
+        }
+
+        const backoffMs = 500 * 2 ** (attempt - 1);
+        this.logger.warn(
+          `OpenAI request failed with status ${status}; retrying in ${backoffMs}ms (attempt ${attempt}/${MAX_ATTEMPTS}).`,
+        );
+        await new Promise((resolve) => setTimeout(resolve, backoffMs));
       }
     }
 
-    return results;
+    throw lastError;
   }
 }

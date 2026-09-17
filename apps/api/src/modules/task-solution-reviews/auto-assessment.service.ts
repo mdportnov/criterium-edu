@@ -21,7 +21,7 @@ import {
   SourceAutoAssessRequestDto,
   TaskAutoAssessRequestDto,
 } from '../task-solutions/entities/solution-import.dto';
-import { OpenAIService } from '../shared/services/openai.service';
+import { OpenaiApiService } from '../openai/services/openai.service';
 import { SettingsService } from '../settings/settings.service';
 import { Logger } from 'nestjs-pino';
 
@@ -46,7 +46,7 @@ export class AutoAssessmentService {
     private readonly solutionRepository: Repository<TaskSolution>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-    private readonly openaiService: OpenAIService,
+    private readonly openaiService: OpenaiApiService,
     private readonly settingsService: SettingsService,
     private readonly logger: Logger,
   ) {}
@@ -338,7 +338,7 @@ export class AutoAssessmentService {
   ): Promise<AutoAssessment> {
     const solution = await this.solutionRepository.findOne({
       where: { id: solutionId },
-      relations: ['task'],
+      relations: ['task', 'user'],
     });
 
     if (!solution) {
@@ -370,19 +370,21 @@ export class AutoAssessmentService {
       AutoAssessmentService.name,
     );
 
-    // Call OpenAI API with metrics tracking
-    const response = await this.openaiService.createCompletionWithMetrics(
-      assessmentPrompt,
+    const response = await this.openaiService.complete({
+      prompt: assessmentPrompt,
       model,
-      0.2,
-      2000,
-      customSystemPrompt ||
+      temperature: 0.2,
+      maxTokens: 2000,
+      systemPrompt:
+        customSystemPrompt ||
         'You are an expert educator and assessor. Return assessments in valid JSON format only. Do not include any explanatory text before or after the JSON.',
-    );
+      taskId: task?.id,
+      userId: solution.user?.id,
+      operationType: 'auto_assessment',
+    });
     const processingTime = Date.now() - startTime;
 
-    // Parse the response
-    const assessment = this.parseAssessmentResponse(response);
+    const assessment = this.parseAssessmentResponse(response.content);
 
     // Save the assessment with metrics
     const newAssessment = this.assessmentRepository.create({
@@ -393,8 +395,8 @@ export class AutoAssessmentService {
       llmModel: model,
       promptUsed: assessmentPrompt,
       rawResponse: response.content,
-      tokenUsage: response.usage?.total_tokens || 0,
-      cost: this.calculateCost(response.usage, model),
+      tokenUsage: response.usage?.totalTokens || 0,
+      cost: response.costUsd,
       processingTime,
       sessionId,
     });
@@ -416,7 +418,7 @@ export class AutoAssessmentService {
   ): Promise<AutoAssessment> {
     const solution = await this.solutionRepository.findOne({
       where: { id: solutionId },
-      relations: ['task'],
+      relations: ['task', 'user'],
     });
 
     if (!solution) {
@@ -437,11 +439,16 @@ export class AutoAssessmentService {
     // Create the prompt for assessment
     const prompt = this.createAssessmentPrompt(task, solution);
 
-    // Call OpenAI API
-    const response = await this.openaiService.createCompletion(prompt, model);
+    const response = await this.openaiService.complete({
+      prompt,
+      model,
+      temperature: 0.2,
+      taskId: task?.id,
+      userId: solution.user?.id,
+      operationType: 'auto_assessment',
+    });
 
-    // Parse the response
-    const assessment = this.parseAssessmentResponse(response);
+    const assessment = this.parseAssessmentResponse(response.content);
 
     // Save the assessment
     const newAssessment = this.assessmentRepository.create({
@@ -451,7 +458,9 @@ export class AutoAssessmentService {
       totalScore: assessment.totalScore,
       llmModel: model,
       promptUsed: prompt,
-      rawResponse: response,
+      rawResponse: response.content,
+      tokenUsage: response.usage?.totalTokens || 0,
+      cost: response.costUsd,
     });
 
     return this.assessmentRepository.save(newAssessment);
@@ -504,101 +513,67 @@ Important:
 - Return ONLY the JSON object, no other text or explanations`;
   }
 
-  private parseAssessmentResponse(response: any): AssessmentResult {
-    // Parse the JSON response from OpenAI
-    try {
-      let contentStr = '';
-
-      // Handle different response formats
-      if (typeof response === 'string') {
-        contentStr = response;
-      } else if (response.choices && response.choices[0]?.message?.content) {
-        // OpenAI API response format
-        contentStr = response.choices[0].message.content;
-      } else if (response.content && typeof response.content === 'string') {
-        // If content is already extracted
-        contentStr = response.content;
-      } else if (
-        response.content &&
-        response.content.choices &&
-        response.content.choices[0]?.message?.content
-      ) {
-        // Nested content structure from createCompletionWithMetrics
-        contentStr = response.content.choices[0].message.content;
-      } else {
-        this.logger.error(
-          {
-            message: 'Unexpected response format',
-            response: JSON.stringify(response, null, 2),
-          },
-          AutoAssessmentService.name,
-        );
-        throw new Error('Unexpected response format');
-      }
-
-      this.logger.log(
-        {
-          message: 'Content to parse',
-          content: contentStr,
-        },
+  /**
+   * Pulls the assessment JSON out of a completion.
+   *
+   * The client returns the message content directly, so the four-way shape
+   * sniffing this used to do - raw string, OpenAI envelope, extracted
+   * content, and a nested envelope inside content - is gone. Models still
+   * wrap JSON in prose or fences, so the extraction stays.
+   */
+  private parseAssessmentResponse(content: string | null): AssessmentResult {
+    if (!content) {
+      this.logger.error(
+        { message: 'Assessment completion returned no content' },
         AutoAssessmentService.name,
       );
+      return {
+        criteriaScores: {},
+        comments:
+          'The model returned no content. Nothing has been scored; re-run the assessment.',
+        totalScore: 0,
+      };
+    }
 
-      // Try to extract JSON from the content string
-      let jsonMatch = contentStr.match(/\{[\s\S]*\}/);
+    try {
+      const jsonMatch = content.match(/\{[\s\S]*\}/);
       if (!jsonMatch) {
-        // If no JSON found, try to extract from response without curly braces
-        const lines = contentStr.split('\n').filter((line) => line.trim());
-        const jsonLine = lines.find(
-          (line) => line.includes('{') && line.includes('}'),
-        );
-        if (jsonLine) {
-          jsonMatch = jsonLine.match(/\{[\s\S]*\}/);
-        }
+        throw new Error('No JSON object found in the response');
       }
 
-      if (!jsonMatch) {
-        this.logger.error(
-          {
-            message: 'No valid JSON found in response content',
-            content: contentStr,
-          },
-          AutoAssessmentService.name,
+      const parsed = JSON.parse(jsonMatch[0]) as Partial<AssessmentResult>;
+
+      // No invented defaults: a malformed payload is reported, not scored as
+      // a middling 5 out of nowhere.
+      if (
+        typeof parsed.totalScore !== 'number' ||
+        typeof parsed.criteriaScores !== 'object' ||
+        parsed.criteriaScores === null
+      ) {
+        throw new Error(
+          'Response JSON is missing criteriaScores or a numeric totalScore',
         );
-        throw new Error('No valid JSON found in the response');
       }
-
-      const parsedResult = JSON.parse(jsonMatch[0]);
-
-      // Validate and provide defaults if needed
-      const criteriaScores = parsedResult.criteriaScores || { general: 5 };
-      const comments =
-        parsedResult.comments ||
-        'Assessment completed with default values due to parsing issues.';
-      const totalScore =
-        typeof parsedResult.totalScore === 'number'
-          ? parsedResult.totalScore
-          : 5;
 
       return {
-        criteriaScores,
-        comments,
-        totalScore,
+        criteriaScores: parsed.criteriaScores,
+        comments: parsed.comments ?? '',
+        totalScore: parsed.totalScore,
       };
     } catch (error) {
+      const reason = error instanceof Error ? error.message : String(error);
       this.logger.error(
         {
           message: 'Error parsing assessment response',
-          error: error instanceof Error ? error.message : String(error),
-          response: JSON.stringify(response, null, 2),
+          error: reason,
+          contentPreview: content.slice(0, 500),
         },
         AutoAssessmentService.name,
       );
 
-      // Return a default assessment with more helpful error information
       return {
-        criteriaScores: { general: 0 },
-        comments: `Error processing the assessment: ${error.message}. The LLM response could not be parsed correctly.`,
+        criteriaScores: {},
+        comments: `The model response could not be parsed (${reason}). Nothing has been scored; re-run the assessment.`,
         totalScore: 0,
       };
     }
@@ -819,22 +794,5 @@ Important:
     }
 
     return savedReview;
-  }
-
-  private calculateCost(usage: any, model: string): number {
-    if (!usage) return 0;
-
-    // OpenAI pricing (per 1K tokens) - these would typically come from config
-    const pricing: Record<string, { input: number; output: number }> = {
-      'gpt-4o': { input: 0.005, output: 0.015 },
-      'gpt-4o-mini': { input: 0.00015, output: 0.0006 },
-      'gpt-3.5-turbo': { input: 0.0015, output: 0.002 },
-    };
-
-    const modelPricing = pricing[model] || pricing['gpt-4o'];
-    const inputCost = (usage.prompt_tokens / 1000) * modelPricing.input;
-    const outputCost = (usage.completion_tokens / 1000) * modelPricing.output;
-
-    return inputCost + outputCost;
   }
 }

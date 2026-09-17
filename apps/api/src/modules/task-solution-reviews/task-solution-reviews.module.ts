@@ -11,7 +11,7 @@ import { AutoAssessmentService } from './auto-assessment.service';
 import { TaskSolution } from '../task-solutions/entities/task-solution.entity';
 import { User } from '../users/entities/user.entity';
 import { TaskSolutionsModule } from '../task-solutions/task-solutions.module';
-import { SharedModule } from '../shared/shared.module';
+import { OpenaiModule } from '../openai/openai.module';
 import { SettingsModule } from '../settings/settings.module';
 
 @Module({
@@ -25,7 +25,7 @@ import { SettingsModule } from '../settings/settings.module';
       User,
     ]),
     TaskSolutionsModule,
-    SharedModule,
+    OpenaiModule,
     SettingsModule,
   ],
   providers: [TaskSolutionReviewsService, AutoAssessmentService],
