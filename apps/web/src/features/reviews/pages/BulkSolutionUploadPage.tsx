@@ -106,7 +106,7 @@ const BulkSolutionUploadPage = () => {
   };
 
   return (
-    <div>
+    <div className="mx-auto max-w-3xl">
       <PageHeader
         title="Bulk solution upload"
         description="Upload student solutions in bulk for processing and review."

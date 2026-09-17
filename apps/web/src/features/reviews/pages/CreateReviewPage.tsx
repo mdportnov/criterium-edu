@@ -148,7 +148,7 @@ const CreateReviewPage: React.FC = () => {
 
   if (!user || (user.role !== 'admin' && user.role !== 'reviewer')) {
     return (
-      <div>
+      <div className="mx-auto max-w-5xl">
         <PageHeader title="Create review" backTo="/dashboard/reviews" />
         <Alert variant="destructive">
           <AlertDescription>
@@ -160,7 +160,7 @@ const CreateReviewPage: React.FC = () => {
   }
 
   return (
-    <div>
+    <div className="mx-auto max-w-5xl">
       <PageHeader
         title="Create review"
         description="Score a task solution against its criteria and leave feedback."

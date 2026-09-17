@@ -235,7 +235,7 @@ const EditTaskPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div>
+      <div className="mx-auto max-w-3xl">
         <PageHeader title="Edit task" backTo="/dashboard/tasks" />
         <LoadingState label="Loading task…" />
       </div>
@@ -244,7 +244,7 @@ const EditTaskPage: React.FC = () => {
 
   if (error && !task) {
     return (
-      <div>
+      <div className="mx-auto max-w-3xl">
         <PageHeader title="Edit task" backTo="/dashboard/tasks" />
         <ErrorState
           title="Could not load task"
@@ -256,7 +256,7 @@ const EditTaskPage: React.FC = () => {
   }
 
   return (
-    <div>
+    <div className="mx-auto max-w-3xl">
       <PageHeader
         title="Edit task"
         description={task ? task.title : undefined}

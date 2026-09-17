@@ -137,7 +137,7 @@ const BulkImportPage: React.FC = () => {
   }
 
   return (
-    <div>
+    <div className="mx-auto max-w-3xl">
       <PageHeader
         title="Bulk import tasks"
         description="Import multiple tasks at once from a CSV or JSON file."

@@ -234,7 +234,7 @@ const TasksPage: React.FC = () => {
                     Clear filters
                   </Button>
                 ) : isAdminOrReviewer ? (
-                  <Button asChild size="sm">
+                  <Button asChild variant="outline" size="sm">
                     <Link to="/dashboard/tasks/create">
                       <Plus className="size-4" />
                       New task

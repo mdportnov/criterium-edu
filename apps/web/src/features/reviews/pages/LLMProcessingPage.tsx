@@ -134,7 +134,7 @@ Be fair, objective, and educational in your assessment.`;
   };
 
   return (
-    <div>
+    <div className="mx-auto max-w-3xl">
       <PageHeader
         title="LLM assessment"
         description="Configure and start automated assessment of student solutions."

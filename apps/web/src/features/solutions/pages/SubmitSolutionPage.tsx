@@ -92,7 +92,7 @@ const SubmitSolutionPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div>
+      <div className="mx-auto max-w-5xl">
         <PageHeader title="Submit Solution" backTo="/dashboard/tasks" />
         <LoadingState />
       </div>
@@ -101,7 +101,7 @@ const SubmitSolutionPage: React.FC = () => {
 
   if (error && !task) {
     return (
-      <div>
+      <div className="mx-auto max-w-5xl">
         <PageHeader title="Submit Solution" backTo="/dashboard/tasks" />
         <ErrorState
           title="Could not load task"

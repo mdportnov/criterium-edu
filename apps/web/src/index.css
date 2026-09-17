@@ -45,6 +45,10 @@
      * badges / status pills / inline status text. Each is a readable text colour plus
      * the quietest tint that still separates from the card.
      */
+    /* Accent text sitting on an accent tint — the raw accent is too light there to
+       clear 4.5:1 at badge size. */
+    --accent-strong: 214 84% 36%;
+
     --success: 147 62% 24%;
     --success-soft: 145 52% 94%;
     --warning: 32 86% 28%;
@@ -86,6 +90,8 @@
     --input: 217 20% 26%;
     --ring: 214 90% 62%;
 
+    --accent-strong: 213 92% 74%;
+
     --success: 145 58% 62%;
     --success-soft: 147 40% 15%;
     --warning: 40 84% 62%;
@@ -123,6 +129,7 @@
   --color-input: hsl(var(--input));
   --color-ring: hsl(var(--ring));
 
+  --color-accent-strong: hsl(var(--accent-strong));
   --color-success: hsl(var(--success));
   --color-success-soft: hsl(var(--success-soft));
   --color-warning: hsl(var(--warning));

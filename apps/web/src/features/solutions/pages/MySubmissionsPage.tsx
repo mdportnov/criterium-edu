@@ -184,7 +184,7 @@ const MySubmissionsPage: React.FC = () => {
                     Clear filters
                   </Button>
                 ) : (
-                  <Button asChild size="sm">
+                  <Button asChild variant="outline" size="sm">
                     <Link to="/tasks">Browse tasks</Link>
                   </Button>
                 )

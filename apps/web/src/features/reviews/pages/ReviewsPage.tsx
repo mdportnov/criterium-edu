@@ -334,7 +334,7 @@ const ReviewsPage: React.FC = () => {
                       Clear filters
                     </Button>
                   ) : canCreateReview ? (
-                    <Button asChild size="sm">
+                    <Button asChild variant="outline" size="sm">
                       <Link to="/dashboard/reviews/create">
                         <Plus className="size-4" />
                         New review

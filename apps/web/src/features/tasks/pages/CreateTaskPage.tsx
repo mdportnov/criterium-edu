@@ -170,7 +170,7 @@ const CreateTaskPage: React.FC = () => {
   };
 
   return (
-    <div>
+    <div className="mx-auto max-w-3xl">
       <PageHeader
         title="Create task"
         description="Define the brief, categories and evaluation criteria."
