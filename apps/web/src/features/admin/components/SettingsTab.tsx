@@ -14,7 +14,18 @@ import {
 } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ErrorState, LoadingState } from '@/components/ui/states';
-import { settingsService, type AppSettings } from '@/services/settings.service';
+import {
+  LLM_PROVIDERS,
+  settingsService,
+  type AppSettings,
+} from '@/services/settings.service';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Eye, EyeOff } from 'lucide-react';
 
 const SettingsTab: React.FC = () => {
@@ -46,12 +57,12 @@ const SettingsTab: React.FC = () => {
     updateSettingsMutation.mutate({ registration_enabled: newValue });
   };
 
-  const handleApiKeyChange = (value: string) => {
-    setLocalSettings((prev) => ({
-      ...prev,
-      openai_api_key: value,
-    }));
+  const setSetting = (key: keyof AppSettings, value: string) => {
+    setLocalSettings((prev) => ({ ...prev, [key]: value }));
   };
+
+  const valueOf = (key: keyof AppSettings) =>
+    localSettings[key] ?? settings?.data[key] ?? '';
 
   const handleSave = () => {
     if (Object.keys(localSettings).length > 0) {
@@ -63,8 +74,7 @@ const SettingsTab: React.FC = () => {
   const registrationEnabled =
     localSettings.registration_enabled ??
     settings?.data.registration_enabled === 'true';
-  const apiKeyValue =
-    localSettings.openai_api_key ?? settings?.data.openai_api_key ?? '';
+  const provider = valueOf('llm_provider') || 'openai';
 
   if (isLoading) {
     return (
@@ -117,24 +127,43 @@ const SettingsTab: React.FC = () => {
         <Card>
           <CardHeader>
             <CardHeaderText>
-              <CardTitle>LLM configuration</CardTitle>
+              <CardTitle>Language model</CardTitle>
               <CardDescription>
-                Configure the OpenAI API key used by AI-powered features.
+                Where assessment and review calls go. Every provider here speaks
+                the same protocol, so switching is a key and a model name.
               </CardDescription>
             </CardHeaderText>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-4">
+            <Field label="Provider" htmlFor="llm-provider">
+              <Select
+                value={provider}
+                onValueChange={(value) => setSetting('llm_provider', value)}
+              >
+                <SelectTrigger id="llm-provider">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {LLM_PROVIDERS.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
+
             <Field
-              label="OpenAI API key"
-              htmlFor="openai-api-key"
-              hint="Required for AI-powered code analysis and review features."
+              label="API key"
+              htmlFor="llm-api-key"
+              hint="Stored encrypted. Leave the mask untouched to keep the current key."
             >
               <div className="relative">
                 <Input
-                  id="openai-api-key"
+                  id="llm-api-key"
                   type={showApiKey ? 'text' : 'password'}
-                  value={apiKeyValue}
-                  onChange={(e) => handleApiKeyChange(e.target.value)}
+                  value={valueOf('llm_api_key')}
+                  onChange={(e) => setSetting('llm_api_key', e.target.value)}
                   placeholder="sk-…"
                   className="pr-9"
                 />
@@ -153,6 +182,47 @@ const SettingsTab: React.FC = () => {
                   </span>
                 </button>
               </div>
+            </Field>
+
+            <Field
+              label="Model"
+              htmlFor="llm-model"
+              hint="Blank uses the provider's default."
+            >
+              <Input
+                id="llm-model"
+                value={valueOf('llm_model')}
+                onChange={(e) => setSetting('llm_model', e.target.value)}
+                placeholder="deepseek/deepseek-chat"
+              />
+            </Field>
+
+            {provider === 'custom' && (
+              <Field
+                label="Base URL"
+                htmlFor="llm-base-url"
+                hint="Required for a custom provider; overrides the default otherwise."
+              >
+                <Input
+                  id="llm-base-url"
+                  value={valueOf('llm_base_url')}
+                  onChange={(e) => setSetting('llm_base_url', e.target.value)}
+                  placeholder="https://api.example.com/v1"
+                />
+              </Field>
+            )}
+
+            <Field
+              label="Price overrides"
+              htmlFor="llm-pricing"
+              hint='USD per million tokens, as JSON: {"model": {"prompt": 0.27, "completion": 1.1}}. Needed for providers whose catalogue we cannot ship, such as OpenRouter; without it a run records tokens at zero cost.'
+            >
+              <Input
+                id="llm-pricing"
+                value={valueOf('llm_pricing')}
+                onChange={(e) => setSetting('llm_pricing', e.target.value)}
+                placeholder='{"deepseek/deepseek-chat":{"prompt":0.27,"completion":1.1}}'
+              />
             </Field>
           </CardContent>
           {hasChanges && (

@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ApiUsage } from './entities/api-usage.entity';
+import { PROVIDERS, type LlmProvider } from '../llm/providers';
 
 export interface TokenUsage {
   promptTokens: number;
@@ -29,59 +30,44 @@ export interface ApiUsageCreateData {
   metadata?: Record<string, unknown>;
 }
 
-interface ModelPricing {
-  prompt: number;
-  completion: number;
+export interface CostCalculationDetail extends CostCalculationResult {
+  /** False when no price is configured for this model. */
+  known: boolean;
 }
 
 @Injectable()
 export class CostTrackingService {
-  private readonly PRICING: Record<string, Record<string, ModelPricing>> = {
-    openai: {
-      'gpt-4': {
-        prompt: 0.03 / 1000, // $0.03 per 1K tokens
-        completion: 0.06 / 1000, // $0.06 per 1K tokens
-      },
-      'gpt-4-turbo': {
-        prompt: 0.01 / 1000, // $0.01 per 1K tokens
-        completion: 0.03 / 1000, // $0.03 per 1K tokens
-      },
-      'gpt-4o': {
-        prompt: 0.005 / 1000, // $0.005 per 1K tokens
-        completion: 0.015 / 1000, // $0.015 per 1K tokens
-      },
-      'gpt-4o-mini': {
-        prompt: 0.00015 / 1000, // $0.00015 per 1K tokens
-        completion: 0.0006 / 1000, // $0.0006 per 1K tokens
-      },
-      'gpt-3.5-turbo': {
-        prompt: 0.0015 / 1000, // $0.0015 per 1K tokens
-        completion: 0.002 / 1000, // $0.002 per 1K tokens
-      },
-    },
-  };
-
   constructor(
     @InjectRepository(ApiUsage)
     private apiUsageRepository: Repository<ApiUsage>,
   ) {}
 
+  /**
+   * Prices come from the provider registry, or from an admin override for
+   * providers whose catalogue we cannot ship (OpenRouter fronts hundreds of
+   * models at prices that move). Overrides are quoted per million tokens,
+   * which is how every provider publishes them.
+   *
+   * An unknown model costs zero and says so. It used to fall back to an
+   * invented $0.001/$0.002 per 1K, which put made-up numbers in the cost
+   * report and was indistinguishable from a real one.
+   */
   calculateCost(
     provider: string,
     model: string,
     usage: TokenUsage,
-  ): CostCalculationResult {
-    const pricing = this.PRICING[provider]?.[model];
+    overrides: Record<string, { prompt: number; completion: number }> = {},
+  ): CostCalculationDetail {
+    const override = overrides[model];
+    const pricing = override
+      ? {
+          prompt: override.prompt / 1_000_000,
+          completion: override.completion / 1_000_000,
+        }
+      : PROVIDERS[provider as LlmProvider]?.pricing[model];
 
     if (!pricing) {
-      // Fallback to default pricing if model not found
-      const promptCost = (usage.promptTokens * 0.001) / 1000;
-      const completionCost = (usage.completionTokens * 0.002) / 1000;
-      return {
-        promptCost,
-        completionCost,
-        totalCost: promptCost + completionCost,
-      };
+      return { promptCost: 0, completionCost: 0, totalCost: 0, known: false };
     }
 
     const promptCost = usage.promptTokens * pricing.prompt;
@@ -91,6 +77,7 @@ export class CostTrackingService {
       promptCost,
       completionCost,
       totalCost: promptCost + completionCost,
+      known: true,
     };
   }
 

@@ -17,7 +17,7 @@ import { TaskSolutionsModule } from './modules/task-solutions/task-solutions.mod
 import { TaskSolutionReviewsModule } from './modules/task-solution-reviews/task-solution-reviews.module';
 import { CheckerModule } from './modules/checker/checker.module';
 import { BulkOperationsModule } from './modules/bulk-operations/bulk-operations.module';
-import { OpenaiModule } from './modules/openai/openai.module';
+import { LlmModule } from './modules/llm/llm.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { AuditModule } from './modules/audit/audit.module';
 import { AdminModule } from './modules/admin/admin.module';
@@ -104,7 +104,7 @@ import { CsrfGuard } from './modules/auth/guards/csrf.guard';
     TaskSolutionReviewsModule,
     CheckerModule,
     BulkOperationsModule,
-    OpenaiModule,
+    LlmModule,
     DashboardModule,
     AuditModule,
     AdminModule,

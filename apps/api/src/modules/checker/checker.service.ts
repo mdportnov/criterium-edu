@@ -10,7 +10,7 @@ import {
 import { TasksService } from '../tasks/tasks.service';
 import { TaskSolutionsService } from '../task-solutions/task-solutions.service';
 import { TaskSolutionReviewsService } from '../task-solution-reviews/task-solution-reviews.service';
-import { OpenaiApiService } from '../openai/services/openai.service';
+import { LlmService } from '../llm/llm.service';
 import { errorMessage, errorStack } from '../../common/errors';
 
 @Injectable()
@@ -22,7 +22,7 @@ export class CheckerService {
     private readonly tasksService: TasksService,
     private readonly taskSolutionsService: TaskSolutionsService,
     private readonly reviewsService: TaskSolutionReviewsService,
-    private readonly openaiApiService: OpenaiApiService,
+    private readonly llmService: LlmService,
   ) {}
 
   /**
@@ -109,7 +109,7 @@ Return ONLY the JSON string. For example: {"score": ${Math.floor(criterion.maxPo
 `;
 
       try {
-        const { content: aiResponse } = await this.openaiApiService.complete({
+        const { content: aiResponse } = await this.llmService.complete({
           prompt,
           taskId: task.id,
           operationType: 'checker_criterion',
@@ -239,7 +239,7 @@ Return ONLY the feedback text. Do not include any preamble like "Here is the fee
 `;
 
     try {
-      const { content: aiFeedback } = await this.openaiApiService.complete({
+      const { content: aiFeedback } = await this.llmService.complete({
         prompt,
         taskId: task.id,
         operationType: 'checker_feedback',

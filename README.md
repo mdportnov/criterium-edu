@@ -93,6 +93,32 @@ The backend container waits for PostgreSQL, applies migrations, then starts.
 Migrations are the only way the schema changes; `synchronize` is off in every
 environment.
 
+## Language model
+
+Assessment and review call a language model through one service. It is not
+tied to OpenAI: OpenAI, DeepSeek and OpenRouter all speak the same
+chat-completions protocol, so the provider is a setting rather than a
+dependency. Adding another OpenAI-compatible endpoint is an entry in
+`apps/api/src/modules/llm/providers.ts`.
+
+Configured in the admin settings screen, not in the environment, because it
+changes at run time and the key belongs with the other encrypted secrets:
+
+| Setting        | Meaning                                                    |
+| -------------- | ---------------------------------------------------------- |
+| `llm_provider` | `openai`, `deepseek`, `openrouter` or `custom`             |
+| `llm_api_key`  | the provider key; encrypted at rest, masked on read        |
+| `llm_model`    | default model; blank uses the provider's default           |
+| `llm_base_url` | overrides the provider default, required for `custom`      |
+| `llm_pricing`  | optional per-model prices, USD per million tokens, as JSON |
+
+Every call is recorded against the cost ledger with its provider, model and
+token counts. Prices for OpenAI and DeepSeek ship with the application;
+OpenRouter fronts hundreds of models at prices that move, so its costs need
+`llm_pricing`. **A model with no known price records its tokens at zero cost
+and logs a warning** — the alternative, inventing a rate, puts made-up numbers
+in the report that read exactly like real ones.
+
 ## Sessions and passwords
 
 Signing in sets an httpOnly `criterium_session` cookie; the token is never in

@@ -8,7 +8,13 @@ import { SecretCipherService } from '../../common/crypto/secret-cipher.service';
  * Settings whose value is a credential. These are encrypted at rest and never
  * returned in full over the API - the admin UI gets a mask.
  */
-export const SECRET_SETTING_KEYS = new Set(['openai_api_key']);
+export const SECRET_SETTING_KEYS = new Set(['llm_api_key']);
+
+/** Renamed when the OpenAI client became a provider-agnostic one. */
+const LEGACY_KEYS: Record<string, string> = {
+  llm_api_key: 'openai_api_key',
+  llm_model: 'openai_default_model',
+};
 
 /** What the API returns in place of a stored secret. */
 export const SECRET_PLACEHOLDER = '••••••••';
@@ -28,7 +34,7 @@ export class SettingsService {
       return null;
     }
 
-    return SECRET_SETTING_KEYS.has(key)
+    return SECRET_SETTING_KEYS.has(key) || isLegacySecret(key)
       ? this.cipher.decrypt(setting.value)
       : setting.value;
   }
@@ -41,7 +47,10 @@ export class SettingsService {
     const settings = await this.settingsRepository.find();
 
     return settings.reduce<Record<string, string>>((acc, setting) => {
-      if (!SECRET_SETTING_KEYS.has(setting.key)) {
+      if (
+        !SECRET_SETTING_KEYS.has(setting.key) &&
+        !isLegacySecret(setting.key)
+      ) {
         acc[setting.key] = setting.value;
         return acc;
       }
@@ -86,12 +95,59 @@ export class SettingsService {
     return (await this.getSetting('registration_enabled')) === 'true';
   }
 
-  async getOpenAIApiKey(): Promise<string | null> {
-    return this.getSetting('openai_api_key');
+  /**
+   * Reads a setting, falling back to the name it had before the rename. A
+   * deployment that has not saved its settings since is still configured.
+   */
+  private async getSettingWithLegacy(key: string): Promise<string | null> {
+    const value = await this.getSetting(key);
+    if (value) {
+      return value;
+    }
+
+    const legacy = LEGACY_KEYS[key];
+    return legacy ? this.getSetting(legacy) : null;
   }
 
-  async getOpenAIDefaultModel(): Promise<string> {
-    return (await this.getSetting('openai_default_model')) || 'gpt-4o';
+  async getLlmProvider(): Promise<string | null> {
+    return this.getSetting('llm_provider');
+  }
+
+  async getLlmApiKey(): Promise<string | null> {
+    return this.getSettingWithLegacy('llm_api_key');
+  }
+
+  async getLlmBaseUrl(): Promise<string | null> {
+    return this.getSetting('llm_base_url');
+  }
+
+  async getLlmModel(): Promise<string | null> {
+    return this.getSettingWithLegacy('llm_model');
+  }
+
+  /**
+   * Per-model prices, as USD per million tokens, for providers whose list we
+   * cannot ship - OpenRouter fronts hundreds of models at prices that move.
+   * Shape: {"deepseek/deepseek-chat": {"prompt": 0.27, "completion": 1.1}}
+   */
+  async getLlmPricing(): Promise<
+    Record<string, { prompt: number; completion: number }>
+  > {
+    const raw = await this.getSetting('llm_pricing');
+    if (!raw) {
+      return {};
+    }
+
+    try {
+      const parsed: unknown = JSON.parse(raw);
+      return typeof parsed === 'object' && parsed !== null
+        ? (parsed as Record<string, { prompt: number; completion: number }>)
+        : {};
+    } catch {
+      // A malformed override must not stop an assessment; it costs the report
+      // its numbers, not the run.
+      return {};
+    }
   }
 
   private async isUnchangedSecret(
@@ -112,4 +168,18 @@ export class SettingsService {
       this.cipher.matches(submitted, current)
     );
   }
+}
+
+const LEGACY_SECRET_KEYS = new Set(
+  Object.values(LEGACY_KEYS).filter((key) =>
+    SECRET_SETTING_KEYS.has(
+      Object.keys(LEGACY_KEYS).find(
+        (current) => LEGACY_KEYS[current] === key,
+      ) ?? '',
+    ),
+  ),
+);
+
+function isLegacySecret(key: string): boolean {
+  return LEGACY_SECRET_KEYS.has(key);
 }

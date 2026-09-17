@@ -21,7 +21,7 @@ import {
   SourceAutoAssessRequestDto,
   TaskAutoAssessRequestDto,
 } from '../task-solutions/entities/solution-import.dto';
-import { OpenaiApiService } from '../openai/services/openai.service';
+import { LlmService } from '../llm/llm.service';
 import { SettingsService } from '../settings/settings.service';
 import { Logger } from 'nestjs-pino';
 
@@ -46,13 +46,14 @@ export class AutoAssessmentService {
     private readonly solutionRepository: Repository<TaskSolution>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-    private readonly openaiService: OpenaiApiService,
+    private readonly llmService: LlmService,
     private readonly settingsService: SettingsService,
     private readonly logger: Logger,
   ) {}
 
-  private async getDefaultModel(): Promise<string> {
-    return this.settingsService.getOpenAIDefaultModel();
+  /** Undefined lets the LLM service fall back to the configured default. */
+  private async getDefaultModel(): Promise<string | undefined> {
+    return (await this.settingsService.getLlmModel()) ?? undefined;
   }
 
   async createAssessmentSession(
@@ -342,7 +343,7 @@ export class AutoAssessmentService {
 
   private async assessSolutionWithMetrics(
     solutionId: string,
-    model: string,
+    model: string | undefined,
     customSystemPrompt?: string,
     sessionId?: string,
   ): Promise<AutoAssessment> {
@@ -380,7 +381,7 @@ export class AutoAssessmentService {
       AutoAssessmentService.name,
     );
 
-    const response = await this.openaiService.complete({
+    const response = await this.llmService.complete({
       prompt: assessmentPrompt,
       model,
       temperature: 0.2,
@@ -424,7 +425,7 @@ export class AutoAssessmentService {
 
   private async assessSolution(
     solutionId: string,
-    model: string,
+    model: string | undefined,
   ): Promise<AutoAssessment> {
     const solution = await this.solutionRepository.findOne({
       where: { id: solutionId },
@@ -449,7 +450,7 @@ export class AutoAssessmentService {
     // Create the prompt for assessment
     const prompt = this.createAssessmentPrompt(task, solution);
 
-    const response = await this.openaiService.complete({
+    const response = await this.llmService.complete({
       prompt,
       model,
       temperature: 0.2,
