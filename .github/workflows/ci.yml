@@ -7,7 +7,11 @@ on:
   workflow_call:
 
 concurrency:
-  group: ci-${{ github.ref }}
+  # github.workflow is the caller's name when this is reached through
+  # workflow_call, so CI, Deploy Backend and Deploy Frontend each get their own
+  # group. Without it all three shared one and cancelled each other on a single
+  # push to master.
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
