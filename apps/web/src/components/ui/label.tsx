@@ -21,6 +21,7 @@ Label.displayName = LabelPrimitive.Root.displayName;
 /** Label + control + optional hint/error, with the spacing every form here uses. */
 export function Field({
   label,
+  labelAction,
   htmlFor,
   hint,
   error,
@@ -29,6 +30,8 @@ export function Field({
   className,
 }: {
   label?: React.ReactNode;
+  /** Right-aligned affordance on the label row, e.g. "Forgot password?". */
+  labelAction?: React.ReactNode;
   htmlFor?: string;
   hint?: React.ReactNode;
   error?: React.ReactNode;
@@ -38,15 +41,22 @@ export function Field({
 }) {
   return (
     <div className={cn('space-y-1.5', className)}>
-      {label && (
-        <Label htmlFor={htmlFor}>
-          {label}
-          {required && (
-            <span className="ml-0.5 text-danger" aria-hidden="true">
-              *
-            </span>
+      {(label || labelAction) && (
+        <div className="flex min-h-4 items-center justify-between gap-3">
+          {label ? (
+            <Label htmlFor={htmlFor}>
+              {label}
+              {required && (
+                <span className="ml-0.5 text-danger" aria-hidden="true">
+                  *
+                </span>
+              )}
+            </Label>
+          ) : (
+            <span />
           )}
-        </Label>
+          {labelAction}
+        </div>
       )}
       {children}
       {error ? (

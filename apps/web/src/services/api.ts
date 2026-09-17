@@ -5,8 +5,11 @@ import axios, {
   type AxiosError,
 } from 'axios';
 
-// Create a base API instance
-const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+// The API is served under /api/v1. In production nginx proxies that path to
+// the backend on the same origin, so the default is relative and no CORS is
+// involved; point VITE_API_URL at an absolute URL only when the API lives
+// somewhere else.
+const baseURL = import.meta.env.VITE_API_URL || '/api/v1';
 
 export const api: AxiosInstance = axios.create({
   baseURL,

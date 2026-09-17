@@ -9,35 +9,66 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardHeaderText,
+  CardTitle,
+} from '@/components/ui/card';
+import { Badge, type BadgeTone } from '@/components/ui/badge';
+import { PageHeader } from '@/components/ui/page-header';
 import { Pagination } from '@/components/ui/pagination';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { EmptyState, ErrorState, TableSkeleton } from '@/components/ui/states';
+import {
+  Table,
+  TableWrap,
+  TBody,
+  Td,
+  Th,
+  THead,
+  Tr,
+} from '@/components/ui/table';
 import { TaskSolutionReviewService } from '@/services';
 import { useAuth } from '@/contexts/AuthContext';
-import type { PaginatedResponse, ReviewSource, TaskSolutionReview } from '@/types';
+import type {
+  PaginatedResponse,
+  ReviewSource,
+  TaskSolutionReview,
+} from '@/types';
 import {
   Activity,
-  AlertCircle,
   Brain,
-  Calendar,
   CheckCircle,
   FileText,
   Plus,
   Search,
-  Settings,
-  Star,
   Upload,
-  User,
 } from 'lucide-react';
 
+const ALL = 'all';
+
+const SOURCE_TONES: Record<ReviewSource, BadgeTone> = {
+  auto: 'info',
+  manual: 'accent',
+  auto_approved: 'success',
+  auto_modified: 'warning',
+};
+
+const SOURCE_LABELS: Record<ReviewSource, string> = {
+  auto: 'Auto review',
+  manual: 'Manual review',
+  auto_approved: 'Auto approved',
+  auto_modified: 'Auto modified',
+};
+
 const ReviewsPage: React.FC = () => {
-  const [paginatedData, setPaginatedData] = useState<PaginatedResponse<TaskSolutionReview> | null>(null);
+  const [paginatedData, setPaginatedData] =
+    useState<PaginatedResponse<TaskSolutionReview> | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
-  const [sourceFilter, setSourceFilter] = useState<string>('all');
+  const [sourceFilter, setSourceFilter] = useState<string>(ALL);
   const [sortBy, setSortBy] = useState<string>('newest');
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -47,6 +78,7 @@ const ReviewsPage: React.FC = () => {
   const fetchReviews = useCallback(async () => {
     try {
       setLoading(true);
+      setError('');
       const taskId = searchParams.get('taskId');
       const taskSolutionId = searchParams.get('taskSolutionId');
 
@@ -56,12 +88,12 @@ const ReviewsPage: React.FC = () => {
       if (taskId) {
         data = await TaskSolutionReviewService.getReviewsByTaskId(
           taskId,
-          pagination
+          pagination,
         );
       } else if (taskSolutionId) {
         data = await TaskSolutionReviewService.getReviewsByTaskSolutionId(
           taskSolutionId,
-          pagination
+          pagination,
         );
       } else {
         data = await TaskSolutionReviewService.getReviews(pagination);
@@ -69,7 +101,7 @@ const ReviewsPage: React.FC = () => {
 
       setPaginatedData(data);
     } catch {
-      setError('Failed to load reviews');
+      setError('The review service did not respond.');
     } finally {
       setLoading(false);
     }
@@ -83,360 +115,294 @@ const ReviewsPage: React.FC = () => {
   const totalPages = paginatedData?.totalPages || 0;
   const total = paginatedData?.total || 0;
 
+  const filteredReviews = reviews
+    .filter((review) => sourceFilter === ALL || review.source === sourceFilter)
+    .filter((review) => {
+      if (!searchTerm) return true;
+      const term = searchTerm.toLowerCase();
+      return (
+        review.feedbackToStudent.toLowerCase().includes(term) ||
+        review.reviewerComment?.toLowerCase().includes(term) ||
+        review.taskSolutionId.toLowerCase().includes(term)
+      );
+    })
+    .sort((a, b) => {
+      switch (sortBy) {
+        case 'oldest':
+          return (
+            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+          );
+        case 'score-high':
+          return b.totalScore - a.totalScore;
+        case 'score-low':
+          return a.totalScore - b.totalScore;
+        default:
+          return (
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          );
+      }
+    });
+
+  const hasFilters = Boolean(searchTerm) || sourceFilter !== ALL;
+
+  const clearFilters = () => {
+    setSearchTerm('');
+    setSourceFilter(ALL);
+  };
+
   const handlePageSizeChange = (newSize: number) => {
     setPageSize(newSize);
     setCurrentPage(1);
   };
 
-  const getSourceBadge = (source: ReviewSource) => {
-    const variants = {
-      auto: 'bg-blue-100 text-blue-800',
-      manual: 'bg-green-100 text-green-800',
-      auto_approved: 'bg-purple-100 text-purple-800',
-      auto_modified: 'bg-orange-100 text-orange-800',
-    };
-
-    const labels = {
-      auto: 'Auto Review',
-      manual: 'Manual Review',
-      auto_approved: 'Auto Approved',
-      auto_modified: 'Auto Modified',
-    };
-
-    return <Badge className={variants[source]}>{labels[source]}</Badge>;
-  };
-
-  const getScoreColor = (score: number, maxScore: number = 100) => {
-    const percentage = (score / maxScore) * 100;
-    if (percentage >= 80) return 'text-green-600';
-    if (percentage >= 60) return 'text-yellow-600';
-    return 'text-red-600';
-  };
+  const formatDate = (dateStr: string) =>
+    new Date(dateStr).toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    });
 
   const canCreateReview = user?.role === 'admin' || user?.role === 'reviewer';
 
-  if (loading) {
-    return (
-      <div className="container mx-auto p-6">
-        <div className="flex items-center justify-center min-h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold">Reviews</h1>
-          <p className="text-muted-foreground">
-            Manage task solution reviews and assessments
-          </p>
-        </div>
-        {canCreateReview && (
-          <TooltipProvider>
-            <div className="flex flex-wrap gap-2">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button asChild>
-                    <Link to="/dashboard/reviews/create">
-                      <Plus className="w-4 h-4 mr-2" />
-                      Create Review
-                    </Link>
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Manually create a review for a specific solution</p>
-                </TooltipContent>
-              </Tooltip>
-              
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="outline" asChild>
-                    <Link to="/dashboard/reviews/bulk-upload">
-                      <Upload className="w-4 h-4 mr-2" />
-                      Bulk Upload
-                    </Link>
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Upload multiple student solutions at once via JSON</p>
-                </TooltipContent>
-              </Tooltip>
-              
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="outline" asChild>
-                    <Link to="/dashboard/reviews/llm-processing">
-                      <Brain className="w-4 h-4 mr-2" />
-                      LLM Assessment
-                    </Link>
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Use AI to automatically assess and review solutions</p>
-                </TooltipContent>
-              </Tooltip>
-              
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="outline" asChild>
-                    <Link to="/dashboard/reviews/approval-dashboard">
-                      <CheckCircle className="w-4 h-4 mr-2" />
-                      Approvals
-                    </Link>
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Review and approve AI-generated assessments</p>
-                </TooltipContent>
-              </Tooltip>
-            </div>
-          </TooltipProvider>
-        )}
-      </div>
-
-      {canCreateReview && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Settings className="w-5 h-5" />
-              System Operations
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <TooltipProvider>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      className="h-auto p-4 flex flex-col items-center gap-2 transition-all duration-200 hover:scale-105 hover:shadow-md hover:bg-accent/50"
-                      asChild
-                    >
-                      <Link to="/dashboard/reviews/processing-status">
-                        <Activity className="w-6 h-6" />
-                        <div className="text-center">
-                          <div className="font-medium">Processing Status</div>
-                          <div className="text-xs text-muted-foreground">
-                            View active operations
-                          </div>
-                        </div>
-                      </Link>
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Monitor real-time status of bulk operations and AI processing tasks</p>
-                  </TooltipContent>
-                </Tooltip>
-                
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      className="h-auto p-4 flex flex-col items-center gap-2 transition-all duration-200 hover:scale-105 hover:shadow-md hover:bg-accent/50 group"
-                      asChild
-                    >
-                      <Link to="/dashboard/reviews/approval-dashboard">
-                        <CheckCircle className="w-6 h-6 transition-transform duration-200 group-hover:scale-110" />
-                        <div className="text-center">
-                          <div className="font-medium">Pending Approvals</div>
-                          <div className="text-xs text-muted-foreground">
-                            Review AI feedback
-                          </div>
-                        </div>
-                      </Link>
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Review, approve, or modify AI-generated assessments before publishing</p>
-                  </TooltipContent>
-                </Tooltip>
-                
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      className="h-auto p-4 flex flex-col items-center gap-2 transition-all duration-200 hover:scale-105 hover:shadow-md hover:bg-accent/50 group"
-                      asChild
-                    >
-                      <Link to="/dashboard/reviews/bulk-upload">
-                        <Upload className="w-6 h-6 transition-transform duration-200 group-hover:-translate-y-1" />
-                        <div className="text-center">
-                          <div className="font-medium">Import Solutions</div>
-                          <div className="text-xs text-muted-foreground">
-                            Bulk solution upload
-                          </div>
-                        </div>
-                      </Link>
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Import multiple student solutions from JSON format for batch processing</p>
-                  </TooltipContent>
-                </Tooltip>
-                
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      className="h-auto p-4 flex flex-col items-center gap-2 transition-all duration-200 hover:scale-105 hover:shadow-md hover:bg-accent/50 group"
-                      asChild
-                    >
-                      <Link to="/dashboard/reviews/llm-processing">
-                        <Brain className="w-6 h-6 transition-transform duration-200 group-hover:pulse" />
-                        <div className="text-center">
-                          <div className="font-medium">AI Assessment</div>
-                          <div className="text-xs text-muted-foreground">
-                            Configure LLM reviews
-                          </div>
-                        </div>
-                      </Link>
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Configure and start AI-powered automatic assessment of student solutions</p>
-                  </TooltipContent>
-                </Tooltip>
-              </div>
-            </TooltipProvider>
-          </CardContent>
-        </Card>
-      )}
-
-      {error && (
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-          <Input
-            placeholder="Search reviews..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-
-        <Select value={sourceFilter} onValueChange={setSourceFilter}>
-          <SelectTrigger>
-            <SelectValue placeholder="Filter by source" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Sources</SelectItem>
-            <SelectItem value="auto">Auto Reviews</SelectItem>
-            <SelectItem value="manual">Manual Reviews</SelectItem>
-            <SelectItem value="auto_approved">Auto Approved</SelectItem>
-            <SelectItem value="auto_modified">Auto Modified</SelectItem>
-          </SelectContent>
-        </Select>
-
-        <Select value={sortBy} onValueChange={setSortBy}>
-          <SelectTrigger>
-            <SelectValue placeholder="Sort by" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="newest">Newest First</SelectItem>
-            <SelectItem value="oldest">Oldest First</SelectItem>
-            <SelectItem value="score-high">Highest Score</SelectItem>
-            <SelectItem value="score-low">Lowest Score</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      {reviews.length === 0 ? (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <FileText className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No reviews found</h3>
-            <p className="text-muted-foreground text-center mb-4">
-              {total === 0
-                ? 'There are no reviews yet.'
-                : 'No reviews match your current filters.'}
-            </p>
-            {canCreateReview && total === 0 && (
-              <Button asChild>
-                <Link to="/dashboard/reviews/create">Create First Review</Link>
+    <div>
+      <PageHeader
+        title="Reviews"
+        description={
+          total === 1 ? '1 review recorded' : `${total} reviews recorded`
+        }
+        actions={
+          canCreateReview && (
+            <>
+              <Button asChild variant="outline">
+                <Link to="/dashboard/reviews/bulk-upload">
+                  <Upload className="size-4" />
+                  Bulk upload
+                </Link>
               </Button>
-            )}
-          </CardContent>
-        </Card>
-      ) : (
-        <>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {reviews.map((review) => (
-            <Card key={review.id} className="hover:shadow-md transition-shadow">
-              <CardHeader className="space-y-3">
-                <div className="flex items-start justify-between">
-                  <CardTitle className="text-lg">Review #{review.id}</CardTitle>
-                  {getSourceBadge(review.source)}
-                </div>
-                <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                  <div className="flex items-center gap-1">
-                    <Calendar className="h-4 w-4" />
-                    {new Date(review.createdAt).toLocaleDateString()}
-                  </div>
-                  {review.reviewerId && (
-                    <div className="flex items-center gap-1">
-                      <User className="h-4 w-4" />
-                      Reviewer ID: {review.reviewerId}
-                    </div>
-                  )}
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Star className="h-4 w-4 text-yellow-500" />
-                    <span
-                      className={`font-semibold ${getScoreColor(review.totalScore)}`}
-                    >
-                      {review.totalScore} points
-                    </span>
-                  </div>
-                  <span className="text-sm text-muted-foreground">
-                    {review.criteriaScores.length} criteria
-                  </span>
-                </div>
+              <Button asChild variant="outline">
+                <Link to="/dashboard/reviews/llm-processing">
+                  <Brain className="size-4" />
+                  LLM assessment
+                </Link>
+              </Button>
+              <Button asChild>
+                <Link to="/dashboard/reviews/create">
+                  <Plus className="size-4" />
+                  New review
+                </Link>
+              </Button>
+            </>
+          )
+        }
+      />
 
-                <div>
-                  <h4 className="font-medium mb-2">Feedback to Student</h4>
-                  <p className="text-sm text-muted-foreground line-clamp-3">
-                    {review.feedbackToStudent}
-                  </p>
-                </div>
-
-                {review.reviewerComment && (
-                  <div>
-                    <h4 className="font-medium mb-2">Reviewer Comment</h4>
-                    <p className="text-sm text-muted-foreground line-clamp-2">
-                      {review.reviewerComment}
+      <div className="space-y-4">
+        {canCreateReview && (
+          <Card>
+            <CardHeader>
+              <CardHeaderText>
+                <CardTitle>System operations</CardTitle>
+              </CardHeaderText>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                <Link
+                  to="/dashboard/reviews/processing-status"
+                  className="flex items-start gap-2.5 rounded-md border border-border p-3 hover:bg-muted/50"
+                >
+                  <Activity
+                    className="mt-0.5 size-4 shrink-0 text-muted-foreground"
+                    aria-hidden="true"
+                  />
+                  <div className="min-w-0">
+                    <p className="text-[13px] font-medium text-foreground">
+                      Processing status
+                    </p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      Active bulk and AI operations
                     </p>
                   </div>
-                )}
+                </Link>
+                <Link
+                  to="/dashboard/reviews/approval-dashboard"
+                  className="flex items-start gap-2.5 rounded-md border border-border p-3 hover:bg-muted/50"
+                >
+                  <CheckCircle
+                    className="mt-0.5 size-4 shrink-0 text-muted-foreground"
+                    aria-hidden="true"
+                  />
+                  <div className="min-w-0">
+                    <p className="text-[13px] font-medium text-foreground">
+                      Pending approvals
+                    </p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      Review AI-generated feedback
+                    </p>
+                  </div>
+                </Link>
+                <Link
+                  to="/dashboard/reviews/llm-processing"
+                  className="flex items-start gap-2.5 rounded-md border border-border p-3 hover:bg-muted/50"
+                >
+                  <Brain
+                    className="mt-0.5 size-4 shrink-0 text-muted-foreground"
+                    aria-hidden="true"
+                  />
+                  <div className="min-w-0">
+                    <p className="text-[13px] font-medium text-foreground">
+                      AI assessment
+                    </p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      Configure LLM-driven reviews
+                    </p>
+                  </div>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
-                <div className="flex justify-between items-center pt-4 border-t">
-                  <span className="text-sm text-muted-foreground">
-                    Task Solution #{review.taskSolutionId}
-                  </span>
-                  <Button variant="outline" size="sm" asChild>
-                    <Link to={`/dashboard/reviews/${review.id}`}>
-                      View Details
-                    </Link>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-            ))}
-          </div>
-          
-          {totalPages > 1 && (
-            <div className="mt-8">
+        {error ? (
+          <ErrorState
+            title="Could not load reviews"
+            message={error}
+            onRetry={fetchReviews}
+          />
+        ) : (
+          <Card>
+            <div className="flex flex-col gap-2 border-b border-border p-3 sm:flex-row sm:items-center">
+              <div className="relative flex-1">
+                <Search
+                  className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground"
+                  aria-hidden="true"
+                />
+                <Input
+                  type="search"
+                  placeholder="Filter by feedback or comment"
+                  aria-label="Filter reviews"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-8"
+                />
+              </div>
+
+              <Select value={sourceFilter} onValueChange={setSourceFilter}>
+                <SelectTrigger aria-label="Source" className="sm:w-[11rem]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={ALL}>All sources</SelectItem>
+                  <SelectItem value="auto">Auto</SelectItem>
+                  <SelectItem value="manual">Manual</SelectItem>
+                  <SelectItem value="auto_approved">Auto approved</SelectItem>
+                  <SelectItem value="auto_modified">Auto modified</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger aria-label="Sort" className="sm:w-[10rem]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="newest">Newest first</SelectItem>
+                  <SelectItem value="oldest">Oldest first</SelectItem>
+                  <SelectItem value="score-high">Highest score</SelectItem>
+                  <SelectItem value="score-low">Lowest score</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {loading ? (
+              <TableSkeleton rows={8} columns={5} />
+            ) : filteredReviews.length === 0 ? (
+              <EmptyState
+                icon={FileText}
+                title={
+                  hasFilters
+                    ? 'No reviews match these filters'
+                    : 'No reviews yet'
+                }
+                description={
+                  hasFilters
+                    ? 'Try a shorter search term, or clear the source filter.'
+                    : 'A review holds the score, criteria breakdown and feedback for one submission.'
+                }
+                action={
+                  hasFilters ? (
+                    <Button variant="outline" size="sm" onClick={clearFilters}>
+                      Clear filters
+                    </Button>
+                  ) : canCreateReview ? (
+                    <Button asChild size="sm">
+                      <Link to="/dashboard/reviews/create">
+                        <Plus className="size-4" />
+                        New review
+                      </Link>
+                    </Button>
+                  ) : undefined
+                }
+              />
+            ) : (
+              <TableWrap>
+                <Table>
+                  <THead>
+                    <tr>
+                      <Th>Review</Th>
+                      <Th>Source</Th>
+                      <Th className="hidden md:table-cell">Feedback</Th>
+                      <Th numeric className="w-24">
+                        Score
+                      </Th>
+                      <Th className="hidden sm:table-cell">Date</Th>
+                      <Th className="w-px text-right">
+                        <span className="sr-only">Actions</span>
+                      </Th>
+                    </tr>
+                  </THead>
+                  <TBody>
+                    {filteredReviews.map((review) => (
+                      <Tr key={review.id}>
+                        <Td>
+                          <Link
+                            to={`/dashboard/reviews/${review.id}`}
+                            className="font-medium text-foreground hover:text-primary hover:underline"
+                          >
+                            Review #{review.id}
+                          </Link>
+                          <p className="mt-0.5 text-xs text-muted-foreground">
+                            Solution #{review.taskSolutionId}
+                          </p>
+                        </Td>
+                        <Td>
+                          <Badge variant={SOURCE_TONES[review.source]}>
+                            {SOURCE_LABELS[review.source]}
+                          </Badge>
+                        </Td>
+                        <Td className="hidden max-w-xs md:table-cell">
+                          <p className="line-clamp-2 text-muted-foreground">
+                            {review.feedbackToStudent}
+                          </p>
+                        </Td>
+                        <Td numeric>{review.totalScore}</Td>
+                        <Td className="hidden text-muted-foreground sm:table-cell">
+                          {formatDate(review.createdAt)}
+                        </Td>
+                        <Td className="text-right">
+                          <Button asChild variant="ghost" size="sm">
+                            <Link to={`/dashboard/reviews/${review.id}`}>
+                              View
+                            </Link>
+                          </Button>
+                        </Td>
+                      </Tr>
+                    ))}
+                  </TBody>
+                </Table>
+              </TableWrap>
+            )}
+
+            {!loading && filteredReviews.length > 0 && totalPages > 1 && (
               <Pagination
                 currentPage={currentPage}
                 totalPages={totalPages}
@@ -445,10 +411,10 @@ const ReviewsPage: React.FC = () => {
                 onPageChange={setCurrentPage}
                 onPageSizeChange={handlePageSizeChange}
               />
-            </div>
-          )}
-        </>
-      )}
+            )}
+          </Card>
+        )}
+      </div>
     </div>
   );
 };

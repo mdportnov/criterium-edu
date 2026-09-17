@@ -2,20 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Field } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { LoadingState } from '@/components/ui/states';
 import { useAuth } from '@/contexts/AuthContext';
 import { settingsService } from '@/services/settings.service';
-import {
-  AlertCircle,
-  CheckCircle2,
-  Eye,
-  EyeOff,
-  Lock,
-  Mail,
-  User,
-  Info,
-} from 'lucide-react';
+import { CheckCircle2, Eye, EyeOff, Info } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { getErrorMessage } from '@/lib/errors';
 
 const RegisterPage: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -29,7 +23,9 @@ const RegisterPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [registrationEnabled, setRegistrationEnabled] = useState<boolean | null>(null);
+  const [registrationEnabled, setRegistrationEnabled] = useState<
+    boolean | null
+  >(null);
   const [loadingSettings, setLoadingSettings] = useState(true);
   const { register } = useAuth();
   const navigate = useNavigate();
@@ -59,13 +55,11 @@ const RegisterPage: React.FC = () => {
     e.preventDefault();
     setError('');
 
-    // Validate passwords match
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
       return;
     }
 
-    // Validate password length
     if (formData.password.length < 6) {
       setError('Password must be at least 6 characters');
       return;
@@ -81,9 +75,9 @@ const RegisterPage: React.FC = () => {
         formData.password,
       );
       navigate('/dashboard');
-    } catch (err: any) {
+    } catch (err) {
       setError(
-        err.response?.data?.message || 'Failed to register. Please try again.',
+        getErrorMessage(err, 'Failed to register. Please try again.'),
       );
     } finally {
       setIsLoading(false);
@@ -100,147 +94,109 @@ const RegisterPage: React.FC = () => {
   };
 
   const passwordStrength = getPasswordStrength(formData.password);
-  const strengthLabels = ['Weak', 'Fair', 'Good', 'Strong'];
-  const strengthColors = [
-    'bg-red-500',
-    'bg-orange-500',
-    'bg-yellow-500',
-    'bg-green-500',
-  ];
+  const strengthLabels = ['Too weak', 'Weak', 'Fair', 'Good', 'Strong'];
 
   if (loadingSettings) {
     return (
-      <div className="space-y-6">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold tracking-tight">
+      <div className="space-y-5">
+        <div>
+          <h1 className="text-lg font-semibold tracking-tight text-foreground">
             Create your account
-          </h2>
-          <p className="text-muted-foreground mt-2">
-            Join Criterium EDU to get started
+          </h1>
+          <p className="mt-0.5 text-[13px] text-muted-foreground">
+            Join Criterium EDU to get started.
           </p>
         </div>
-        <div className="flex justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        </div>
+        <LoadingState />
       </div>
     );
   }
 
   if (registrationEnabled === false) {
     return (
-      <div className="space-y-6">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold tracking-tight">
-            Registration Disabled
-          </h2>
-          <p className="text-muted-foreground mt-2">
-            Account registration is currently disabled
+      <div className="space-y-5">
+        <div>
+          <h1 className="text-lg font-semibold tracking-tight text-foreground">
+            Registration disabled
+          </h1>
+          <p className="mt-0.5 text-[13px] text-muted-foreground">
+            Account registration is currently disabled.
           </p>
         </div>
 
-        <Alert>
-          <Info className="h-4 w-4" />
+        <Alert variant="info">
+          <Info />
           <AlertDescription>
-            New user registration is not available now. Please contact support if you need access.
+            New user registration is not available now. Please contact support
+            if you need access.
           </AlertDescription>
         </Alert>
 
-        <div className="text-center">
-          <Link
-            to="/login"
-            className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 w-full"
-          >
-            Sign in instead
-          </Link>
-        </div>
+        <Button asChild variant="outline" className="w-full">
+          <Link to="/login">Sign in instead</Link>
+        </Button>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="text-center">
-        <h2 className="text-2xl font-bold tracking-tight">
+    <div className="space-y-5">
+      <div>
+        <h1 className="text-lg font-semibold tracking-tight text-foreground">
           Create your account
-        </h2>
-        <p className="text-muted-foreground mt-2">
-          Join Criterium EDU to get started
+        </h1>
+        <p className="mt-0.5 text-[13px] text-muted-foreground">
+          Join Criterium EDU to get started.
         </p>
       </div>
 
       {error && (
         <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-5">
-        <div className="space-y-2">
-          <Label htmlFor="email" className="text-sm font-medium">
-            Email address
-          </Label>
-          <div className="relative">
-            <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <Field label="Email address" htmlFor="email" required>
+          <Input
+            id="email"
+            name="email"
+            type="email"
+            placeholder="you@example.com"
+            value={formData.email}
+            onChange={handleChange}
+            required
+          />
+        </Field>
+
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="First name" htmlFor="firstName" required>
             <Input
-              id="email"
-              name="email"
-              type="email"
-              placeholder="Enter your email"
-              value={formData.email}
+              id="firstName"
+              name="firstName"
+              type="text"
+              placeholder="First name"
+              value={formData.firstName}
               onChange={handleChange}
-              className="pl-10"
               required
             />
-          </div>
+          </Field>
+
+          <Field label="Last name" htmlFor="lastName" required>
+            <Input
+              id="lastName"
+              name="lastName"
+              type="text"
+              placeholder="Last name"
+              value={formData.lastName}
+              onChange={handleChange}
+              required
+            />
+          </Field>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="firstName" className="text-sm font-medium">
-              First name
-            </Label>
-            <div className="relative">
-              <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-              <Input
-                id="firstName"
-                name="firstName"
-                type="text"
-                placeholder="First name"
-                value={formData.firstName}
-                onChange={handleChange}
-                className="pl-10"
-                required
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="lastName" className="text-sm font-medium">
-              Last name
-            </Label>
-            <div className="relative">
-              <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-              <Input
-                id="lastName"
-                name="lastName"
-                type="text"
-                placeholder="Last name"
-                value={formData.lastName}
-                onChange={handleChange}
-                className="pl-10"
-                required
-              />
-            </div>
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="password" className="text-sm font-medium">
-            Password
-          </Label>
+        <Field label="Password" htmlFor="password" required>
           <div className="relative">
-            <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <Input
               id="password"
               name="password"
@@ -248,67 +204,49 @@ const RegisterPage: React.FC = () => {
               placeholder="Create a password"
               value={formData.password}
               onChange={handleChange}
-              className="pl-10 pr-10"
+              className="pr-9"
               required
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
             >
               {showPassword ? (
-                <EyeOff className="h-4 w-4" />
+                <EyeOff className="size-3.5" />
               ) : (
-                <Eye className="h-4 w-4" />
+                <Eye className="size-3.5" />
               )}
+              <span className="sr-only">
+                {showPassword ? 'Hide password' : 'Show password'}
+              </span>
             </button>
           </div>
           {formData.password && (
-            <div className="space-y-2">
+            <div className="space-y-1.5 pt-1">
               <div className="flex items-center justify-between text-xs">
-                <span className="text-muted-foreground">
-                  Password strength:
-                </span>
-                <span
-                  className={`font-medium ${
-                    passwordStrength === 0
-                      ? 'text-red-500'
-                      : passwordStrength === 1
-                        ? 'text-orange-500'
-                        : passwordStrength === 2
-                          ? 'text-yellow-500'
-                          : passwordStrength === 3
-                            ? 'text-green-500'
-                            : 'text-green-600'
-                  }`}
-                >
-                  {passwordStrength === 0
-                    ? 'Too weak'
-                    : strengthLabels[passwordStrength - 1]}
+                <span className="text-muted-foreground">Password strength</span>
+                <span className="font-medium text-foreground">
+                  {strengthLabels[passwordStrength]}
                 </span>
               </div>
-              <div className="flex space-x-1">
+              <div className="flex gap-1">
                 {[...Array(4)].map((_, i) => (
                   <div
                     key={i}
-                    className={`h-1 w-full rounded-full ${
-                      i < passwordStrength
-                        ? strengthColors[passwordStrength - 1]
-                        : 'bg-gray-200'
-                    }`}
+                    className={cn(
+                      'h-1 w-full rounded-full',
+                      i < passwordStrength ? 'bg-primary' : 'bg-muted',
+                    )}
                   />
                 ))}
               </div>
             </div>
           )}
-        </div>
+        </Field>
 
-        <div className="space-y-2">
-          <Label htmlFor="confirmPassword" className="text-sm font-medium">
-            Confirm password
-          </Label>
+        <Field label="Confirm password" htmlFor="confirmPassword" required>
           <div className="relative">
-            <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <Input
               id="confirmPassword"
               name="confirmPassword"
@@ -316,57 +254,44 @@ const RegisterPage: React.FC = () => {
               placeholder="Confirm your password"
               value={formData.confirmPassword}
               onChange={handleChange}
-              className="pl-10 pr-10"
+              className="pr-16"
               required
             />
+            {formData.confirmPassword &&
+              formData.password === formData.confirmPassword && (
+                <CheckCircle2
+                  className="absolute right-9 top-1/2 size-3.5 -translate-y-1/2 text-success"
+                  aria-hidden="true"
+                />
+              )}
             <button
               type="button"
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
             >
               {showConfirmPassword ? (
-                <EyeOff className="h-4 w-4" />
+                <EyeOff className="size-3.5" />
               ) : (
-                <Eye className="h-4 w-4" />
+                <Eye className="size-3.5" />
               )}
+              <span className="sr-only">
+                {showConfirmPassword ? 'Hide password' : 'Show password'}
+              </span>
             </button>
-            {formData.confirmPassword &&
-              formData.password === formData.confirmPassword && (
-                <CheckCircle2 className="absolute right-10 top-1/2 transform -translate-y-1/2 text-green-500 h-4 w-4" />
-              )}
           </div>
-        </div>
+        </Field>
 
-        <Button type="submit" className="w-full h-11" disabled={isLoading}>
-          {isLoading ? (
-            <>
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-              Creating account...
-            </>
-          ) : (
-            'Create account'
-          )}
+        <Button type="submit" className="w-full" disabled={isLoading}>
+          {isLoading ? 'Creating account…' : 'Create account'}
         </Button>
       </form>
 
-      <div className="relative my-8">
-        <div className="relative flex items-center">
-          <div className="flex-grow border-t border-gray-300"></div>
-          <span className="mx-4 flex-shrink text-sm text-muted-foreground">
-            Already have an account?
-          </span>
-          <div className="flex-grow border-t border-gray-300"></div>
-        </div>
-      </div>
-
-      <div className="text-center">
-        <Link
-          to="/login"
-          className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 w-full"
-        >
+      <p className="text-center text-[13px] text-muted-foreground">
+        Already have an account?{' '}
+        <Link to="/login" className="font-medium text-primary hover:underline">
           Sign in instead
         </Link>
-      </div>
+      </p>
     </div>
   );
 };

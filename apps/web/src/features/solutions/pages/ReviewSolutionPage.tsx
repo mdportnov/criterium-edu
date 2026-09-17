@@ -3,7 +3,22 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardHeaderText,
+  CardTitle,
+  CardDescription,
+} from '@/components/ui/card';
+import { PageHeader } from '@/components/ui/page-header';
+import { StatusBadge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { EmptyState, ErrorState, LoadingState } from '@/components/ui/states';
+import { Separator } from '@/components/ui/separator';
 import {
   type CreateTaskSolutionReviewRequest,
   ReviewSource,
@@ -17,6 +32,7 @@ import {
   TaskSolutionService,
 } from '@/services';
 import { UserRole } from '@app/shared';
+import { getErrorMessage } from '@/lib/errors';
 
 const ReviewSolutionPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -39,60 +55,43 @@ const ReviewSolutionPage: React.FC = () => {
     source: ReviewSource.MANUAL,
   });
 
-  useEffect(() => {
-    const fetchData = async () => {
-      if (!id) return;
+  const fetchData = async () => {
+    if (!id) return;
 
-      setIsLoading(true);
-      setError('');
+    setIsLoading(true);
+    setError('');
 
+    try {
+      // Fetch solution
+      const solutionData = await TaskSolutionService.getTaskSolutionById(id);
+      setSolution(solutionData);
+
+      // Fetch task to get criteria
+      const taskData = await TaskService.getTaskById(solutionData.taskId);
+      setTaskCriteria(taskData.criteria);
+
+      // Check if there's an existing review
       try {
-        // Fetch solution
-        const solutionData =
-          await TaskSolutionService.getTaskSolutionById(id);
-        setSolution(solutionData);
+        const reviews =
+          await TaskSolutionReviewService.getTaskSolutionReviewsBySolutionId(
+            id,
+          );
+        const reviewsArray = Array.isArray(reviews) ? reviews : reviews.data;
+        if (reviewsArray.length > 0) {
+          setExistingReview(reviewsArray[0]);
 
-        // Fetch task to get criteria
-        const taskData = await TaskService.getTaskById(solutionData.taskId);
-        setTaskCriteria(taskData.criteria);
-
-        // Check if there's an existing review
-        try {
-          const reviews =
-            await TaskSolutionReviewService.getTaskSolutionReviewsBySolutionId(
-              id,
-            );
-          const reviewsArray = Array.isArray(reviews) ? reviews : reviews.data;
-          if (reviewsArray.length > 0) {
-            setExistingReview(reviewsArray[0]);
-
-            // Initialize form with existing review data
-            setFormData({
-              taskSolutionId: id,
-              feedbackToStudent: reviewsArray[0].feedbackToStudent,
-              criteriaScores: reviewsArray[0].criteriaScores.map((score) => ({
-                criterionId: score.criterionId,
-                score: score.score,
-                comment: score.comment,
-              })),
-              source: ReviewSource.MANUAL,
-            });
-          } else {
-            // Initialize form with empty data based on task criteria
-            setFormData({
-              taskSolutionId: id,
-              feedbackToStudent: '',
-              criteriaScores: taskData.criteria.map((criterion) => ({
-                criterionId: criterion.id || '',
-                score: 0,
-                comment: '',
-              })),
-              source: ReviewSource.MANUAL,
-            });
-          }
-        } catch (reviewErr) {
-          console.error('Error fetching review:', reviewErr);
-
+          // Initialize form with existing review data
+          setFormData({
+            taskSolutionId: id,
+            feedbackToStudent: reviewsArray[0].feedbackToStudent,
+            criteriaScores: reviewsArray[0].criteriaScores.map((score) => ({
+              criterionId: score.criterionId,
+              score: score.score,
+              comment: score.comment,
+            })),
+            source: ReviewSource.MANUAL,
+          });
+        } else {
           // Initialize form with empty data based on task criteria
           setFormData({
             taskSolutionId: id,
@@ -105,18 +104,33 @@ const ReviewSolutionPage: React.FC = () => {
             source: ReviewSource.MANUAL,
           });
         }
-      } catch (err: any) {
-        console.error('Error fetching data:', err);
-        setError(
-          err.response?.data?.message ||
-            'Failed to load data. Please try again.',
-        );
-      } finally {
-        setIsLoading(false);
-      }
-    };
+      } catch (reviewErr) {
+        console.error('Error fetching review:', reviewErr);
 
-    fetchData();
+        // Initialize form with empty data based on task criteria
+        setFormData({
+          taskSolutionId: id,
+          feedbackToStudent: '',
+          criteriaScores: taskData.criteria.map((criterion) => ({
+            criterionId: criterion.id || '',
+            score: 0,
+            comment: '',
+          })),
+          source: ReviewSource.MANUAL,
+        });
+      }
+    } catch (err) {
+      console.error('Error fetching data:', err);
+      setError(
+        getErrorMessage(err, 'Failed to load data. Please try again.'),
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    void fetchData();
   }, [id]);
 
   const handleFeedbackChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -139,9 +153,7 @@ const ReviewSolutionPage: React.FC = () => {
     // Check if any criterion score is invalid
     for (const score of formData.criteriaScores) {
       if (score.score < 0) {
-        setError(
-          `Score cannot be negative`,
-        );
+        setError(`Score cannot be negative`);
         return false;
       }
 
@@ -185,47 +197,16 @@ const ReviewSolutionPage: React.FC = () => {
         await TaskSolutionReviewService.createTaskSolutionReview(formData);
       }
 
-      navigate(`/dashboard/solutions/${id}`);
-    } catch (err: any) {
+      void navigate(`/dashboard/solutions/${id}`);
+    } catch (err) {
       console.error('Error saving review:', err);
       setError(
-        err.response?.data?.message ||
-          'Failed to save review. Please try again.',
+        getErrorMessage(err, 'Failed to save review. Please try again.'),
       );
     } finally {
       setIsSaving(false);
     }
   };
-
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
-  if (error && !solution) {
-    return (
-      <div className="bg-destructive/15 text-destructive p-4 rounded-md">
-        <p>{error}</p>
-        <Button asChild variant="outline" className="mt-4">
-          <Link to="/tasks">Back to Tasks</Link>
-        </Button>
-      </div>
-    );
-  }
-
-  if (!canReview) {
-    return (
-      <div className="bg-destructive/15 text-destructive p-4 rounded-md">
-        <p>You don't have permission to review solutions.</p>
-        <Button asChild variant="outline" className="mt-4">
-          <Link to="/tasks">Back to Tasks</Link>
-        </Button>
-      </div>
-    );
-  }
 
   const getTotalScore = () => {
     return formData.criteriaScores.reduce(
@@ -248,188 +229,247 @@ const ReviewSolutionPage: React.FC = () => {
     return (getTotalScore() / maxScore) * 100;
   };
 
-  const getScoreColor = () => {
-    const percentage = getScorePercentage();
+  if (!canReview) {
+    return (
+      <div>
+        <PageHeader title="Review solution" backTo="/tasks" />
+        <ErrorState
+          title="Access denied"
+          message="You don't have permission to review solutions."
+        />
+      </div>
+    );
+  }
 
-    if (percentage >= 80) return 'text-green-600';
-    if (percentage >= 60) return 'text-amber-600';
-    return 'text-red-600';
-  };
+  if (isLoading) {
+    return (
+      <div>
+        <PageHeader title="Review solution" backTo="/tasks" />
+        <LoadingState label="Loading solution…" />
+      </div>
+    );
+  }
+
+  if (error && !solution) {
+    return (
+      <div>
+        <PageHeader title="Review solution" backTo="/tasks" />
+        <ErrorState
+          title="Could not load solution"
+          message={error}
+          onRetry={() => void fetchData()}
+        />
+      </div>
+    );
+  }
 
   return (
     <div>
-      <div className="flex items-center gap-2 text-muted-foreground mb-2">
-        <Link to="/tasks" className="hover:text-primary">
-          Tasks
-        </Link>
-        <span>/</span>
-        <Link to={`/dashboard/tasks/${solution?.taskId}`} className="hover:text-primary">
-          Task #{solution?.taskId}
-        </Link>
-        <span>/</span>
-        <Link to={`/dashboard/solutions/${id}`} className="hover:text-primary">
-          Solution #{id}
-        </Link>
-        <span>/</span>
-        <span>Review</span>
-      </div>
-
-      <h1 className="text-3xl font-bold mb-6">
-        {existingReview ? 'Edit Review' : 'Review Solution'}
-      </h1>
+      <PageHeader
+        title={existingReview ? 'Edit review' : 'Review solution'}
+        description={`Solution #${id} — Task #${solution?.taskId}`}
+        backTo={`/dashboard/solutions/${id}`}
+      />
 
       {error && (
-        <div className="bg-destructive/15 text-destructive p-4 rounded-md mb-6">
-          {error}
-        </div>
+        <Alert variant="destructive" className="mb-4">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2">
-          <form onSubmit={handleSubmit} className="space-y-8">
-            {/* Criteria Evaluation */}
-            <div className="bg-card rounded-lg shadow-sm border border-border p-6">
-              <h2 className="text-xl font-semibold mb-4">
-                Criteria Evaluation
-              </h2>
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <form
+          onSubmit={(e) => void handleSubmit(e)}
+          className="space-y-4 lg:col-span-2"
+        >
+          <Card>
+            <CardHeader>
+              <CardHeaderText>
+                <CardTitle>Solution</CardTitle>
+                <CardDescription>What the student submitted.</CardDescription>
+              </CardHeaderText>
+            </CardHeader>
+            <CardContent>
+              {solution?.solutionText ? (
+                <pre className="code-block">{solution.solutionText}</pre>
+              ) : (
+                <EmptyState
+                  title="No submission text"
+                  description="This solution has no text to show."
+                />
+              )}
+            </CardContent>
+          </Card>
 
-              <div className="space-y-6">
-                {formData.criteriaScores.map((score, index) => (
-                  <div
-                    key={index}
-                    className="border-b border-border pb-6 last:border-0 last:pb-0"
-                  >
-                    <div className="flex justify-between items-start mb-2">
-                      <h3 className="font-medium">{taskCriteria[index]?.name || 'Criterion'}</h3>
-                      <span className="text-sm text-muted-foreground">
-                        Max: {taskCriteria[index]?.maxPoints || 0} points
-                      </span>
-                    </div>
-
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <div className="flex justify-between">
-                          <Label htmlFor={`points-${index}`}>Points</Label>
-                          <span className="text-sm font-medium">
-                            {score.score} / {taskCriteria[index]?.maxPoints || 0}
+          <Card>
+            <CardHeader>
+              <CardHeaderText>
+                <CardTitle>Criteria</CardTitle>
+                <CardDescription>
+                  Score each criterion and leave feedback for the student.
+                </CardDescription>
+              </CardHeaderText>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {formData.criteriaScores.length === 0 ? (
+                <EmptyState
+                  title="No criteria defined"
+                  description="This task has no scoring criteria to review."
+                />
+              ) : (
+                formData.criteriaScores.map((score, index) => {
+                  const criterion = taskCriteria[index];
+                  return (
+                    <div
+                      key={score.criterionId || index}
+                      className="space-y-2 border-b border-border pb-3 last:border-0 last:pb-0"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <Label
+                            htmlFor={`points-${index}`}
+                            className="text-foreground"
+                          >
+                            {criterion?.name || 'Criterion'}
+                          </Label>
+                          {criterion?.description && (
+                            <p className="mt-0.5 text-xs leading-5 text-muted-foreground">
+                              {criterion.description}
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex shrink-0 items-center gap-1.5">
+                          <Input
+                            id={`points-${index}`}
+                            type="number"
+                            min={0}
+                            max={criterion?.maxPoints || 0}
+                            value={score.score}
+                            onChange={(e) =>
+                              handleCriterionScoreChange(
+                                index,
+                                Number(e.target.value),
+                              )
+                            }
+                            className="h-7 w-16 text-right tabular-nums"
+                          />
+                          <span className="text-xs tabular-nums text-muted-foreground">
+                            / {criterion?.maxPoints || 0}
                           </span>
                         </div>
-                        <Input
-                          id={`points-${index}`}
-                          type="range"
-                          min="0"
-                          max={taskCriteria[index]?.maxPoints || 0}
-                          value={score.score}
-                          onChange={(e) =>
-                            handleCriterionScoreChange(
-                              index,
-                              parseInt(e.target.value, 10),
-                            )
-                          }
-                          className="w-full"
-                        />
                       </div>
 
-                      <div className="space-y-2">
-                        <Label htmlFor={`feedback-${index}`}>Feedback</Label>
-                        <textarea
-                          id={`feedback-${index}`}
-                          value={score.comment || ''}
-                          onChange={(e) =>
-                            handleCriterionCommentChange(index, e.target.value)
-                          }
-                          placeholder={`Provide feedback for this criterion...`}
-                          className="flex min-h-20 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                          required
-                        />
-                      </div>
+                      <Textarea
+                        id={`feedback-${index}`}
+                        value={score.comment || ''}
+                        onChange={(e) =>
+                          handleCriterionCommentChange(index, e.target.value)
+                        }
+                        placeholder="Feedback for this criterion…"
+                        className="min-h-16"
+                        required
+                      />
                     </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+                  );
+                })
+              )}
+            </CardContent>
+          </Card>
 
-            {/* Overall Feedback */}
-            <div className="bg-card rounded-lg shadow-sm border border-border p-6">
-              <h2 className="text-xl font-semibold mb-4">Overall Feedback</h2>
-
-              <div className="space-y-2">
-                <Label htmlFor="feedback">Feedback</Label>
-                <textarea
-                  id="feedback"
-                  value={formData.feedbackToStudent}
-                  onChange={handleFeedbackChange}
-                  placeholder="Provide overall feedback for this solution..."
-                  className="flex min-h-32 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-3">
+          <Card>
+            <CardHeader>
+              <CardHeaderText>
+                <CardTitle>Overall feedback</CardTitle>
+              </CardHeaderText>
+            </CardHeader>
+            <CardContent>
+              <Textarea
+                id="feedback"
+                value={formData.feedbackToStudent}
+                onChange={handleFeedbackChange}
+                placeholder="Provide overall feedback for this solution…"
+                className="min-h-28"
+                required
+              />
+            </CardContent>
+            <CardFooter className="justify-end">
               <Button
                 type="button"
-                variant="outline"
-                onClick={() => navigate(`/dashboard/solutions/${id}`)}
+                variant="ghost"
+                onClick={() => void navigate(`/dashboard/solutions/${id}`)}
                 disabled={isSaving}
               >
                 Cancel
               </Button>
               <Button type="submit" disabled={isSaving}>
                 {isSaving
-                  ? 'Saving...'
+                  ? 'Saving…'
                   : existingReview
-                    ? 'Update Review'
-                    : 'Submit Review'}
+                    ? 'Update review'
+                    : 'Submit review'}
               </Button>
-            </div>
-          </form>
-        </div>
+            </CardFooter>
+          </Card>
+        </form>
 
         <div>
-          {/* Solution Preview */}
-          <div className="bg-card rounded-lg shadow-sm border border-border p-6 sticky top-6">
-            <h2 className="text-lg font-semibold mb-4">Solution Preview</h2>
-
-            <div className="space-y-4">
-              <div>
-                <h3 className="text-sm font-medium text-muted-foreground">
-                  Student
-                </h3>
-                <p className="mt-1">Student #{solution?.studentId}</p>
+          <Card className="sticky top-4">
+            <CardHeader>
+              <CardHeaderText>
+                <CardTitle>Details</CardTitle>
+              </CardHeaderText>
+            </CardHeader>
+            <CardContent className="space-y-2.5">
+              <div className="flex items-center justify-between text-[13px]">
+                <span className="text-muted-foreground">Status</span>
+                {solution?.status ? (
+                  <StatusBadge status={solution.status} />
+                ) : (
+                  <span className="text-foreground">—</span>
+                )}
+              </div>
+              <div className="flex items-center justify-between text-[13px]">
+                <span className="text-muted-foreground">Student</span>
+                <span className="font-medium text-foreground">
+                  #{solution?.studentId}
+                </span>
+              </div>
+              <div className="flex items-center justify-between text-[13px]">
+                <span className="text-muted-foreground">Submitted</span>
+                <span className="text-foreground">
+                  {solution?.submittedAt
+                    ? new Date(solution.submittedAt).toLocaleString()
+                    : '—'}
+                </span>
               </div>
 
-              <div>
-                <h3 className="text-sm font-medium text-muted-foreground">
-                  Submitted
-                </h3>
-                <p className="mt-1">
-                  {solution?.submittedAt &&
-                    new Date(solution.submittedAt).toLocaleString()}
-                </p>
-              </div>
+              <Separator />
 
-              <div>
-                <h3 className="text-sm font-medium text-muted-foreground">
-                  Current Score
-                </h3>
-                <p className={`mt-1 font-bold text-lg ${getScoreColor()}`}>
-                  {getTotalScore()} / {getMaxPossibleScore()} (
-                  {getScorePercentage().toFixed(1)}%)
-                </p>
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-medium text-muted-foreground">
+                  Current score
+                </span>
+                <span className="text-lg font-semibold tabular-nums text-foreground">
+                  {getTotalScore()} / {getMaxPossibleScore()}
+                  <span className="ml-1 text-xs font-normal text-muted-foreground">
+                    ({getScorePercentage().toFixed(1)}%)
+                  </span>
+                </span>
               </div>
-
-              <div className="pt-4 border-t border-border space-y-2">
-                <Button asChild variant="outline" className="w-full">
-                  <Link to={`/dashboard/solutions/${id}`}>View Full Solution</Link>
-                </Button>
-
-                <Button asChild variant="outline" className="w-full">
-                  <Link to={`/dashboard/tasks/${solution?.taskId}`}>View Task</Link>
-                </Button>
-              </div>
-            </div>
-          </div>
+            </CardContent>
+            <CardFooter className="flex-col items-stretch gap-2">
+              <Button asChild variant="outline" size="sm" className="w-full">
+                <Link to={`/dashboard/solutions/${id}`}>
+                  View full solution
+                </Link>
+              </Button>
+              <Button asChild variant="outline" size="sm" className="w-full">
+                <Link to={`/dashboard/tasks/${solution?.taskId}`}>
+                  View task
+                </Link>
+              </Button>
+            </CardFooter>
+          </Card>
         </div>
       </div>
     </div>

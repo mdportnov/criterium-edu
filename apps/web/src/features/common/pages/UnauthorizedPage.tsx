@@ -4,15 +4,19 @@ import { Button } from '@/components/ui/button';
 
 const UnauthorizedPage: React.FC = () => {
   return (
-    <div className="flex flex-col items-center justify-center min-h-[70vh] text-center px-4">
-      <h1 className="text-6xl font-bold text-destructive">403</h1>
-      <h2 className="text-2xl font-semibold mt-4 mb-6">Access Denied</h2>
-      <p className="text-muted-foreground max-w-md mb-8">
-        You don't have permission to access this page. Please contact an
-        administrator if you believe this is an error.
+    <div className="flex min-h-[70vh] flex-col items-center justify-center px-4 text-center">
+      <p className="text-xs font-medium tracking-wide text-muted-foreground">
+        403
       </p>
-      <Button asChild>
-        <Link to="/">Return to Dashboard</Link>
+      <h1 className="mt-2 text-lg font-semibold text-foreground">
+        Access denied
+      </h1>
+      <p className="mt-1 max-w-sm text-[13px] text-muted-foreground">
+        You don't have permission to access this page. Contact an administrator
+        if you believe this is a mistake.
+      </p>
+      <Button asChild className="mt-5">
+        <Link to="/dashboard">Back to overview</Link>
       </Button>
     </div>
   );

@@ -4,8 +4,8 @@ import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
+  CardHeaderText,
   CardTitle,
 } from '@/components/ui/card';
 import {
@@ -16,7 +16,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Alert } from '@/components/ui/alert';
+import { Field } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { PageHeader } from '@/components/ui/page-header';
 import { BulkOperationsService } from '@/services/bulk-operations.service';
 import { TaskService } from '@/services/task.service';
 import type { BulkImportSolution } from '@/types';
@@ -33,7 +35,7 @@ const BulkSolutionUploadPage = () => {
     queryKey: ['tasks'],
     queryFn: () => TaskService.getTasks(),
   });
-  
+
   const tasks = tasksResponse?.data || [];
 
   const sampleJson = [
@@ -104,72 +106,84 @@ const BulkSolutionUploadPage = () => {
   };
 
   return (
-    <div className="container mx-auto p-6 max-w-4xl">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold">Bulk Solution Upload</h1>
-        <p className="text-muted-foreground mt-2">
-          Upload student solutions in bulk for processing and review
-        </p>
-      </div>
+    <div>
+      <PageHeader
+        title="Bulk solution upload"
+        description="Upload student solutions in bulk for processing and review."
+        backTo="/dashboard/reviews"
+      />
 
-      <div className="grid gap-6">
+      <div className="space-y-4">
         <Card>
           <CardHeader>
-            <CardTitle>Select Task</CardTitle>
-            <CardDescription>
-              Choose the task these solutions belong to
-            </CardDescription>
+            <CardHeaderText>
+              <CardTitle>Select task</CardTitle>
+            </CardHeaderText>
           </CardHeader>
           <CardContent>
-            <Select value={selectedTaskId} onValueChange={setSelectedTaskId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select a task" />
-              </SelectTrigger>
-              <SelectContent>
-                {tasks.map((task) => (
-                  <SelectItem key={task.id} value={String(task.id)}>
-                    {task.title}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Field
+              label="Task"
+              htmlFor="task-select"
+              hint="These solutions belong to the selected task."
+            >
+              <Select value={selectedTaskId} onValueChange={setSelectedTaskId}>
+                <SelectTrigger id="task-select">
+                  <SelectValue placeholder="Select a task" />
+                </SelectTrigger>
+                <SelectContent>
+                  {tasks.map((task) => (
+                    <SelectItem key={task.id} value={String(task.id)}>
+                      {task.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>JSON Data</CardTitle>
-            <CardDescription>
-              Enter solutions in JSON format. Each solution should include
-              studentName, studentId, and solutionContent.
-            </CardDescription>
+            <CardHeaderText>
+              <CardTitle>JSON data</CardTitle>
+            </CardHeaderText>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={loadSample}>
-                Load Sample
-              </Button>
-            </div>
+          <CardContent className="space-y-3">
+            <Field
+              label="Solutions"
+              htmlFor="json-data"
+              hint="Each solution should include studentName, studentId and solutionContent."
+            >
+              <div className="mb-2">
+                <Button variant="outline" size="sm" onClick={loadSample}>
+                  Load sample
+                </Button>
+              </div>
+              <Textarea
+                id="json-data"
+                placeholder="Paste your JSON data here…"
+                value={jsonData}
+                onChange={(e) => setJsonData(e.target.value)}
+                rows={20}
+                className="font-mono text-[13px]"
+              />
+            </Field>
 
-            <Textarea
-              placeholder="Paste your JSON data here..."
-              value={jsonData}
-              onChange={(e) => setJsonData(e.target.value)}
-              rows={20}
-              className="font-mono text-sm"
-            />
-
-            {error && <Alert variant="destructive">{error}</Alert>}
+            {error && (
+              <Alert variant="destructive">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
           </CardContent>
         </Card>
 
-        <div className="flex gap-4">
+        <div className="flex gap-2">
           <Button
             onClick={handleUpload}
             disabled={isUploading || !selectedTaskId || !jsonData.trim()}
             className="flex-1"
           >
-            {isUploading ? 'Uploading...' : 'Upload Solutions'}
+            {isUploading ? 'Uploading…' : 'Upload solutions'}
           </Button>
 
           <Button

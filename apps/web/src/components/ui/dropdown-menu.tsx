@@ -42,11 +42,14 @@ export const DropdownMenuTrigger: React.FC<DropdownMenuTriggerProps> = ({
   const { open, setOpen } = useDropdown();
 
   if (asChild && React.isValidElement(children)) {
-    return React.cloneElement(children, {
-      onClick: () => setOpen(!open),
-      'aria-expanded': open,
-      'aria-haspopup': true,
-    } as any);
+    return React.cloneElement(
+      children as React.ReactElement<React.HTMLAttributes<HTMLElement>>,
+      {
+        onClick: () => setOpen(!open),
+        'aria-expanded': open,
+        'aria-haspopup': true,
+      },
+    );
   }
 
   return (

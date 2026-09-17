@@ -11,8 +11,10 @@ export default defineConfig({
     port: 5173,
     host: true,
     proxy: {
+      // Mirrors production: the dev server forwards /api to the backend, so
+      // the app uses the same relative base URL in both.
       '/api': {
-        target: process.env.VITE_API_URL || 'http://localhost:3000',
+        target: process.env.API_PROXY_TARGET || 'http://localhost:3000',
         changeOrigin: true,
         secure: false,
       },
@@ -24,15 +26,11 @@ export default defineConfig({
     host: true,
   },
 
-  plugins: [
-    react(),
-    nxViteTsPaths(),
-  ],
+  plugins: [react(), nxViteTsPaths()],
 
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
-      '@shared': path.resolve(__dirname, '../../libs/shared/src'),
     },
   },
 

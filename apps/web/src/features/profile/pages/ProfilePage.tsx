@@ -2,9 +2,22 @@ import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Field } from '@/components/ui/label';
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardHeaderText,
+  CardTitle,
+} from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { PageHeader } from '@/components/ui/page-header';
+import { LoadingState } from '@/components/ui/states';
+import { StatusBadge } from '@/components/ui/badge';
 import { UserService } from '@/services';
 import type { UpdateUserRequest } from '@/types';
+import { getErrorMessage } from '@/lib/errors';
 
 const ProfilePage: React.FC = () => {
   const { user, isLoading: authLoading } = useAuth();
@@ -33,7 +46,6 @@ const ProfilePage: React.FC = () => {
     setError('');
     setSuccess('');
 
-    // Validate passwords if changing password
     if (formData.newPassword) {
       if (formData.newPassword.length < 6) {
         setError('New password must be at least 6 characters');
@@ -60,7 +72,6 @@ const ProfilePage: React.FC = () => {
         email: formData.email,
       };
 
-      // Only include password fields if changing password
       if (formData.newPassword && formData.currentPassword) {
         updateData.password = formData.newPassword;
       }
@@ -69,7 +80,6 @@ const ProfilePage: React.FC = () => {
       setSuccess('Profile updated successfully');
       setIsEditing(false);
 
-      // Reset password fields
       setFormData((prev) => ({
         ...prev,
         currentPassword: '',
@@ -77,10 +87,9 @@ const ProfilePage: React.FC = () => {
         confirmPassword: '',
       }));
 
-      // Reload page to refresh user data
       window.location.reload();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to update profile');
+    } catch (err) {
+      setError(getErrorMessage(err, 'Failed to update profile'));
     } finally {
       setIsLoading(false);
     }
@@ -88,170 +97,188 @@ const ProfilePage: React.FC = () => {
 
   if (authLoading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-      </div>
+      <Card>
+        <LoadingState label="Loading profile…" />
+      </Card>
     );
   }
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Profile</h1>
-        {!isEditing && (
-          <Button onClick={() => setIsEditing(true)}>Edit Profile</Button>
-        )}
-      </div>
+    <div className="mx-auto max-w-2xl">
+      <PageHeader
+        title="Profile"
+        description="Your account details and password."
+        actions={
+          !isEditing && (
+            <Button onClick={() => setIsEditing(true)}>Edit profile</Button>
+          )
+        }
+      />
 
       {error && (
-        <div className="bg-destructive/15 text-destructive p-4 rounded-md mb-6">
-          {error}
-        </div>
+        <Alert variant="destructive" className="mb-4">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       )}
 
       {success && (
-        <div className="bg-green-100 text-green-800 p-4 rounded-md mb-6">
-          {success}
-        </div>
+        <Alert variant="success" className="mb-4">
+          <AlertDescription>{success}</AlertDescription>
+        </Alert>
       )}
 
-      <div className="bg-card rounded-lg shadow-sm border border-border p-6">
-        {isEditing ? (
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <Label htmlFor="firstName">First Name</Label>
+      {isEditing ? (
+        <form onSubmit={handleSubmit}>
+          <Card>
+            <CardHeader>
+              <CardHeaderText>
+                <CardTitle>Account details</CardTitle>
+              </CardHeaderText>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <Field label="First name" htmlFor="firstName" required>
+                  <Input
+                    id="firstName"
+                    name="firstName"
+                    value={formData.firstName}
+                    onChange={handleChange}
+                    required
+                  />
+                </Field>
+
+                <Field label="Last name" htmlFor="lastName" required>
+                  <Input
+                    id="lastName"
+                    name="lastName"
+                    value={formData.lastName}
+                    onChange={handleChange}
+                    required
+                  />
+                </Field>
+              </div>
+
+              <Field label="Email" htmlFor="email" required>
                 <Input
-                  id="firstName"
-                  name="firstName"
-                  value={formData.firstName}
+                  id="email"
+                  name="email"
+                  type="email"
+                  value={formData.email}
                   onChange={handleChange}
                   required
                 />
-              </div>
+              </Field>
 
-              <div className="space-y-2">
-                <Label htmlFor="lastName">Last Name</Label>
-                <Input
-                  id="lastName"
-                  name="lastName"
-                  value={formData.lastName}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-            </div>
+              <div className="space-y-4 border-t border-border pt-4">
+                <p className="text-[13px] font-semibold text-foreground">
+                  Change password
+                </p>
 
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                value={formData.email}
-                onChange={handleChange}
-                required
-              />
-            </div>
-
-            <div className="border-t border-border pt-6 mt-6">
-              <h3 className="text-lg font-medium mb-4">Change Password</h3>
-
-              <div className="space-y-2">
-                <Label htmlFor="currentPassword">Current Password</Label>
-                <Input
-                  id="currentPassword"
-                  name="currentPassword"
-                  type="password"
-                  value={formData.currentPassword}
-                  onChange={handleChange}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-                <div className="space-y-2">
-                  <Label htmlFor="newPassword">New Password</Label>
+                <Field label="Current password" htmlFor="currentPassword">
                   <Input
-                    id="newPassword"
-                    name="newPassword"
+                    id="currentPassword"
+                    name="currentPassword"
                     type="password"
-                    value={formData.newPassword}
+                    value={formData.currentPassword}
                     onChange={handleChange}
                   />
-                </div>
+                </Field>
 
-                <div className="space-y-2">
-                  <Label htmlFor="confirmPassword">Confirm New Password</Label>
-                  <Input
-                    id="confirmPassword"
-                    name="confirmPassword"
-                    type="password"
-                    value={formData.confirmPassword}
-                    onChange={handleChange}
-                  />
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <Field label="New password" htmlFor="newPassword">
+                    <Input
+                      id="newPassword"
+                      name="newPassword"
+                      type="password"
+                      value={formData.newPassword}
+                      onChange={handleChange}
+                    />
+                  </Field>
+
+                  <Field label="Confirm new password" htmlFor="confirmPassword">
+                    <Input
+                      id="confirmPassword"
+                      name="confirmPassword"
+                      type="password"
+                      value={formData.confirmPassword}
+                      onChange={handleChange}
+                    />
+                  </Field>
                 </div>
               </div>
-            </div>
-
-            <div className="flex justify-end gap-3 pt-4">
+            </CardContent>
+            <CardFooter className="justify-end">
               <Button
                 type="button"
-                variant="outline"
+                variant="ghost"
                 onClick={() => setIsEditing(false)}
                 disabled={isLoading}
               >
                 Cancel
               </Button>
               <Button type="submit" disabled={isLoading}>
-                {isLoading ? 'Saving...' : 'Save Changes'}
+                {isLoading ? 'Saving…' : 'Save changes'}
               </Button>
-            </div>
-          </form>
-        ) : (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            </CardFooter>
+          </Card>
+        </form>
+      ) : (
+        <Card>
+          <CardHeader>
+            <CardHeaderText>
+              <CardTitle>Account details</CardTitle>
+            </CardHeaderText>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
-                <h3 className="text-sm font-medium text-muted-foreground">
-                  First Name
-                </h3>
-                <p className="mt-1">{user?.firstName}</p>
+                <p className="text-xs font-medium text-muted-foreground">
+                  First name
+                </p>
+                <p className="mt-1 text-[13px] text-foreground">
+                  {user?.firstName}
+                </p>
               </div>
 
               <div>
-                <h3 className="text-sm font-medium text-muted-foreground">
-                  Last Name
-                </h3>
-                <p className="mt-1">{user?.lastName}</p>
+                <p className="text-xs font-medium text-muted-foreground">
+                  Last name
+                </p>
+                <p className="mt-1 text-[13px] text-foreground">
+                  {user?.lastName}
+                </p>
               </div>
             </div>
 
             <div>
-              <h3 className="text-sm font-medium text-muted-foreground">
-                Email
-              </h3>
-              <p className="mt-1">{user?.email}</p>
+              <p className="text-xs font-medium text-muted-foreground">Email</p>
+              <p className="mt-1 text-[13px] text-foreground">{user?.email}</p>
             </div>
 
             <div>
-              <h3 className="text-sm font-medium text-muted-foreground">
-                Role
-              </h3>
-              <p className="mt-1 capitalize">{user?.role}</p>
+              <p className="text-xs font-medium text-muted-foreground">Role</p>
+              <div className="mt-1">
+                <StatusBadge status={user?.role} />
+              </div>
             </div>
 
             <div>
-              <h3 className="text-sm font-medium text-muted-foreground">
-                Member Since
-              </h3>
-              <p className="mt-1">
+              <p className="text-xs font-medium text-muted-foreground">
+                Member since
+              </p>
+              <p className="mt-1 text-[13px] text-foreground">
                 {user?.createdAt
-                  ? new Date(user.createdAt).toLocaleDateString()
+                  ? new Date(user.createdAt).toLocaleDateString('en-GB', {
+                      year: 'numeric',
+                      month: 'short',
+                      day: 'numeric',
+                    })
                   : 'N/A'}
               </p>
             </div>
-          </div>
-        )}
-      </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
