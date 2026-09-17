@@ -75,3 +75,7 @@ data/**
 
 .claude/worktrees
 .claude/settings.local.json
+# TypeScript incremental build artifacts (a stray `tsc -b` emits these next to
+# the sources; nothing here is meant to be committed or shipped)
+*.tsbuildinfo
+apps/**/*.js.map

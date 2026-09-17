@@ -1,13 +1,16 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "composite": true,
-    "declaration": true,
-    "skipLibCheck": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
     "module": "ESNext",
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
-    "jsx": "react-jsx",
+    "useDefineForClassFields": true,
+    "moduleDetection": "force",
+    "noUncheckedSideEffectImports": true,
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "types": ["vite/client", "vitest/globals", "@testing-library/jest-dom"],
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
@@ -15,9 +18,6 @@
       "@app/shared/*": ["../../libs/shared/src/*"]
     }
   },
-  "include": ["src/**/*", "vite.config.ts", "../../libs/shared/src/**/*"],
-  "exclude": ["dist", "node_modules"],
-  "references": [
-    { "path": "../../libs/shared" }
-  ]
+  "include": ["src/**/*", "vite.config.ts", "vitest.config.ts"],
+  "exclude": ["node_modules", "dist"]
 }

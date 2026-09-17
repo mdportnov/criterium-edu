@@ -16,9 +16,7 @@
     "baseUrl": ".",
     "paths": {
       "@app/shared": ["libs/shared/src/index.ts"],
-      "@app/shared/*": ["libs/shared/src/*"],
-      "@shared": ["libs/shared/src/index.ts"],
-      "@shared/*": ["libs/shared/src/*"]
+      "@app/shared/*": ["libs/shared/src/*"]
     },
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,

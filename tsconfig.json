@@ -1,19 +1,5 @@
 {
   "extends": "./tsconfig.base.json",
-  "compilerOptions": {
-    "module": "esnext"
-  },
   "files": [],
-  "include": [],
-  "references": [
-    {
-      "path": "./apps/api/tsconfig.app.json"
-    },
-    {
-      "path": "./apps/web/tsconfig.app.json"
-    },
-    {
-      "path": "./libs/shared/tsconfig.lib.json"
-    }
-  ]
+  "include": []
 }

@@ -10,16 +10,18 @@ import {
   StartLlmAssessmentDto,
 } from './request.dto';
 
-type MaybeZodDto = {
+interface MaybeZodDto {
   name: string;
   isZodDto?: boolean;
-  schema?: { safeParse: unknown };
-};
+  schema?: { safeParse?: unknown };
+}
 
-const exportedClasses = Object.values(dtos).filter(
-  (value): value is MaybeZodDto =>
-    typeof value === 'function' && /^[A-Z]/.test((value as MaybeZodDto).name),
-);
+const isClassExport = (value: unknown): value is MaybeZodDto =>
+  typeof value === 'function' && /^[A-Z]/.test((value as MaybeZodDto).name);
+
+const exportedClasses: MaybeZodDto[] = Object.values(
+  dtos as Record<string, unknown>,
+).filter(isClassExport);
 
 describe('request DTOs', () => {
   // The global ZodValidationPipe only validates a parameter whose metatype is

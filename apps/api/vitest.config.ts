@@ -7,7 +7,6 @@ export default defineConfig({
   resolve: {
     alias: {
       '@app/shared': path.resolve(__dirname, '../../libs/shared/src/index.ts'),
-      '@shared': path.resolve(__dirname, '../../libs/shared/src'),
     },
   },
   test: {

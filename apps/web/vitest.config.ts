@@ -10,7 +10,6 @@ export default defineConfig({
     alias: {
       '@': path.resolve(__dirname, './src'),
       '@app/shared': path.resolve(__dirname, '../../libs/shared/src/index.ts'),
-      '@shared': path.resolve(__dirname, '../../libs/shared/src'),
     },
   },
   test: {
