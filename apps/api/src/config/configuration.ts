@@ -64,8 +64,8 @@ const envSchema = z
 
     // Where the browser reaches this deployment. Used to build the
     // one-time links in password-reset emails and admin hand-offs.
-    APP_BASE_URL: z.string().url().default('http://localhost:5173'),
-    CORS_ORIGINS: csvList.default('http://localhost:5173'),
+    APP_BASE_URL: z.url().default('http://localhost:5173'),
+    CORS_ORIGINS: csvList.prefault('http://localhost:5173'),
     SWAGGER_ENABLED: booleanFromEnv.optional(),
 
     LOG_LEVEL: z
@@ -75,7 +75,7 @@ const envSchema = z
   .superRefine((env, ctx) => {
     if (env.NODE_ENV === 'production' && env.CORS_ORIGINS.length === 0) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',
         path: ['CORS_ORIGINS'],
         message: 'CORS_ORIGINS must list at least one origin in production',
       });
@@ -112,7 +112,7 @@ export const buildConfig = (source: NodeJS.ProcessEnv): AppConfig => {
 
   if (!result.success) {
     // Field names only - never echo the values, they are secrets.
-    const problems = Object.entries(result.error.flatten().fieldErrors)
+    const problems = Object.entries(z.flattenError(result.error).fieldErrors)
       .map(([field, messages]) => `  ${field}: ${(messages ?? []).join('; ')}`)
       .join('\n');
     throw new Error(`Environment validation failed:\n${problems}`);

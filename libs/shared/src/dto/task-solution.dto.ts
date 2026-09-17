@@ -9,7 +9,7 @@ export const CreateTaskSolutionDtoSchema = z.object({
 
 export const UpdateTaskSolutionDtoSchema = z.object({
   solutionText: z.string().optional(),
-  status: z.nativeEnum(TaskSolutionStatus).optional(),
+  status: z.enum(TaskSolutionStatus).optional(),
 });
 
 export const TaskSolutionDtoSchema = z.object({
@@ -17,7 +17,7 @@ export const TaskSolutionDtoSchema = z.object({
   taskId: z.string(),
   studentId: z.string(),
   solutionText: z.string(),
-  status: z.nativeEnum(TaskSolutionStatus),
+  status: z.enum(TaskSolutionStatus),
   submittedAt: z.date(),
   createdAt: z.date(),
   updatedAt: z.date(),

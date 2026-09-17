@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { z } from 'zod';
-import { createZodDto } from 'nestjs-zod';
+import { createZodDto } from '../../common/zod';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -29,7 +29,7 @@ import {
 } from '../../common/dto';
 
 export class UpdateUserRoleDto extends createZodDto(
-  z.object({ role: z.nativeEnum(UserRole) }),
+  z.object({ role: z.enum(UserRole) }),
 ) {}
 
 @ApiTags('admin')

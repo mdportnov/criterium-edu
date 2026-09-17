@@ -7,12 +7,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
-import { ZodValidationException } from 'nestjs-zod';
-
-interface ZodLikeIssue {
-  path: (string | number)[];
-  message: string;
-}
+import { ZodValidationException } from '../zod';
 
 export interface ApiErrorBody {
   statusCode: number;
@@ -79,9 +74,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
         status: HttpStatus.BAD_REQUEST,
         error: 'Bad Request',
         message: 'Request validation failed',
-        details: (
-          (exception.getZodError() as { issues?: ZodLikeIssue[] }).issues ?? []
-        ).map((issue) => ({
+        details: exception.zodError.issues.map((issue) => ({
           path: issue.path.join('.') || '(root)',
           message: issue.message,
         })),

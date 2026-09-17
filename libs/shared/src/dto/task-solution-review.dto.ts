@@ -12,14 +12,14 @@ export const CreateTaskSolutionReviewDtoSchema = z.object({
   criteriaScores: z.array(CriterionScoreDtoSchema),
   feedbackToStudent: z.string(),
   reviewerComment: z.string().optional(),
-  source: z.nativeEnum(ReviewSource),
+  source: z.enum(ReviewSource),
 });
 
 export const UpdateTaskSolutionReviewDtoSchema = z.object({
   criteriaScores: z.array(CriterionScoreDtoSchema).optional(),
   feedbackToStudent: z.string().optional(),
   reviewerComment: z.string().optional(),
-  source: z.nativeEnum(ReviewSource).optional(),
+  source: z.enum(ReviewSource).optional(),
   reviewerId: z.string().nullish(),
 });
 
@@ -31,7 +31,7 @@ export const TaskSolutionReviewDtoSchema = z.object({
   totalScore: z.number(),
   feedbackToStudent: z.string(),
   reviewerComment: z.string().optional(),
-  source: z.nativeEnum(ReviewSource),
+  source: z.enum(ReviewSource),
   createdAt: z.date(),
   updatedAt: z.date(),
 });

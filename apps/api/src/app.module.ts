@@ -7,6 +7,7 @@ import { LoggerModule } from 'nestjs-pino';
 
 import configuration, { type AppConfig } from './config/configuration';
 import { CryptoModule } from './common/crypto/crypto.module';
+import { GlobalPassportModule } from './common/passport/global-passport.module';
 import { connectionOptions } from './database/data-source';
 
 import { UsersModule } from './modules/users/users.module';
@@ -94,6 +95,7 @@ import { CsrfGuard } from './modules/auth/guards/csrf.guard';
     }),
 
     CryptoModule,
+    GlobalPassportModule,
     HealthModule,
     UsersModule,
     AuthModule,

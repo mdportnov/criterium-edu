@@ -14,15 +14,15 @@ export enum OperationType {
 
 export const ProcessingOperationDtoSchema = z.object({
   id: z.string(),
-  type: z.nativeEnum(OperationType),
-  status: z.nativeEnum(ProcessingStatus),
+  type: z.enum(OperationType),
+  status: z.enum(ProcessingStatus),
   progress: z.number(),
   totalItems: z.number(),
   processedItems: z.number(),
   failedItems: z.number(),
   timeoutMinutes: z.number(),
   errorMessage: z.string().nullish(),
-  metadata: z.record(z.any()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
   createdAt: z.date(),
   updatedAt: z.date(),
   lastProgressUpdate: z.date().optional(),

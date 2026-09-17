@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { createZodDto } from 'nestjs-zod';
+import { createZodDto } from '../../common/zod';
 import {
   BulkImportSolutionDtoSchema,
   BulkImportTaskDtoSchema,

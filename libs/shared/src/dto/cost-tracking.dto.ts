@@ -12,14 +12,15 @@ export const ApiUsageDtoSchema = z.object({
   totalTokens: z.number(),
   costUsd: z.number(),
   requestDuration: z.number().optional(),
-  metadata: z.record(z.any()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
   createdAt: z.date(),
 });
 
 export const SystemCostsDtoSchema = z.object({
   totalCost: z.number(),
-  dailyCosts: z.record(z.number()),
+  dailyCosts: z.record(z.string(), z.number()),
   modelBreakdown: z.record(
+    z.string(),
     z.object({
       cost: z.number(),
       requests: z.number(),
@@ -27,6 +28,7 @@ export const SystemCostsDtoSchema = z.object({
     }),
   ),
   operationBreakdown: z.record(
+    z.string(),
     z.object({
       cost: z.number(),
       requests: z.number(),
@@ -47,7 +49,7 @@ export const TaskCostsDtoSchema = z.object({
 export const UserCostsDtoSchema = z.object({
   totalCost: z.number(),
   usageRecords: z.array(ApiUsageDtoSchema),
-  dailyCosts: z.record(z.number()),
+  dailyCosts: z.record(z.string(), z.number()),
 });
 
 export type ApiUsageDto = z.infer<typeof ApiUsageDtoSchema>;

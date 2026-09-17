@@ -3,7 +3,7 @@ import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 import { Logger } from 'nestjs-pino';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { ZodValidationPipe } from 'nestjs-zod';
+import { ZodValidationPipe } from './common/zod';
 import { VersioningType } from '@nestjs/common';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';

@@ -6,7 +6,7 @@ export const CreateUserDtoSchema = z.object({
   firstName: z.string(),
   lastName: z.string(),
   password: z.string(),
-  role: z.nativeEnum(UserRole),
+  role: z.enum(UserRole),
 });
 
 export const UpdateUserDtoSchema = z.object({
@@ -14,7 +14,7 @@ export const UpdateUserDtoSchema = z.object({
   firstName: z.string().optional(),
   lastName: z.string().optional(),
   password: z.string().optional(),
-  role: z.nativeEnum(UserRole).optional(),
+  role: z.enum(UserRole).optional(),
 });
 
 export const UserDtoSchema = z.object({
@@ -22,7 +22,7 @@ export const UserDtoSchema = z.object({
   email: z.string().email(),
   firstName: z.string(),
   lastName: z.string(),
-  role: z.nativeEnum(UserRole),
+  role: z.enum(UserRole),
   createdAt: z.date(),
   updatedAt: z.date(),
 });
