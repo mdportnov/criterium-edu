@@ -4,6 +4,7 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from '@app/shared';
 import { DashboardService } from './dashboard.service';
+import { RecentActivityQueryDto } from '../../common/dto';
 
 @Controller('dashboard')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -32,8 +33,8 @@ export class DashboardController {
   }
 
   @Get('recent-activity')
-  async getRecentActivity(@Query('limit') limit: number = 10) {
-    return this.dashboardService.getRecentActivity(limit);
+  async getRecentActivity(@Query() query: RecentActivityQueryDto) {
+    return this.dashboardService.getRecentActivity(query.limit);
   }
 
   @Get('performance-metrics')

@@ -13,6 +13,7 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from '@app/shared';
 import { CostTrackingService } from './cost-tracking.service';
+import { MonthWindowQueryDto } from '../../common/dto';
 
 @Controller('admin/costs')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -21,10 +22,8 @@ export class CostTrackingController {
   constructor(private readonly costTrackingService: CostTrackingService) {}
 
   @Get('system')
-  async getSystemCosts(
-    @Query('days', new DefaultValuePipe(30), ParseIntPipe) days: number,
-  ) {
-    return this.costTrackingService.getSystemCosts(days);
+  async getSystemCosts(@Query() query: MonthWindowQueryDto) {
+    return this.costTrackingService.getSystemCosts(query.days);
   }
 
   @Get('tasks/:taskId')
@@ -35,8 +34,8 @@ export class CostTrackingController {
   @Get('users/:userId')
   async getUserCosts(
     @Param('userId', ParseUUIDPipe) userId: string,
-    @Query('days', new DefaultValuePipe(30), ParseIntPipe) days: number,
+    @Query() query: MonthWindowQueryDto,
   ) {
-    return this.costTrackingService.getUserCosts(userId, days);
+    return this.costTrackingService.getUserCosts(userId, query.days);
   }
 }

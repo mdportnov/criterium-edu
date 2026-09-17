@@ -11,7 +11,6 @@ WORKDIR /usr/src/app
 RUN apk add --no-cache python3 make g++
 
 COPY package*.json ./
-COPY apps/web/package.json ./apps/web/
 COPY nx.json ./
 COPY tsconfig*.json ./
 

@@ -1,11 +1,19 @@
-import { Controller, Get, ServiceUnavailableException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  ServiceUnavailableException,
+  VERSION_NEUTRAL,
+} from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { SkipThrottle } from '@nestjs/throttler';
 
+// Outside the /api prefix and outside versioning: orchestrators, load
+// balancers and the container HEALTHCHECK should not have to track the API
+// version to find out whether the process is alive.
 @ApiTags('health')
-@Controller('health')
+@Controller({ path: 'health', version: VERSION_NEUTRAL })
 @SkipThrottle()
 export class HealthController {
   constructor(@InjectDataSource() private readonly dataSource: DataSource) {}

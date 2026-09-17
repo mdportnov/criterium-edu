@@ -56,10 +56,9 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           build-args: |
-            # Repository variable, not a secret: it is a public origin and it
-            # ends up in the JS bundle either way. Holds the origin only; the
-            # /api prefix is appended here, as before.
-            VITE_API_URL=${{ vars.VITE_API_URL }}/api
+            # Relative: nginx in this image proxies /api to the backend on the
+            # same origin, so the bundle needs no absolute API URL.
+            VITE_API_URL=/api/v1
 
       - name: "Copy deployment files to server"
         uses: appleboy/scp-action@v0.1.7

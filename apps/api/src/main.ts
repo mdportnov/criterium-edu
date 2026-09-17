@@ -4,8 +4,10 @@ import { ConfigService } from '@nestjs/config';
 import { Logger } from 'nestjs-pino';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ZodValidationPipe } from 'nestjs-zod';
+import { VersioningType } from '@nestjs/common';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
+import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import type { AppConfig } from './config/configuration';
 
 async function bootstrap() {
@@ -44,7 +46,16 @@ async function bootstrap() {
     optionsSuccessStatus: 204,
   });
 
+  // Everything the API serves lives under /api/v1. The prefix used to exist
+  // only in the frontend's VITE_API_URL and in some proxy outside this
+  // repository that stripped it again - nothing here declared it, so a clean
+  // checkout could not reproduce the deployed URLs. /health stays outside so
+  // orchestrators can reach it without knowing the version.
+  app.setGlobalPrefix('api', { exclude: ['health', 'health/ready'] });
+  app.enableVersioning({ type: VersioningType.URI, defaultVersion: '1' });
+
   app.useGlobalPipes(new ZodValidationPipe());
+  app.useGlobalFilters(new AllExceptionsFilter());
   app.enableShutdownHooks();
 
   if (config.swagger.enabled) {

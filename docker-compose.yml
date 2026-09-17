@@ -60,7 +60,7 @@ services:
       context: .
       dockerfile: frontend.Dockerfile
       args:
-        VITE_API_URL: ${VITE_API_URL:-/api}
+        VITE_API_URL: ${VITE_API_URL:-/api/v1}
     image: ghcr.io/mdportnov/criterium-frontend:latest
     ports:
       - "${WEB_PORT:-5173}:80"

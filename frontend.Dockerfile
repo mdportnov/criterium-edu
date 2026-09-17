@@ -4,7 +4,6 @@ WORKDIR /usr/src/app
 
 # Copy package files
 COPY package*.json ./
-COPY apps/web/package.json ./apps/web/
 COPY nx.json ./
 COPY tsconfig*.json ./
 COPY eslint.config.mjs ./
