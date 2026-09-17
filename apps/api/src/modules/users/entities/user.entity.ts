@@ -6,7 +6,6 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { UserRole } from '@app/shared';
-import { Exclude } from 'class-transformer';
 
 @Entity('users')
 export class User {
@@ -28,7 +27,6 @@ export class User {
    * for one - were serialising it straight into API responses.
    */
   @Column({ type: 'varchar', select: false })
-  @Exclude()
   password: string;
 
   @Column({
