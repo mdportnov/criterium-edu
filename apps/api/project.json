@@ -38,7 +38,7 @@
     "build:migrations": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "tsc apps/api/src/database/migrations/*.ts apps/api/src/database/data-source*.ts --outDir dist/apps/api/src/database --target ES2022 --module commonjs --esModuleInterop --experimentalDecorators --emitDecoratorMetadata --moduleResolution node --skipLibCheck"
+        "command": "tsc apps/api/src/database/migrations/*.ts apps/api/src/database/data-source.ts apps/api/src/database/migrate.ts --outDir dist/apps/api/src/database --target ES2022 --module commonjs --esModuleInterop --experimentalDecorators --emitDecoratorMetadata --moduleResolution node --skipLibCheck"
       }
     },
     "serve": {
@@ -70,7 +70,7 @@
       "executor": "nx:run-commands",
       "dependsOn": ["build:migrations"],
       "options": {
-        "command": "npx typeorm migration:run -d dist/apps/api/src/database/data-source.js"
+        "command": "node dist/apps/api/src/database/migrate.js"
       }
     },
     "typeorm:revert": {

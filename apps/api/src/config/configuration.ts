@@ -36,6 +36,9 @@ const envSchema = z
     DB_PASSWORD: z.string().min(1),
     DB_NAME: z.string().min(1),
     DB_LOGGING: booleanFromEnv.default(false),
+    /** TypeORM connection pool size. Keep below the server's max_connections
+     *  divided by the number of replicas. */
+    DB_POOL_SIZE: z.coerce.number().int().min(1).max(100).default(10),
 
     JWT_SECRET: z
       .string()
@@ -66,6 +69,19 @@ const envSchema = z
     // one-time links in password-reset emails and admin hand-offs.
     APP_BASE_URL: z.url().default('http://localhost:5173'),
     CORS_ORIGINS: csvList.prefault('http://localhost:5173'),
+    /**
+     * How many reverse proxies sit in front of this process. Zero means the
+     * socket address is the client. Anything above zero makes Express read
+     * that many hops off X-Forwarded-For - which is what rate limiting and
+     * the audit log use, so getting it wrong either shares one bucket
+     * between every client or lets a client forge its own address.
+     */
+    TRUST_PROXY_HOPS: z.coerce.number().int().min(0).max(10).default(0),
+    /** Bulk imports post large JSON documents. */
+    BODY_LIMIT: z
+      .string()
+      .regex(/^\d+(kb|mb)$/i, 'BODY_LIMIT must look like 512kb or 10mb')
+      .default('10mb'),
     SWAGGER_ENABLED: booleanFromEnv.optional(),
 
     LOG_LEVEL: z
@@ -96,6 +112,7 @@ export interface AppConfig {
     password: string;
     database: string;
     logging: boolean;
+    poolSize: number;
   };
   jwt: { secret: string; expiresIn: string };
   security: {
@@ -103,6 +120,7 @@ export interface AppConfig {
     corsOrigins: string[];
     settingsEncryptionKey: string;
   };
+  http: { trustProxyHops: number; bodyLimit: string };
   swagger: { enabled: boolean };
   logging: { level: EnvSchema['LOG_LEVEL'] };
 }
@@ -133,6 +151,7 @@ export const buildConfig = (source: NodeJS.ProcessEnv): AppConfig => {
       password: env.DB_PASSWORD,
       database: env.DB_NAME,
       logging: env.DB_LOGGING,
+      poolSize: env.DB_POOL_SIZE,
     },
     jwt: {
       secret: env.JWT_SECRET,
@@ -142,6 +161,10 @@ export const buildConfig = (source: NodeJS.ProcessEnv): AppConfig => {
       bcryptRounds: env.BCRYPT_ROUNDS,
       corsOrigins: env.CORS_ORIGINS,
       settingsEncryptionKey: env.SETTINGS_ENCRYPTION_KEY,
+    },
+    http: {
+      trustProxyHops: env.TRUST_PROXY_HOPS,
+      bodyLimit: env.BODY_LIMIT,
     },
     swagger: {
       enabled: env.SWAGGER_ENABLED ?? !isProduction,

@@ -54,6 +54,8 @@ jobs:
           cache-to: type=gha,mode=max
           build-args: |
             NODE_ENV=production
+            VCS_REF=${{ github.sha }}
+            BUILD_DATE=${{ github.event.repository.updated_at }}
 
       - name: "Copy deployment files to server"
         uses: appleboy/scp-action@v0.1.7

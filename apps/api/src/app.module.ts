@@ -57,6 +57,8 @@ import { CsrfGuard } from './modules/auth/guards/csrf.guard';
           password: database.password,
           database: database.database,
           logging: database.logging,
+          // Keep below the server's max_connections divided by replicas.
+          extra: { max: database.poolSize },
           // Schema changes come from migrations only, never from sync.
           synchronize: false,
         };

@@ -1,0 +1,31 @@
+# Everything the image does not need. Without this the build context is the
+# whole checkout - node_modules, dist, .git and any local .env - which is slow
+# and one careless COPY away from shipping a secret.
+node_modules
+**/node_modules
+dist
+coverage
+.nx
+.git
+.github
+.claude
+
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+
+# Tooling and docs that do not affect the build
+docs
+bruno
+*.md
+!apps/web/DESIGN.md
+.editorconfig
+.prettierrc
+.nvmrc
+.vscode
+.idea
+
+# Test output and logs
+*.log
+*.tsbuildinfo

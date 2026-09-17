@@ -59,6 +59,8 @@ jobs:
             # Relative: nginx in this image proxies /api to the backend on the
             # same origin, so the bundle needs no absolute API URL.
             VITE_API_URL=/api/v1
+            VCS_REF=${{ github.sha }}
+            BUILD_DATE=${{ github.event.repository.updated_at }}
 
       - name: "Copy deployment files to server"
         uses: appleboy/scp-action@v0.1.7

@@ -17,9 +17,10 @@ echo "Database is ready."
 # `set -e` aborts here if this fails. The previous version checked $? after
 # the command and printed "continuing anyway", which was unreachable - and
 # starting the API against an un-migrated schema is not something to continue
-# through in any case.
+# through in any case. The runner takes a Postgres advisory lock, so
+# two containers starting together do not race through the same migration.
 echo "Running database migrations..."
-npx typeorm migration:run -d dist/apps/api/src/database/data-source.js
+node dist/apps/api/src/database/migrate.js
 echo "Migrations completed successfully."
 
 echo "Starting NestJS application..."

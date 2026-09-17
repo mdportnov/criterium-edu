@@ -32,6 +32,14 @@ RUN npm prune --omit=dev
 # compiled above still loads here.
 FROM node:22-alpine AS production
 
+ARG VCS_REF=unknown
+ARG BUILD_DATE=unknown
+LABEL org.opencontainers.image.title="criterium-backend" \
+      org.opencontainers.image.source="https://github.com/mdportnov/criterium-edu" \
+      org.opencontainers.image.revision="${VCS_REF}" \
+      org.opencontainers.image.created="${BUILD_DATE}" \
+      org.opencontainers.image.licenses="MIT"
+
 RUN apk add --no-cache dumb-init
 
 RUN addgroup -g 1001 -S nodejs && \

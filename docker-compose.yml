@@ -29,8 +29,11 @@ services:
       context: .
       dockerfile: backend.Dockerfile
     image: ghcr.io/mdportnov/criterium-backend:latest
-    ports:
-      - "${API_PORT:-3000}:3000"
+    # Not published: the frontend's nginx proxies /api to it over the compose
+    # network. Publish it only to reach the API from outside this stack, and
+    # remember that doing so bypasses that proxy - set TRUST_PROXY_HOPS=0 then.
+    expose:
+      - "3000"
     environment:
       NODE_ENV: production
       BACKEND_PORT: 3000
@@ -48,6 +51,11 @@ services:
       CORS_ORIGINS: ${CORS_ORIGINS:?CORS_ORIGINS must be set in .env}
       SETTINGS_ENCRYPTION_KEY: ${SETTINGS_ENCRYPTION_KEY:?SETTINGS_ENCRYPTION_KEY must be set in .env}
       SWAGGER_ENABLED: ${SWAGGER_ENABLED:-false}
+      # One hop: the frontend's nginx. Rate limiting and the audit log read the
+      # client address through it.
+      TRUST_PROXY_HOPS: ${TRUST_PROXY_HOPS:-1}
+      DB_POOL_SIZE: ${DB_POOL_SIZE:-10}
+      BODY_LIMIT: ${BODY_LIMIT:-10mb}
       LOG_LEVEL: ${LOG_LEVEL:-info}
     depends_on:
       postgres:
@@ -67,7 +75,7 @@ services:
       - "${WEB_PORT:-5173}:80"
     depends_on:
       backend:
-        condition: service_started
+        condition: service_healthy
     networks:
       - criterium-network
     restart: unless-stopped
