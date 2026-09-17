@@ -22,7 +22,12 @@ export class User {
   @Column({ type: 'varchar' })
   lastName: string;
 
-  @Column({ type: 'varchar' })
+  /**
+   * select: false, so the hash is never loaded unless a query asks for it by
+   * name. Relations embedding a User - an assessment session's initiatedBy,
+   * for one - were serialising it straight into API responses.
+   */
+  @Column({ type: 'varchar', select: false })
   @Exclude()
   password: string;
 

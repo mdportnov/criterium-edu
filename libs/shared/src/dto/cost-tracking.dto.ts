@@ -54,9 +54,3 @@ export type ApiUsageDto = z.infer<typeof ApiUsageDtoSchema>;
 export type SystemCostsDto = z.infer<typeof SystemCostsDtoSchema>;
 export type TaskCostsDto = z.infer<typeof TaskCostsDtoSchema>;
 export type UserCostsDto = z.infer<typeof UserCostsDtoSchema>;
-
-// Export types as runtime-accessible objects for NX webpack compatibility
-export const ApiUsageDto = {} as ApiUsageDto;
-export const SystemCostsDto = {} as SystemCostsDto;
-export const TaskCostsDto = {} as TaskCostsDto;
-export const UserCostsDto = {} as UserCostsDto;

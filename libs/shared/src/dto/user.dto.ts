@@ -30,8 +30,3 @@ export const UserDtoSchema = z.object({
 export type CreateUserDto = z.infer<typeof CreateUserDtoSchema>;
 export type UpdateUserDto = z.infer<typeof UpdateUserDtoSchema>;
 export type UserDto = z.infer<typeof UserDtoSchema>;
-
-// Export types as runtime-accessible objects for NX webpack compatibility
-export const CreateUserDto = {} as CreateUserDto;
-export const UpdateUserDto = {} as UpdateUserDto;
-export const UserDto = {} as UserDto;

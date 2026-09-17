@@ -40,16 +40,16 @@ export class AutoAssessment {
   @Column({ type: 'text', nullable: true })
   rawResponse: string | null;
 
-  @Column({ type: 'int', nullable: true })
+  @Column({ type: 'int', name: 'token_usage', nullable: true })
   tokenUsage: number;
 
   @Column({ type: 'decimal', precision: 10, scale: 6, nullable: true })
   cost: number;
 
-  @Column({ type: 'int', nullable: true })
+  @Column({ type: 'int', name: 'processing_time', nullable: true })
   processingTime: number;
 
-  @Column({ type: 'uuid', nullable: true })
+  @Column({ type: 'uuid', name: 'session_id', nullable: true })
   sessionId: string;
 
   @CreateDateColumn()

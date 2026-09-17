@@ -9,6 +9,3 @@ export const BulkImportSolutionDtoSchema = z.object({
 });
 
 export type BulkImportSolutionDto = z.infer<typeof BulkImportSolutionDtoSchema>;
-
-// Export types as runtime-accessible objects for NX webpack compatibility
-export const BulkImportSolutionDto = {} as BulkImportSolutionDto;

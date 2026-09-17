@@ -23,8 +23,3 @@ export interface PaginationMeta {
   size: number;
   totalPages: number;
 }
-
-// Export types as runtime-accessible objects for NX webpack compatibility
-export const PaginationDto = {} as PaginationDto;
-export const PaginatedResponse = {} as PaginatedResponse<any>;
-export const PaginationMeta = {} as PaginationMeta;

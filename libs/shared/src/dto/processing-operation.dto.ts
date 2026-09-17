@@ -31,6 +31,3 @@ export const ProcessingOperationDtoSchema = z.object({
 export type ProcessingOperationDto = z.infer<
   typeof ProcessingOperationDtoSchema
 >;
-
-// Export types as runtime-accessible objects for NX webpack compatibility
-export const ProcessingOperationDto = {} as ProcessingOperationDto;

@@ -55,10 +55,3 @@ export type UpdateTaskSolutionReviewDto = z.infer<
 >;
 export type TaskSolutionReviewDto = z.infer<typeof TaskSolutionReviewDtoSchema>;
 export type CreateSessionDto = z.infer<typeof CreateSessionDtoSchema>;
-
-// Export types as runtime-accessible objects for NX webpack compatibility
-export const CriterionScoreDto = {} as CriterionScoreDto;
-export const CreateTaskSolutionReviewDto = {} as CreateTaskSolutionReviewDto;
-export const UpdateTaskSolutionReviewDto = {} as UpdateTaskSolutionReviewDto;
-export const TaskSolutionReviewDto = {} as TaskSolutionReviewDto;
-export const CreateSessionDto = {} as CreateSessionDto;

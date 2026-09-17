@@ -43,9 +43,3 @@ export type TaskCriterionDto = z.infer<typeof TaskCriterionSchema>;
 export type CreateTaskDto = z.infer<typeof CreateTaskSchema>;
 export type UpdateTaskDto = z.infer<typeof UpdateTaskSchema>;
 export type TaskDto = z.infer<typeof TaskSchema>;
-
-// Export types as runtime-accessible objects for NX webpack compatibility
-export const TaskCriterionDto = {} as TaskCriterionDto;
-export const CreateTaskDto = {} as CreateTaskDto;
-export const UpdateTaskDto = {} as UpdateTaskDto;
-export const TaskDto = {} as TaskDto;

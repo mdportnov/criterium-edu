@@ -24,9 +24,3 @@ export type LoginDto = z.infer<typeof LoginSchema>;
 export type RegisterDto = z.infer<typeof RegisterSchema>;
 export type TokenDto = z.infer<typeof TokenSchema>;
 export type LoginAsDto = z.infer<typeof LoginAsSchema>;
-
-// Export types as runtime-accessible objects for NX webpack compatibility
-export const LoginDto = {} as LoginDto;
-export const RegisterDto = {} as RegisterDto;
-export const TokenDto = {} as TokenDto;
-export const LoginAsDto = {} as LoginAsDto;

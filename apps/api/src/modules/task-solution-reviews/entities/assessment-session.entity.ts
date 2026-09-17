@@ -31,9 +31,10 @@ export class AssessmentSession {
   @Column({ type: 'text', nullable: true })
   description?: string;
 
+  // varchar with a CHECK constraint in the schema, not a native enum type.
   @Column({
-    type: 'enum',
-    enum: AssessmentSessionStatus,
+    type: 'varchar',
+    length: 32,
     default: AssessmentSessionStatus.PENDING,
   })
   status: AssessmentSessionStatus;
@@ -52,10 +53,10 @@ export class AssessmentSession {
   @Column({ type: 'uuid', name: 'task_id', nullable: true })
   taskId?: string;
 
-  @Column({ type: 'varchar', length: 100, default: 'gpt-4o' })
+  @Column({ type: 'varchar', name: 'llm_model', default: 'gpt-4o' })
   llmModel: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: 'text', name: 'system_prompt', nullable: true })
   systemPrompt?: string;
 
   @Column({ type: 'json', nullable: true })
@@ -66,34 +67,34 @@ export class AssessmentSession {
     batchSize?: number;
   };
 
-  @Column({ type: 'json' })
+  @Column({ type: 'json', name: 'solution_ids' })
   solutionIds: string[];
 
-  @Column({ type: 'int', default: 0 })
+  @Column({ type: 'int', name: 'total_solutions', default: 0 })
   totalSolutions: number;
 
-  @Column({ type: 'int', default: 0 })
+  @Column({ type: 'int', name: 'processed_solutions', default: 0 })
   processedSolutions: number;
 
-  @Column({ type: 'int', default: 0 })
+  @Column({ type: 'int', name: 'successful_assessments', default: 0 })
   successfulAssessments: number;
 
-  @Column({ type: 'int', default: 0 })
+  @Column({ type: 'int', name: 'failed_assessments', default: 0 })
   failedAssessments: number;
 
   @Column({ type: 'decimal', precision: 5, scale: 2, default: 0 })
   progress: number;
 
-  @CreateDateColumn({ name: 'started_at' })
+  @CreateDateColumn({ name: 'created_at' })
   startedAt: Date;
 
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: 'timestamp', name: 'completion_time', nullable: true })
   completedAt?: Date;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: 'text', name: 'error_message', nullable: true })
   errorMessage?: string;
 
   @Column({ type: 'json', nullable: true })

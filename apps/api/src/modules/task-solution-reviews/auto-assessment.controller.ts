@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Param,
+  ParseUUIDPipe,
   Post,
   Put,
   Query,
@@ -48,15 +49,11 @@ export class AutoAssessmentController {
     return this.assessmentService.assessSolutionsBySource(dto);
   }
 
-  @Get(':id')
-  @Roles(UserRole.ADMIN, UserRole.REVIEWER, UserRole.STUDENT)
-  async getAssessment(@Param('id') id: string) {
-    return this.assessmentService.getAssessment(id);
-  }
-
   @Get('solution/:solutionId')
   @Roles(UserRole.ADMIN, UserRole.REVIEWER, UserRole.STUDENT)
-  async getAssessmentsBySolution(@Param('solutionId') solutionId: string) {
+  async getAssessmentsBySolution(
+    @Param('solutionId', ParseUUIDPipe) solutionId: string,
+  ) {
     return this.assessmentService.getAssessmentsBySolution(solutionId);
   }
 
@@ -72,7 +69,7 @@ export class AutoAssessmentController {
 
   @Post('sessions/:id/process')
   @Roles(UserRole.REVIEWER, UserRole.ADMIN)
-  async processSession(@Param('id') sessionId: string) {
+  async processSession(@Param('id', ParseUUIDPipe) sessionId: string) {
     // Process the session asynchronously
     this.assessmentService
       .processAssessmentSession(sessionId)
@@ -106,25 +103,37 @@ export class AutoAssessmentController {
 
   @Get('sessions/:id')
   @Roles(UserRole.REVIEWER, UserRole.ADMIN)
-  async getSession(@Param('id') sessionId: string) {
+  async getSession(@Param('id', ParseUUIDPipe) sessionId: string) {
     return this.assessmentService.getAssessmentSession(sessionId);
   }
 
   @Put('sessions/:id/stop')
   @Roles(UserRole.REVIEWER, UserRole.ADMIN)
-  async stopSession(@Param('id') sessionId: string) {
+  async stopSession(@Param('id', ParseUUIDPipe) sessionId: string) {
     return this.assessmentService.stopSession(sessionId);
   }
 
   @Put('sessions/:id/restart')
   @Roles(UserRole.REVIEWER, UserRole.ADMIN)
-  async restartSession(@Param('id') sessionId: string) {
+  async restartSession(@Param('id', ParseUUIDPipe) sessionId: string) {
     return this.assessmentService.restartSession(sessionId);
   }
 
   @Put('sessions/:id/cancel')
   @Roles(UserRole.REVIEWER, UserRole.ADMIN)
-  async cancelSession(@Param('id') sessionId: string) {
+  async cancelSession(@Param('id', ParseUUIDPipe) sessionId: string) {
     return this.assessmentService.cancelSession(sessionId);
+  }
+
+  /**
+   * Declared last on purpose: Nest matches routes in declaration order, and
+   * this one used to sit above /solution/:solutionId and every /sessions
+   * route, swallowing all of them. GET /auto-assessment/sessions was parsed
+   * as an assessment id and failed with "invalid input syntax for type uuid".
+   */
+  @Get(':id')
+  @Roles(UserRole.ADMIN, UserRole.REVIEWER, UserRole.STUDENT)
+  async getAssessment(@Param('id', ParseUUIDPipe) id: string) {
+    return this.assessmentService.getAssessment(id);
   }
 }

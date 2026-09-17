@@ -29,6 +29,7 @@ describe('AuthService', () => {
     vi.clearAllMocks();
     usersService = {
       findByEmail: vi.fn(),
+      findByEmailWithPassword: vi.fn(),
       findOne: vi.fn(),
       create: vi.fn(),
     } as unknown as UsersService;
@@ -41,8 +42,26 @@ describe('AuthService', () => {
     new AuthService(usersService, jwtService, settingsService, logger);
 
   describe('login', () => {
+    // The hash is select:false on the entity, so login has to ask for it by
+    // name; using the ordinary lookup would compare against undefined.
+    it('loads the user through the password-bearing lookup', async () => {
+      vi.mocked(usersService.findByEmailWithPassword).mockResolvedValue(
+        (await makeUser('Correct-horse-1')) as never,
+      );
+
+      await service().login({
+        email: 'student@example.com',
+        password: 'Correct-horse-1',
+      } as never);
+
+      expect(usersService.findByEmailWithPassword).toHaveBeenCalledWith(
+        'student@example.com',
+      );
+      expect(usersService.findByEmail).not.toHaveBeenCalled();
+    });
+
     it('issues a token for correct credentials', async () => {
-      vi.mocked(usersService.findByEmail).mockResolvedValue(
+      vi.mocked(usersService.findByEmailWithPassword).mockResolvedValue(
         (await makeUser('Correct-horse-1')) as never,
       );
 
@@ -64,7 +83,7 @@ describe('AuthService', () => {
     });
 
     it('returns a fresh CSRF token with every session', async () => {
-      vi.mocked(usersService.findByEmail).mockResolvedValue(
+      vi.mocked(usersService.findByEmailWithPassword).mockResolvedValue(
         (await makeUser('Correct-horse-1')) as never,
       );
       const auth = service();
@@ -85,7 +104,7 @@ describe('AuthService', () => {
     // The token goes into an httpOnly cookie; the body the browser can read
     // must not contain it.
     it('returns a user profile with no token and no password', async () => {
-      vi.mocked(usersService.findByEmail).mockResolvedValue(
+      vi.mocked(usersService.findByEmailWithPassword).mockResolvedValue(
         (await makeUser('Correct-horse-1')) as never,
       );
 
@@ -100,7 +119,7 @@ describe('AuthService', () => {
     });
 
     it('never puts the password hash into the token payload', async () => {
-      vi.mocked(usersService.findByEmail).mockResolvedValue(
+      vi.mocked(usersService.findByEmailWithPassword).mockResolvedValue(
         (await makeUser('Correct-horse-1')) as never,
       );
 
@@ -115,7 +134,7 @@ describe('AuthService', () => {
     });
 
     it('rejects a wrong password', async () => {
-      vi.mocked(usersService.findByEmail).mockResolvedValue(
+      vi.mocked(usersService.findByEmailWithPassword).mockResolvedValue(
         (await makeUser('Correct-horse-1')) as never,
       );
 
@@ -129,7 +148,9 @@ describe('AuthService', () => {
 
     // Same message either way, so the endpoint does not enumerate accounts.
     it('rejects an unknown email with the same message as a wrong password', async () => {
-      vi.mocked(usersService.findByEmail).mockResolvedValue(null as never);
+      vi.mocked(usersService.findByEmailWithPassword).mockResolvedValue(
+        null as never,
+      );
 
       await expect(
         service().login({

@@ -26,8 +26,3 @@ export const TaskSolutionDtoSchema = z.object({
 export type CreateTaskSolutionDto = z.infer<typeof CreateTaskSolutionDtoSchema>;
 export type UpdateTaskSolutionDto = z.infer<typeof UpdateTaskSolutionDtoSchema>;
 export type TaskSolutionDto = z.infer<typeof TaskSolutionDtoSchema>;
-
-// Export types as runtime-accessible objects for NX webpack compatibility
-export const CreateTaskSolutionDto = {} as CreateTaskSolutionDto;
-export const UpdateTaskSolutionDto = {} as UpdateTaskSolutionDto;
-export const TaskSolutionDto = {} as TaskSolutionDto;

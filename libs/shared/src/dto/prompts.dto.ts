@@ -52,9 +52,3 @@ export type PromptTranslationDto = z.infer<typeof PromptTranslationSchema>;
 export type CreatePromptDto = z.infer<typeof CreatePromptDtoSchema>;
 export type UpdatePromptDto = z.infer<typeof UpdatePromptDtoSchema>;
 export type PromptDto = z.infer<typeof PromptDtoSchema>;
-
-// Export types as runtime-accessible objects for NX webpack compatibility
-export const PromptTranslationDto = {} as PromptTranslationDto;
-export const CreatePromptDto = {} as CreatePromptDto;
-export const UpdatePromptDto = {} as UpdatePromptDto;
-export const PromptDto = {} as PromptDto;

@@ -53,8 +53,21 @@ export class UsersService {
     return user;
   }
 
+  /** Without the hash - for everything except checking a password. */
   async findByEmail(email: string): Promise<User> {
     return await this.usersRepository.findOneBy({ email });
+  }
+
+  /**
+   * The one place the password hash is loaded on purpose. Kept separate so
+   * that reading a user never drags the hash along by accident.
+   */
+  async findByEmailWithPassword(email: string): Promise<User | null> {
+    return this.usersRepository
+      .createQueryBuilder('user')
+      .addSelect('user.password')
+      .where('user.email = :email', { email })
+      .getOne();
   }
 
   async create(createUserDto: CreateUserDto): Promise<User> {

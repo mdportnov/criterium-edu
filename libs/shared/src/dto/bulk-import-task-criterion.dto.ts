@@ -9,6 +9,3 @@ export const BulkImportTaskCriterionDtoSchema = z.object({
 export type BulkImportTaskCriterionDto = z.infer<
   typeof BulkImportTaskCriterionDtoSchema
 >;
-
-// Export types as runtime-accessible objects for NX webpack compatibility
-export const BulkImportTaskCriterionDto = {} as BulkImportTaskCriterionDto;
