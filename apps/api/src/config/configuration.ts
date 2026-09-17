@@ -44,7 +44,14 @@ const envSchema = z
         (secret) => !WEAK_JWT_SECRETS.has(secret.toLowerCase()),
         'JWT_SECRET is a known default value and must be replaced',
       ),
-    JWT_EXPIRATION_TIME: z.string().min(1).default('1d'),
+    // A `ms` duration such as 30s / 15m / 12h / 7d, or plain seconds.
+    JWT_EXPIRATION_TIME: z
+      .string()
+      .regex(
+        /^\d+(\.\d+)?\s*(ms|s|m|h|d|w|y|seconds?|minutes?|hours?|days?|weeks?|years?)?$/i,
+        'JWT_EXPIRATION_TIME must be a duration like 30m, 12h or 7d',
+      )
+      .default('1d'),
     BCRYPT_ROUNDS: z.coerce.number().int().min(10).max(15).default(12),
 
     CORS_ORIGINS: csvList.default('http://localhost:5173'),
