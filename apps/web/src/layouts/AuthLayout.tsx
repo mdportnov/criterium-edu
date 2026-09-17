@@ -2,6 +2,7 @@ import React from 'react';
 import { Outlet, Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { LoadingState } from '@/components/ui/states';
+import { Wordmark } from '@/components/Logo';
 
 /*
  * Sign-in is the one screen a first-time user meets, but it is still the front door of
@@ -26,12 +27,7 @@ const AuthLayout: React.FC = () => {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4 py-10">
       <div className="w-full max-w-sm">
-        <div className="mb-6 flex items-center gap-2">
-          <img src="/logo.svg" alt="" className="size-6" aria-hidden="true" />
-          <span className="text-[15px] font-semibold tracking-tight text-foreground">
-            Criterium EDU
-          </span>
-        </div>
+        <Wordmark size="lg" className="mb-6" />
 
         <div className="rounded-md border border-border bg-card p-5">
           <Outlet />

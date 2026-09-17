@@ -23,6 +23,7 @@ import {
 import { UserRole } from '@app/shared';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { cn } from '@/lib/utils';
+import { Logo } from '@/components/Logo';
 
 /*
  * The shell used to be a saturated blue bar with white-on-blue nav. A tool people sit
@@ -122,7 +123,7 @@ const MainLayout: React.FC = () => {
                 to="/dashboard"
                 className="flex shrink-0 items-center gap-2 rounded text-[13px] font-semibold tracking-tight text-foreground"
               >
-                <img src="/logo.svg" alt="" className="size-5" aria-hidden="true" />
+                <Logo />
                 <span className="hidden sm:inline">Criterium</span>
                 <span className="sr-only">Criterium EDU — go to overview</span>
               </Link>
