@@ -1,29 +1,38 @@
-import * as React from "react"
-import { cva, type VariantProps } from "class-variance-authority"
+import * as React from 'react';
+import { cva, type VariantProps } from 'class-variance-authority';
 
-import { cn } from "@/lib/utils.ts"
+import { cn } from '@/lib/utils';
 
+/*
+ * Inline message block. Tinted background + readable text, same four status tones as
+ * Badge — never a saturated fill, and never used decoratively to "break up" a page.
+ */
 const alertVariants = cva(
-  "relative w-full rounded-lg border px-4 py-3 text-sm grid has-[>svg]:grid-cols-[calc(var(--spacing)*4)_1fr] grid-cols-[0_1fr] has-[>svg]:gap-x-3 gap-y-0.5 items-start [&>svg]:size-4 [&>svg]:translate-y-0.5 [&>svg]:text-current",
+  "relative grid w-full items-start gap-x-2.5 gap-y-0.5 rounded-md border px-3 py-2.5 text-[13px] grid-cols-[0_1fr] has-[>svg]:grid-cols-[1rem_1fr] [&>svg]:size-4 [&>svg]:translate-y-0.5",
   {
     variants: {
       variant: {
-        default: "bg-card text-card-foreground",
+        default: 'border-border bg-muted/60 text-foreground [&>svg]:text-muted-foreground',
+        info: 'border-info/25 bg-info-soft text-foreground [&>svg]:text-info',
+        success:
+          'border-success/25 bg-success-soft text-foreground [&>svg]:text-success',
+        warning:
+          'border-warning/25 bg-warning-soft text-foreground [&>svg]:text-warning',
         destructive:
-          "text-destructive bg-card [&>svg]:text-current *:data-[slot=alert-description]:text-destructive/90",
+          'border-danger/25 bg-danger-soft text-foreground [&>svg]:text-danger',
       },
     },
     defaultVariants: {
-      variant: "default",
+      variant: 'default',
     },
-  }
-)
+  },
+);
 
 function Alert({
   className,
   variant,
   ...props
-}: React.ComponentProps<"div"> & VariantProps<typeof alertVariants>) {
+}: React.ComponentProps<'div'> & VariantProps<typeof alertVariants>) {
   return (
     <div
       data-slot="alert"
@@ -31,36 +40,30 @@ function Alert({
       className={cn(alertVariants({ variant }), className)}
       {...props}
     />
-  )
+  );
 }
 
-function AlertTitle({ className, ...props }: React.ComponentProps<"div">) {
+function AlertTitle({ className, ...props }: React.ComponentProps<'div'>) {
   return (
     <div
       data-slot="alert-title"
-      className={cn(
-        "col-start-2 line-clamp-1 min-h-4 font-medium tracking-tight",
-        className
-      )}
+      className={cn('col-start-2 font-medium leading-5', className)}
       {...props}
     />
-  )
+  );
 }
 
-function AlertDescription({
-  className,
-  ...props
-}: React.ComponentProps<"div">) {
+function AlertDescription({ className, ...props }: React.ComponentProps<'div'>) {
   return (
     <div
       data-slot="alert-description"
       className={cn(
-        "text-muted-foreground col-start-2 grid justify-items-start gap-1 text-sm [&_p]:leading-relaxed",
-        className
+        'col-start-2 text-xs leading-5 text-muted-foreground [&_p]:leading-5',
+        className,
       )}
       {...props}
     />
-  )
+  );
 }
 
-export { Alert, AlertTitle, AlertDescription }
+export { Alert, AlertTitle, AlertDescription, alertVariants };

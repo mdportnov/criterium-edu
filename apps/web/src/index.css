@@ -1,95 +1,161 @@
-@import "tailwindcss";
+@import 'tailwindcss';
+@import 'tw-animate-css';
 
-@theme {
-  --default-transition-duration: 300ms;
-  --default-transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-@variant dark (@media (prefers-color-scheme: dark) or .dark);
+/*
+ * Theme is driven by an explicit `light` / `dark` class on <html> (see ThemeProvider).
+ * It deliberately does NOT follow prefers-color-scheme on its own: "System" is resolved
+ * in JS and written onto the class, so an explicit Light choice stays light on a dark OS.
+ */
+@custom-variant dark (&:where(.dark, .dark *));
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222 84% 4.9%;
+    /* Surfaces: the page is a shade cooler than a card, so cards read without a shadow. */
+    --background: 210 20% 98%;
+    --foreground: 222 24% 11%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222 84% 4.9%;
+    --card-foreground: 222 24% 11%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222 84% 4.9%;
+    --popover-foreground: 222 24% 11%;
 
-    --primary: 214 88% 53%;
+    /* The single accent. Interactive affordances and one primary action per screen. */
+    --primary: 214 88% 47%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 20% 96%;
-    --secondary-foreground: 222 47% 11%;
+    --secondary: 210 20% 95%;
+    --secondary-foreground: 222 24% 11%;
 
-    --muted: 210 20% 96%;
-    --muted-foreground: 215 16% 47%;
+    --muted: 210 20% 95%;
+    --muted-foreground: 215 14% 40%;
 
-    --accent: 210 40% 94%;
-    --accent-foreground: 222 47% 11%;
+    --accent: 210 20% 94%;
+    --accent-foreground: 222 24% 11%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 0 72% 42%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 214 88% 53%;
+    --border: 214 20% 89%;
+    --input: 214 20% 85%;
+    --ring: 214 88% 47%;
 
-    --radius: 0.5rem;
+    /*
+     * Status semantics. Only these four hues are allowed to carry colour, and only on
+     * badges / status pills / inline status text. Each is a readable text colour plus
+     * the quietest tint that still separates from the card.
+     */
+    --success: 147 62% 24%;
+    --success-soft: 145 52% 94%;
+    --warning: 32 86% 28%;
+    --warning-soft: 42 88% 92%;
+    --danger: 0 68% 40%;
+    --danger-soft: 0 78% 96%;
+    --info: 214 78% 38%;
+    --info-soft: 213 90% 96%;
 
-    --nav-background: 214 88% 53%;
-    --nav-foreground: 0 0% 100%;
-    --nav-muted: 214 88% 48%;
-    --nav-accent: 0 0% 100%;
+    --radius: 0.375rem;
   }
 
   .dark {
-    --background: 222 47% 11%;
-    --foreground: 210 40% 98%;
+    --background: 222 28% 9%;
+    --foreground: 210 25% 96%;
 
-    --card: 222 47% 13%;
-    --card-foreground: 210 40% 98%;
+    --card: 222 25% 12%;
+    --card-foreground: 210 25% 96%;
 
-    --popover: 222 47% 13%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 222 25% 13%;
+    --popover-foreground: 210 25% 96%;
 
-    --primary: 214 100% 70%;
-    --primary-foreground: 222 47% 11%;
+    --primary: 214 90% 62%;
+    --primary-foreground: 222 40% 8%;
 
-    --secondary: 217 33% 17%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 217 22% 18%;
+    --secondary-foreground: 210 25% 96%;
 
-    --muted: 217 33% 17%;
-    --muted-foreground: 215 20% 65%;
+    --muted: 217 22% 17%;
+    --muted-foreground: 215 16% 66%;
 
-    --accent: 217 33% 17%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 217 22% 20%;
+    --accent-foreground: 210 25% 96%;
 
-    --destructive: 0 63% 31%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 70% 58%;
+    --destructive-foreground: 222 40% 8%;
 
-    --border: 217 33% 17%;
-    --input: 217 33% 17%;
-    --ring: 214 100% 70%;
+    --border: 217 20% 22%;
+    --input: 217 20% 26%;
+    --ring: 214 90% 62%;
 
-    --nav-background: 222 47% 8%;
-    --nav-foreground: 210 40% 98%;
-    --nav-muted: 217 33% 20%;
-    --nav-accent: 214 100% 70%;
+    --success: 145 58% 62%;
+    --success-soft: 147 40% 15%;
+    --warning: 40 84% 62%;
+    --warning-soft: 36 45% 16%;
+    --danger: 0 76% 68%;
+    --danger-soft: 0 42% 17%;
+    --info: 213 88% 70%;
+    --info-soft: 214 45% 18%;
   }
+}
+
+/*
+ * Tailwind v4 is CSS-first: a `--foo` under @layer base is invisible to the utility
+ * generator until it is registered here. `inline` keeps the var() reference in the
+ * generated rule so the `.dark` override still applies at use site.
+ */
+@theme inline {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+
+  --color-success: hsl(var(--success));
+  --color-success-soft: hsl(var(--success-soft));
+  --color-warning: hsl(var(--warning));
+  --color-warning-soft: hsl(var(--warning-soft));
+  --color-danger: hsl(var(--danger));
+  --color-danger-soft: hsl(var(--danger-soft));
+  --color-info: hsl(var(--info));
+  --color-info-soft: hsl(var(--info-soft));
+
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 2px);
+
+  --default-transition-duration: 150ms;
+  --default-transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @layer base {
   * {
     box-sizing: border-box;
+    border-color: hsl(var(--border));
   }
-  
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
   body {
-    background: hsl(var(--background));
+    background-color: hsl(var(--background));
     color: hsl(var(--foreground));
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    font-family:
+      system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+      'Helvetica Neue', Arial, sans-serif;
     font-synthesis: none;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
@@ -97,439 +163,115 @@
     margin: 0;
     min-width: 320px;
     min-height: 100vh;
-    transition: background-color 0.3s ease, color 0.3s ease;
+    font-size: 0.875rem;
+    line-height: 1.5;
   }
-  
-  html {
-    scroll-behavior: smooth;
+
+  /* Figures never reflow between renders: every number in this product is tabular. */
+  table,
+  input[type='number'],
+  time,
+  [data-numeric] {
+    font-variant-numeric: tabular-nums;
   }
-  
-  *:focus-visible {
+
+  :focus-visible {
     outline: 2px solid hsl(var(--ring));
     outline-offset: 2px;
   }
-  
+
+  ::selection {
+    background: hsl(var(--primary) / 0.2);
+  }
+
   ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: 10px;
+    height: 10px;
   }
-  
+
   ::-webkit-scrollbar-track {
-    background: hsl(var(--muted));
+    background: transparent;
   }
-  
+
   ::-webkit-scrollbar-thumb {
-    background: hsl(var(--muted-foreground) / 0.3);
-    border-radius: 4px;
+    background: hsl(var(--muted-foreground) / 0.25);
+    border: 3px solid transparent;
+    background-clip: content-box;
+    border-radius: 9999px;
   }
-  
+
   ::-webkit-scrollbar-thumb:hover {
-    background: hsl(var(--muted-foreground) / 0.5);
+    background: hsl(var(--muted-foreground) / 0.45);
+    background-clip: content-box;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }
 
 @layer components {
-  .nav-header {
-    background: hsl(var(--nav-background));
-    color: hsl(var(--nav-foreground));
-    border-bottom: 1px solid hsl(var(--border) / 0.2);
-    transition: all 0.3s ease;
-  }
-  
-  .nav-link {
-    position: relative;
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    transition: all 0.2s ease;
-    color: hsl(var(--nav-foreground) / 0.8);
-  }
-  
-  .nav-link:hover {
-    background: hsl(var(--nav-foreground) / 0.1);
-    color: hsl(var(--nav-foreground));
-  }
-  
-  .nav-link.active {
-    background: hsl(var(--nav-foreground) / 0.15);
-    color: hsl(var(--nav-foreground));
-    font-weight: 500;
-  }
-  
-  .nav-user-dropdown {
-    @apply absolute right-0 top-full mt-2 w-56 border dark:border-gray-700 rounded-lg shadow-xl overflow-hidden;
-    margin-top: 20px;
-    background: hsl(var(--background));
-  }
-  
-  .nav-user-info {
-    background: hsl(var(--muted) / 0.5);
-    border-bottom: 1px solid hsl(var(--border));
-    padding: 0.75rem;
-  }
-  
-  .nav-user-name {
-    color: hsl(var(--foreground));
-    font-weight: 500;
-    font-size: 0.875rem;
-  }
-  
-  .nav-user-email {
-    color: hsl(var(--muted-foreground));
-    font-size: 0.75rem;
-    margin-top: 0.125rem;
-  }
-  
-  .nav-user-item {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 0.75rem;
-    font-size: 0.875rem;
-    color: hsl(var(--foreground));
-    transition: background-color 0.2s ease;
-    text-decoration: none;
+  /*
+   * The one shared layout helper that earns its place: every page body and the header
+   * share a gutter, so the nav and the content below it line up on every breakpoint.
+   */
+  .container-responsive {
     width: 100%;
-    border: none;
-    background: none;
-    cursor: pointer;
+    margin-inline: auto;
+    padding-inline: 1rem;
   }
-  
-  .nav-user-item:hover {
-    background: hsl(var(--muted) / 0.5);
+
+  @media (min-width: 640px) {
+    .container-responsive {
+      padding-inline: 1.5rem;
+    }
   }
-  
-  .nav-user-item.destructive {
-    color: hsl(var(--destructive));
+
+  /*
+   * Long-form user content (task descriptions, review feedback) that arrives as plain
+   * text or light markup and cannot carry utility classes.
+   */
+  .prose-body {
+    font-size: 0.875rem;
+    line-height: 1.625;
+    color: hsl(var(--foreground));
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
   }
-  
-  .nav-user-item.destructive:hover {
-    background: hsl(var(--destructive) / 0.1);
-  }
-  
-  .mobile-nav-drawer {
-    background: hsl(var(--background));
-    border-left: 1px solid hsl(var(--border));
-    backdrop-filter: blur(8px);
-  }
-  
-  .mobile-nav-header {
-    background: hsl(var(--muted) / 0.3);
-    border-bottom: 1px solid hsl(var(--border));
-    padding: 1.5rem;
-  }
-  
-  .mobile-nav-user-info {
-    background: hsl(var(--muted) / 0.5);
-    border-bottom: 1px solid hsl(var(--border));
-    padding: 1rem 1.5rem;
-  }
-  
-  .mobile-nav-avatar {
-    background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary) / 0.8));
-    color: hsl(var(--primary-foreground));
-    border-radius: 50%;
-    width: 3rem;
-    height: 3rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 600;
-    font-size: 1.125rem;
-  }
-  
-  .mobile-nav-item {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
+
+  .code-block {
+    background-color: hsl(var(--muted));
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
     padding: 0.75rem 1rem;
-    margin: 0.25rem;
-    border-radius: 0.5rem;
-    transition: all 0.2s ease;
-    text-decoration: none;
-    color: hsl(var(--foreground));
-    font-weight: 500;
-  }
-  
-  .mobile-nav-item:hover {
-    background: hsl(var(--muted) / 0.5);
-  }
-  
-  .mobile-nav-item.active {
-    background: hsl(var(--primary));
-    color: hsl(var(--primary-foreground));
-  }
-  
-  .mobile-nav-footer {
-    border-top: 1px solid hsl(var(--border));
-    padding: 1rem;
-    margin-top: auto;
-  }
-  
-  .dropdown-menu {
-    position: absolute;
-    top: 100%;
-    right: 0;
-    margin-top: 0.5rem;
-    min-width: 14rem;
-    background: hsl(var(--background));
-    border: 1px solid hsl(var(--border));
-    border-radius: 0.5rem;
-    box-shadow: 0 10px 25px -5px hsl(var(--foreground) / 0.1), 0 8px 10px -6px hsl(var(--foreground) / 0.1);
-    z-index: 50;
-  }
-  
-  .dashboard-card {
-    background: hsl(var(--card));
-    border: 1px solid hsl(var(--border));
-    border-radius: 0.5rem;
-    padding: 1.5rem;
-    transition: all 0.3s ease;
-  }
-  
-  .dashboard-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 25px -5px hsl(var(--foreground) / 0.1);
-  }
-  
-  .form-input {
-    transition: all 0.2s ease;
-    background: hsl(var(--background));
-    border: 1px solid hsl(var(--border));
-    color: hsl(var(--foreground));
-  }
-  
-  .form-input:focus {
-    border-color: hsl(var(--primary));
-    box-shadow: 0 0 0 3px hsl(var(--primary) / 0.1);
-  }
-  
-  .btn-primary {
-    background: hsl(var(--primary));
-    color: hsl(var(--primary-foreground));
-    transition: all 0.2s ease;
-  }
-  
-  .btn-primary:hover {
-    background: hsl(var(--primary) / 0.9);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px hsl(var(--primary) / 0.3);
-  }
-  
-  .status-badge {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.25rem 0.75rem;
-    border-radius: 9999px;
-    font-size: 0.75rem;
-    font-weight: 500;
-    transition: all 0.2s ease;
-  }
-  
-  .status-badge.success {
-    background-color: hsl(142 76% 36% / 0.15);
-    color: hsl(142 76% 25%);
-    border: 1px solid hsl(142 76% 36% / 0.2);
-  }
-  
-  .status-badge.warning {
-    background-color: hsl(38 92% 50% / 0.15);
-    color: hsl(38 92% 30%);
-    border: 1px solid hsl(38 92% 50% / 0.2);
-  }
-  
-  .status-badge.info {
-    background-color: hsl(217 91% 60% / 0.15);
-    color: hsl(217 91% 35%);
-    border: 1px solid hsl(217 91% 60% / 0.2);
-  }
-  
-  .status-badge.error {
-    background-color: hsl(0 84% 60% / 0.15);
-    color: hsl(0 84% 35%);
-    border: 1px solid hsl(0 84% 60% / 0.2);
-  }
-  
-  .dark .status-badge.success {
-    background-color: hsl(142 76% 36% / 0.2);
-    color: hsl(142 76% 55%);
-    border: 1px solid hsl(142 76% 36% / 0.3);
-  }
-  
-  .dark .status-badge.warning {
-    background-color: hsl(38 92% 50% / 0.2);
-    color: hsl(38 92% 70%);
-    border: 1px solid hsl(38 92% 50% / 0.3);
-  }
-  
-  .dark .status-badge.info {
-    background-color: hsl(217 91% 60% / 0.2);
-    color: hsl(217 91% 75%);
-    border: 1px solid hsl(217 91% 60% / 0.3);
-  }
-  
-  .dark .status-badge.error {
-    background-color: hsl(0 84% 60% / 0.2);
-    color: hsl(0 84% 75%);
-    border: 1px solid hsl(0 84% 60% / 0.3);
+    overflow-x: auto;
+    font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas,
+      'Liberation Mono', monospace;
+    font-size: 0.8125rem;
+    line-height: 1.6;
+    font-variant-numeric: tabular-nums;
   }
 }
 
 @layer utilities {
-  .card-hover {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-  
-  .card-hover:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 25px -5px hsl(var(--foreground) / 0.1), 0 8px 10px -6px hsl(var(--foreground) / 0.1);
-  }
-  
-  .container-responsive {
-    width: 100%;
-    padding-right: 1rem;
-    padding-left: 1rem;
-    margin-right: auto;
-    margin-left: auto;
-  }
-  
-  @media (min-width: 640px) {
-    .container-responsive {
-      padding-right: 1.5rem;
-      padding-left: 1.5rem;
-    }
-  }
-  
-  @media (min-width: 1024px) {
-    .container-responsive {
-      padding-right: 2rem;
-      padding-left: 2rem;
-    }
-  }
-  
-  .loading-spinner {
-    border: 3px solid hsl(var(--muted));
-    border-top: 3px solid hsl(var(--primary));
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    animation: spin 1s linear infinite;
-  }
-  
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
-  
   .line-clamp-2 {
     overflow: hidden;
     display: -webkit-box;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
   }
-  
+
   .line-clamp-3 {
     overflow: hidden;
     display: -webkit-box;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 3;
-  }
-  
-  .transition-base {
-    transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;
-    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-    transition-duration: 150ms;
-  }
-  
-  .transition-smooth {
-    transition-property: all;
-    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-    transition-duration: 300ms;
-  }
-  
-  .fade-in {
-    animation: fadeIn 0.3s ease-in;
-  }
-  
-  .fade-out {
-    animation: fadeOut 0.3s ease-out;
-  }
-  
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-      transform: translateY(10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-  
-  @keyframes fadeOut {
-    from {
-      opacity: 1;
-      transform: translateY(0);
-    }
-    to {
-      opacity: 0;
-      transform: translateY(10px);
-    }
-  }
-  
-  .theme-transition {
-    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
-  }
-  
-  .mobile-menu-enter {
-    animation: slideInRight 0.3s ease-out;
-  }
-  
-  .mobile-menu-exit {
-    animation: slideOutRight 0.3s ease-in;
-  }
-  
-  @keyframes slideInRight {
-    from {
-      transform: translateX(100%);
-      opacity: 0;
-    }
-    to {
-      transform: translateX(0);
-      opacity: 1;
-    }
-  }
-  
-  @keyframes slideOutRight {
-    from {
-      transform: translateX(0);
-      opacity: 1;
-    }
-    to {
-      transform: translateX(100%);
-      opacity: 0;
-    }
-  }
-  
-  
-  .z-dropdown { z-index: 40; }
-  .z-overlay { z-index: 50; }
-  .z-modal { z-index: 60; }
-  .z-popover { z-index: 70; }
-  .z-tooltip { z-index: 80; }
-  
-  .p-responsive {
-    padding: 1rem;
-  }
-  
-  @media (min-width: 640px) {
-    .p-responsive {
-      padding: 1.5rem;
-    }
-  }
-  
-  @media (min-width: 1024px) {
-    .p-responsive {
-      padding: 2rem;
-    }
   }
 }
