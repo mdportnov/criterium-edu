@@ -36,6 +36,17 @@ export default defineConfig({
 
   build: {
     outDir: '../../dist/apps/web',
+    rollupOptions: {
+      output: {
+        // Vendor code changes on a dependency bump, app code changes on every
+        // deploy. Splitting them means a deploy does not invalidate the 600 kB
+        // of framework a returning user already has cached.
+        manualChunks: {
+          react: ['react', 'react-dom', 'react-router-dom'],
+          query: ['@tanstack/react-query'],
+        },
+      },
+    },
     reportCompressedSize: true,
     commonjsOptions: {
       transformMixedEsModules: true,

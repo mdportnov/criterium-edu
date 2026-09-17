@@ -23,7 +23,7 @@ import {
   Upload,
   XCircle,
 } from 'lucide-react';
-import { UserRole } from '@app/shared';
+import { UserRole } from '@app/shared/interfaces';
 import { getErrorMessage } from '@/lib/errors';
 
 const BulkImportPage: React.FC = () => {

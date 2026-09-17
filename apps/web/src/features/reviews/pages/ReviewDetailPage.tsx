@@ -16,7 +16,7 @@ import { ErrorState, LoadingState } from '@/components/ui/states';
 import { TaskSolutionReviewService, TaskSolutionService } from '@/services';
 import { useAuth } from '@/contexts/AuthContext';
 import type { ReviewSource, TaskSolution, TaskSolutionReview } from '@/types';
-import { UserRole } from '@app/shared';
+import { UserRole } from '@app/shared/interfaces';
 import { CheckCircle, Edit, FileText, Trash2 } from 'lucide-react';
 
 const SOURCE_TONES: Record<ReviewSource, BadgeTone> = {

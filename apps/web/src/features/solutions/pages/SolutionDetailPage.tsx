@@ -19,7 +19,7 @@ import {
   type TaskSolutionReview,
 } from '@/types';
 import { TaskSolutionService, TaskSolutionReviewService } from '@/services';
-import { UserRole } from '@app/shared';
+import { UserRole } from '@app/shared/interfaces';
 import { getErrorMessage } from '@/lib/errors';
 
 const SolutionDetailPage: React.FC = () => {

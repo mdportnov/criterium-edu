@@ -27,7 +27,7 @@ import {
 import { type PaginationParams, type Task } from '@/types';
 import { TaskService } from '@/services';
 import { ListTodo, Plus, Search, Upload, X } from 'lucide-react';
-import { UserRole } from '@app/shared';
+import { UserRole } from '@app/shared/interfaces';
 
 const ALL = '__all__';
 

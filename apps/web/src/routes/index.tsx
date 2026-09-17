@@ -5,138 +5,171 @@ import {
   RouterProvider,
 } from 'react-router-dom';
 import ProtectedRoute from '@/components/router/ProtectedRoute';
-
-// Layouts
 import MainLayout from '@/layouts/MainLayout';
 import AuthLayout from '@/layouts/AuthLayout';
-
-// Public pages
-import { LandingPage } from '@/features/landing';
-import LoginPage from '@/features/auth/pages/LoginPage';
-import RegisterPage from '@/features/auth/pages/RegisterPage';
-import NotFoundPage from '@/features/common/pages/NotFoundPage';
-import UnauthorizedPage from '@/features/common/pages/UnauthorizedPage';
-
-// Protected pages
-import DashboardPage from '@/features/dashboard/pages/DashboardPage';
-import ProfilePage from '@/features/profile/pages/ProfilePage';
-import TasksPage from '@/features/tasks/pages/TasksPage';
-import TaskDetailPage from '@/features/tasks/pages/TaskDetailPage';
-import CreateTaskPage from '@/features/tasks/pages/CreateTaskPage';
-import EditTaskPage from '@/features/tasks/pages/EditTaskPage';
-import {
-  MySubmissionsPage,
-  ReviewSolutionPage,
-  SolutionDetailPage,
-  SubmitSolutionPage,
-} from '@/features/solutions';
-// import { CheckerPage } from '@/features/checker'; // DEPRECATED: Code Checker feature disabled
-import { BulkImportPage } from '@/features/bulk-operations';
-import {
-  CreateReviewPage,
-  ReviewDetailPage,
-  ReviewsPage,
-} from '@/features/reviews';
-import BulkSolutionUploadPage from '@/features/reviews/pages/BulkSolutionUploadPage';
-import ProcessingOperationPage from '@/features/reviews/pages/ProcessingOperationPage';
-import LLMProcessingPage from '@/features/reviews/pages/LLMProcessingPage';
-import ReviewApprovalDashboard from '@/features/reviews/pages/ReviewApprovalDashboard';
-import ProcessingStatusPage from '@/features/reviews/pages/ProcessingStatusPage';
-import { AdminPanelPage } from '@/features/admin';
 import { UserRole } from '@app/shared/interfaces/user.interface';
 
-// Dashboard pages (protected routes under /dashboard)
+/**
+ * Routes load their page on first visit rather than up front. The whole app
+ * used to ship as one bundle, so every visitor downloaded the admin panel and
+ * the bulk-import screens to look at a login form.
+ *
+ * `lazy` returns the route module; these pages are default exports, so each
+ * one is unwrapped here.
+ */
+const page =
+  (load: () => Promise<{ default: React.ComponentType }>) => async () => ({
+    Component: (await load()).default,
+  });
+
 const dashboardPages: RouteObject[] = [
-  { index: true, element: <DashboardPage /> }, // /dashboard
-  { path: 'tasks', element: <TasksPage /> }, // /dashboard/tasks
-  { path: 'tasks/:id', element: <TaskDetailPage /> }, // /dashboard/tasks/:id
-  { path: 'tasks/:taskId/submit-solution', element: <SubmitSolutionPage /> }, // /dashboard/tasks/:taskId/submit-solution
-  // { path: 'checker', element: <CheckerPage /> }, // /dashboard/checker // DEPRECATED: Code Checker feature disabled
-  { path: 'my-solutions', element: <MySubmissionsPage /> }, // /dashboard/my-solutions
-  { path: 'solutions/:id', element: <SolutionDetailPage /> }, // /dashboard/solutions/:id
-  { path: 'reviews', element: <ReviewsPage /> }, // /dashboard/reviews
-  { path: 'reviews/create', element: <CreateReviewPage /> }, // /dashboard/reviews/create
-  { path: 'reviews/:id', element: <ReviewDetailPage /> }, // /dashboard/reviews/:id
-  { path: 'reviews/bulk-upload', element: <BulkSolutionUploadPage /> }, // /dashboard/reviews/bulk-upload
+  {
+    index: true,
+    lazy: page(() => import('@/features/dashboard/pages/DashboardPage')),
+  },
+  {
+    path: 'tasks',
+    lazy: page(() => import('@/features/tasks/pages/TasksPage')),
+  },
+  {
+    path: 'tasks/create',
+    lazy: page(() => import('@/features/tasks/pages/CreateTaskPage')),
+  },
+  {
+    path: 'tasks/:id',
+    lazy: page(() => import('@/features/tasks/pages/TaskDetailPage')),
+  },
+  {
+    path: 'tasks/:id/edit',
+    lazy: page(() => import('@/features/tasks/pages/EditTaskPage')),
+  },
+  {
+    path: 'tasks/:taskId/submit-solution',
+    lazy: page(() => import('@/features/solutions/pages/SubmitSolutionPage')),
+  },
+  {
+    path: 'my-solutions',
+    lazy: page(() => import('@/features/solutions/pages/MySubmissionsPage')),
+  },
+  {
+    path: 'solutions/:id',
+    lazy: page(() => import('@/features/solutions/pages/SolutionDetailPage')),
+  },
+  {
+    path: 'solutions/:solutionId/review',
+    lazy: page(() => import('@/features/solutions/pages/ReviewSolutionPage')),
+  },
+  {
+    path: 'reviews',
+    lazy: page(() => import('@/features/reviews/pages/ReviewsPage')),
+  },
+  {
+    path: 'reviews/create',
+    lazy: page(() => import('@/features/reviews/pages/CreateReviewPage')),
+  },
+  {
+    path: 'reviews/bulk-upload',
+    lazy: page(() => import('@/features/reviews/pages/BulkSolutionUploadPage')),
+  },
+  {
+    path: 'reviews/llm-processing',
+    lazy: page(() => import('@/features/reviews/pages/LLMProcessingPage')),
+  },
+  {
+    path: 'reviews/approval-dashboard',
+    lazy: page(
+      () => import('@/features/reviews/pages/ReviewApprovalDashboard'),
+    ),
+  },
+  {
+    path: 'reviews/processing-status',
+    lazy: page(() => import('@/features/reviews/pages/ProcessingStatusPage')),
+  },
   {
     path: 'reviews/processing/:operationId',
-    element: <ProcessingOperationPage />,
-  }, // /dashboard/reviews/processing/:operationId
-  { path: 'reviews/llm-processing', element: <LLMProcessingPage /> }, // /dashboard/reviews/llm-processing
-  { path: 'reviews/approval-dashboard', element: <ReviewApprovalDashboard /> }, // /dashboard/reviews/approval-dashboard
-  { path: 'reviews/processing-status', element: <ProcessingStatusPage /> }, // /dashboard/reviews/processing-status
-  { path: 'bulk-import', element: <BulkImportPage /> }, // /dashboard/bulk-import
-  { path: 'tasks/create', element: <CreateTaskPage /> }, // /dashboard/tasks/create
-  { path: 'tasks/:id/edit', element: <EditTaskPage /> }, // /dashboard/tasks/:id/edit
-  { path: 'solutions/:solutionId/review', element: <ReviewSolutionPage /> }, // /dashboard/solutions/:solutionId/review
+    lazy: page(
+      () => import('@/features/reviews/pages/ProcessingOperationPage'),
+    ),
+  },
+  {
+    path: 'reviews/:id',
+    lazy: page(() => import('@/features/reviews/pages/ReviewDetailPage')),
+  },
+  {
+    path: 'bulk-import',
+    lazy: page(() => import('@/features/bulk-operations/pages/BulkImportPage')),
+  },
 ];
 
-// Admin pages (protected routes under /admin, admin only)
-const adminPages: RouteObject[] = [
-  { index: true, element: <AdminPanelPage /> }, // /admin
-];
-
-// Router Configuration
 const router = createBrowserRouter([
-  // Public root route
   {
     path: '/',
-    element: <LandingPage />,
+    lazy: page(() => import('@/features/landing/pages/LandingPage')),
   },
-  // Public Auth Routes (wrapped in AuthLayout)
   {
     element: <AuthLayout />,
     children: [
-      { path: 'login', element: <LoginPage /> },
-      { path: 'register', element: <RegisterPage /> },
+      {
+        path: 'login',
+        lazy: page(() => import('@/features/auth/pages/LoginPage')),
+      },
+      {
+        path: 'register',
+        lazy: page(() => import('@/features/auth/pages/RegisterPage')),
+      },
+      {
+        // Redeems the one-time link an administrator issues for an account
+        // that has never had a password of its own.
+        path: 'set-password',
+        lazy: page(() => import('@/features/auth/pages/SetPasswordPage')),
+      },
     ],
   },
-  // Profile route (protected but at root level)
   {
     path: '/profile',
     element: <ProtectedRoute />,
     children: [
       {
         element: <MainLayout />,
-        children: [{ index: true, element: <ProfilePage /> }],
+        children: [
+          {
+            index: true,
+            lazy: page(() => import('@/features/profile/pages/ProfilePage')),
+          },
+        ],
       },
     ],
   },
-  // Dashboard Protected Routes (all main functionality under /dashboard)
   {
     path: '/dashboard',
     element: (
       <ProtectedRoute allowedRoles={[UserRole.ADMIN, UserRole.REVIEWER]} />
     ),
-    children: [
-      {
-        element: <MainLayout />,
-        children: dashboardPages,
-      },
-    ],
+    children: [{ element: <MainLayout />, children: dashboardPages }],
   },
-  // Admin Protected Routes (admin only)
   {
     path: '/admin',
     element: <ProtectedRoute allowedRoles={[UserRole.ADMIN]} />,
     children: [
       {
         element: <MainLayout />,
-        children: adminPages,
+        children: [
+          {
+            index: true,
+            lazy: page(() => import('@/features/admin/pages/AdminPanelPage')),
+          },
+        ],
       },
     ],
   },
-  // Top-level utility pages
   {
     path: '/unauthorized',
-    element: <UnauthorizedPage />,
+    lazy: page(() => import('@/features/common/pages/UnauthorizedPage')),
   },
   {
     path: '*',
-    element: <NotFoundPage />,
+    lazy: page(() => import('@/features/common/pages/NotFoundPage')),
   },
 ]);
 
-export const AppRouter: React.FC = () => {
-  return <RouterProvider router={router} />;
-};
+export const AppRouter: React.FC = () => <RouterProvider router={router} />;

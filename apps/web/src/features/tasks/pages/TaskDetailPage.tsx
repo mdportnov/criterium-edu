@@ -14,7 +14,7 @@ import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState, ErrorState, LoadingState } from '@/components/ui/states';
 import { type Task, type TaskSolution } from '@/types';
 import { TaskService, TaskSolutionService } from '@/services';
-import { UserRole } from '@app/shared';
+import { UserRole } from '@app/shared/interfaces';
 
 const TaskDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();

@@ -20,7 +20,7 @@ import {
   User,
   Users,
 } from 'lucide-react';
-import { UserRole } from '@app/shared';
+import { UserRole } from '@app/shared/interfaces';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { cn } from '@/lib/utils';
 import { Logo } from '@/components/Logo';

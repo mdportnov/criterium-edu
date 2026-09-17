@@ -1,5 +1,5 @@
 import { apiRequest } from './api';
-import type { User } from '@app/shared';
+import type { User } from '@app/shared/interfaces';
 import type { LoginRequest, RegisterRequest } from '@/types';
 
 /**

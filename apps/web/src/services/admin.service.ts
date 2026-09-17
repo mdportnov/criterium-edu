@@ -10,7 +10,7 @@ import type {
   GetAuditLogsParams,
   GetUserActivityParams,
 } from '@/types/admin';
-import { UserRole } from '@app/shared';
+import { UserRole } from '@app/shared/interfaces';
 
 class AdminService {
   async getUsers(

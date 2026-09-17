@@ -25,7 +25,7 @@ import { Pagination } from '@/components/ui/pagination';
 import { Activity, Search, User, X } from 'lucide-react';
 import { adminService } from '@/services/admin.service';
 import type { AdminUser, GetUsersParams } from '@/types/admin';
-import { UserRole } from '@app/shared';
+import { UserRole } from '@app/shared/interfaces';
 import { UserActivityModal } from './UserActivityModal';
 
 const ALL = '__all__';

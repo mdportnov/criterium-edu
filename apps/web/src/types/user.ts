@@ -1,4 +1,4 @@
-import { UserRole } from '@app/shared';
+import { UserRole } from '@app/shared/interfaces';
 
 export interface UpdateUserRequest {
   email?: string;

@@ -28,7 +28,7 @@ import {
   type TaskStatistics,
 } from '@/services/dashboard.service';
 import { ArrowRight, CheckCircle2, FileText, Lock, Plus } from 'lucide-react';
-import { UserRole } from '@app/shared';
+import { UserRole } from '@app/shared/interfaces';
 
 const PERIODS = [
   { value: '1d', label: 'Last 24 hours' },
