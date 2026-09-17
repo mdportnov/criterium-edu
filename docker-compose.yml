@@ -1,14 +1,18 @@
-version: '3.8'
+# Production stack. Configuration comes from a .env file sitting next to this
+# file on the server; it is never shipped from the repository.
+# Required: DB_PASSWORD, JWT_SECRET, CORS_ORIGINS.
 
 services:
   postgres:
     image: postgres:16-alpine
     environment:
       POSTGRES_USER: ${DB_USERNAME:-postgres}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD must be set in .env}
       POSTGRES_DB: ${DB_NAME:-criterium}
-    ports:
-      - "${DB_PORT:-5432}:5432"
+    # Not published to the host: only the backend on the compose network
+    # needs to reach Postgres.
+    expose:
+      - "5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -18,26 +22,31 @@ services:
       retries: 5
     networks:
       - criterium-network
+    restart: unless-stopped
 
   backend:
     build:
       context: .
       dockerfile: backend.Dockerfile
-      args:
-        NODE_ENV: production
-    image: criterium-backend:nx
+    image: ghcr.io/mdportnov/criterium-backend:latest
     ports:
       - "${API_PORT:-3000}:3000"
     environment:
       NODE_ENV: production
-      PORT: 3000
+      BACKEND_PORT: 3000
       DB_HOST: postgres
       DB_PORT: 5432
       DB_USERNAME: ${DB_USERNAME:-postgres}
-      DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD must be set in .env}
       DB_NAME: ${DB_NAME:-criterium}
-      JWT_SECRET: ${JWT_SECRET}
-      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      # At least 32 characters. The API refuses to start without it, which is
+      # the point: the previous stack passed an unset variable through and the
+      # API happily signed tokens with an empty secret.
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set in .env}
+      JWT_EXPIRATION_TIME: ${JWT_EXPIRATION_TIME:-1d}
+      CORS_ORIGINS: ${CORS_ORIGINS:?CORS_ORIGINS must be set in .env}
+      SWAGGER_ENABLED: ${SWAGGER_ENABLED:-false}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
     depends_on:
       postgres:
         condition: service_healthy
@@ -50,15 +59,13 @@ services:
       context: .
       dockerfile: frontend.Dockerfile
       args:
-        NODE_ENV: production
-        VITE_API_URL: ${VITE_API_URL:-http://localhost:3000}
-    image: criterium-frontend:nx
+        VITE_API_URL: ${VITE_API_URL:-/api}
+    image: ghcr.io/mdportnov/criterium-frontend:latest
     ports:
       - "${WEB_PORT:-5173}:80"
-    environment:
-      NODE_ENV: production
     depends_on:
-      - backend
+      backend:
+        condition: service_started
     networks:
       - criterium-network
     restart: unless-stopped

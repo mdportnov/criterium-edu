@@ -13,7 +13,11 @@ on:
   workflow_dispatch:
 
 jobs:
+  verify:
+    uses: ./.github/workflows/ci.yml
+
   build-and-deploy:
+    needs: verify
     runs-on: ubuntu-latest
     environment: dev
     permissions:
@@ -25,33 +29,20 @@ jobs:
 
     steps:
       - name: "Checkout repository"
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-
-      - name: "Set up Node.js"
-        uses: actions/setup-node@v3
-        with:
-          node-version: '22'
-          cache: 'npm'
-
-      - name: "Clean install dependencies"
-        run: |
-          rm -rf node_modules package-lock.json
-          npm install
+        uses: actions/checkout@v5
 
       - name: "Set up Docker Buildx"
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v3
 
       - name: "Log in to GitHub Container Registry"
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: "Build and push Backend Docker image"
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: backend.Dockerfile
@@ -63,12 +54,6 @@ jobs:
           cache-to: type=gha,mode=max
           build-args: |
             NODE_ENV=production
-            JWT_SECRET=${{ secrets.JWT_SECRET }}
-            DB_HOST=${{ secrets.DB_HOST }}
-            DB_PORT=${{ secrets.DB_PORT }}
-            DB_USERNAME=${{ secrets.DB_USERNAME }}
-            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
-            DB_NAME=${{ secrets.DB_NAME }}
 
       - name: "Copy deployment files to server"
         uses: appleboy/scp-action@v0.1.7
@@ -78,7 +63,7 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           passphrase: ${{ secrets.PASSPHRASE }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "docker-compose.yml,start.sh,apps/api/.env.production"
+          source: "docker-compose.yml,start.sh"
           target: "~/criterium/"
 
       - name: "Deploy to server"
@@ -90,21 +75,31 @@ jobs:
           passphrase: ${{ secrets.PASSPHRASE }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            sudo mkdir -p /var/www/criterium/apps/api
+            set -euo pipefail
+
+            sudo mkdir -p /var/www/criterium
             sudo chown -R ${{ secrets.SSH_USER }}:${{ secrets.SSH_USER }} /var/www/criterium
 
             cp -f ~/criterium/docker-compose.yml /var/www/criterium/docker-compose.yml
             cp -f ~/criterium/start.sh /var/www/criterium/
-            cp -f ~/criterium/apps/api/.env.production /var/www/criterium/apps/api/
-            
+
             cd /var/www/criterium
-            
+
+            # The runtime environment lives in /var/www/criterium/.env on the
+            # server and is never shipped from the repository. Fail loudly
+            # rather than start the API with an empty JWT_SECRET.
+            test -f .env || { echo "::error::/var/www/criterium/.env is missing"; exit 1; }
+
             mkdir -p ./data/pg
-            chmod -R 777 ./data
+            chmod 700 ./data ./data/pg
             chmod +x start.sh
-            
+
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-            
+
             docker compose pull backend
-            docker compose up -d backend postgres
-            docker system prune -af
+            docker compose up -d postgres backend
+            docker compose ps
+
+            # Only reclaim dangling layers; -a would delete images other
+            # stacks on this host still need.
+            docker image prune -f

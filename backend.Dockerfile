@@ -1,80 +1,63 @@
-FROM node:24-alpine AS build
+# syntax=docker/dockerfile:1
+
+###################
+# BUILD
+###################
+FROM node:22-alpine AS build
 
 WORKDIR /usr/src/app
 
-# Install build dependencies
+# node-gyp needs a toolchain for bcrypt's native build.
 RUN apk add --no-cache python3 make g++
 
-# Copy package files
 COPY package*.json ./
+COPY apps/web/package.json ./apps/web/
 COPY nx.json ./
 COPY tsconfig*.json ./
 
-# Install all dependencies
+# npm ci, not npm install: the lockfile is the contract.
 RUN npm ci
 
-# Copy source code
 COPY apps/api ./apps/api
 COPY libs ./libs
 
-# Build the application using NX
 RUN npx nx build api --configuration=production
-
-# Build migrations separately
 RUN npx nx run api:build:migrations
 
-# Prune dev dependencies
-RUN npm prune --production
+RUN npm prune --omit=dev
 
 ###################
 # PRODUCTION
 ###################
+# Same major as the build stage, so the native bcrypt binding that was
+# compiled above still loads here.
 FROM node:22-alpine AS production
 
-# Install dumb-init for proper signal handling
 RUN apk add --no-cache dumb-init
 
-# Create non-root user
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S nestjs -u 1001
 
-# Create app directory
 WORKDIR /usr/src/app
 
-# Copy node_modules and built application
 COPY --from=build --chown=nestjs:nodejs /usr/src/app/node_modules ./node_modules
 COPY --from=build --chown=nestjs:nodejs /usr/src/app/dist ./dist
-
-# Copy package.json for runtime
 COPY --from=build --chown=nestjs:nodejs /usr/src/app/package*.json ./
-
-# Declare build arguments that will be converted to environment variables
-ARG JWT_SECRET
-ARG DB_HOST
-ARG DB_PORT
-ARG DB_USERNAME
-ARG DB_PASSWORD
-ARG DB_NAME
-
-# Set environment variables
-ENV NODE_ENV=production
-ENV PORT=3000
-ENV JWT_SECRET=${JWT_SECRET}
-ENV DB_HOST=${DB_HOST}
-ENV DB_PORT=${DB_PORT}
-ENV DB_USERNAME=${DB_USERNAME}
-ENV DB_PASSWORD=${DB_PASSWORD}
-ENV DB_NAME=${DB_NAME}
-
-# Expose port
-EXPOSE 3000
-
-# Create startup script
 COPY --chown=nestjs:nodejs start.sh ./
 RUN chmod +x start.sh
 
-# Switch to non-root user
+ENV NODE_ENV=production
+ENV BACKEND_PORT=3000
+
+# Nothing secret is baked in. JWT_SECRET and the database credentials are
+# supplied at run time; an image pushed to a registry must not carry them.
+
+EXPOSE 3000
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 \
+    CMD node -e "fetch('http://127.0.0.1:'+(process.env.BACKEND_PORT||3000)+'/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+
 USER nestjs
 
-# Use dumb-init and the startup script
-CMD ["dumb-init", "./start.sh"]
+ENTRYPOINT ["dumb-init", "--"]
+CMD ["./start.sh"]
