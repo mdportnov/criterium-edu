@@ -76,14 +76,12 @@ export class BulkOperationsService {
           categories: bulkTask.categories || [],
           tags: bulkTask.tags || [],
           criteria:
-            bulkTask.criteria?.map(
-              (crit): TaskCriterionDto => ({
-                name: crit.name,
-                description: crit.description,
-                maxPoints: crit.maxPoints,
-                // id and checkerComments are optional in TaskCriterionDto and not in BulkImportTaskCriterionDto
-              }),
-            ) || [],
+            bulkTask.criteria?.map((crit): TaskCriterionDto => ({
+              name: crit.name,
+              description: crit.description,
+              maxPoints: crit.maxPoints,
+              // id and checkerComments are optional in TaskCriterionDto and not in BulkImportTaskCriterionDto
+            })) || [],
         };
 
         // Assuming userId will be provided, e.g., from authenticated user or a specific import user

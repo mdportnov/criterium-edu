@@ -32,7 +32,9 @@ const TaskDetailPage: React.FC = () => {
         if (isStudent && user) {
           const solutions =
             await TaskSolutionService.getTaskSolutionsByTaskId(id);
-          const solutionsArray = Array.isArray(solutions) ? solutions : solutions.data;
+          const solutionsArray = Array.isArray(solutions)
+            ? solutions
+            : solutions.data;
           const userSolutions = solutionsArray.filter(
             (solution: TaskSolution) => solution.studentId === user.id,
           );

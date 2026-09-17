@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class AddStatusToTaskSolutions1748600000000
-  implements MigrationInterface
-{
+export class AddStatusToTaskSolutions1748600000000 implements MigrationInterface {
   name = 'AddStatusToTaskSolutions1748600000000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {

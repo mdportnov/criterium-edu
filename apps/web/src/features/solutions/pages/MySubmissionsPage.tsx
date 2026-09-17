@@ -9,7 +9,8 @@ import { TaskSolutionService } from '@/services';
 
 const MySubmissionsPage: React.FC = () => {
   const { user } = useAuth();
-  const [paginatedData, setPaginatedData] = useState<PaginatedResponse<TaskSolution> | null>(null);
+  const [paginatedData, setPaginatedData] =
+    useState<PaginatedResponse<TaskSolution> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
@@ -122,58 +123,60 @@ const MySubmissionsPage: React.FC = () => {
         <>
           <div className="space-y-6">
             {solutions.map((solution) => (
-            <div
-              key={solution.id}
-              className="bg-card rounded-lg shadow-sm border border-border overflow-hidden"
-            >
-              <div className="p-6">
-                <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-4">
-                  <div>
-                    <h2 className="text-xl font-semibold">
-                      <Link
-                        to={`/dashboard/tasks/${solution.taskId}`}
-                        className="hover:text-primary transition-colors"
+              <div
+                key={solution.id}
+                className="bg-card rounded-lg shadow-sm border border-border overflow-hidden"
+              >
+                <div className="p-6">
+                  <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-4">
+                    <div>
+                      <h2 className="text-xl font-semibold">
+                        <Link
+                          to={`/dashboard/tasks/${solution.taskId}`}
+                          className="hover:text-primary transition-colors"
+                        >
+                          Task #{solution.taskId}
+                        </Link>
+                      </h2>
+                      <p className="text-sm text-muted-foreground">
+                        Submitted on{' '}
+                        {new Date(solution.submittedAt).toLocaleDateString()}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`text-sm font-medium px-2 py-1 rounded-full ${
+                          solution.status === 'reviewed'
+                            ? 'bg-green-100 text-green-800'
+                            : solution.status === 'in_review'
+                              ? 'bg-amber-100 text-amber-800'
+                              : 'bg-blue-100 text-blue-800'
+                        }`}
                       >
-                        Task #{solution.taskId}
+                        {solution.status.replace('_', ' ')}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="bg-muted p-4 rounded-md overflow-x-auto mb-4">
+                    <pre className="text-xs font-mono line-clamp-3">
+                      <code>{solution.solutionText}</code>
+                    </pre>
+                  </div>
+
+                  <div className="flex justify-end">
+                    <Button asChild variant="outline" size="sm">
+                      <Link to={`/dashboard/solutions/${solution.id}`}>
+                        View Details
                       </Link>
-                    </h2>
-                    <p className="text-sm text-muted-foreground">
-                      Submitted on{' '}
-                      {new Date(solution.submittedAt).toLocaleDateString()}
-                    </p>
+                    </Button>
                   </div>
-
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={`text-sm font-medium px-2 py-1 rounded-full ${
-                        solution.status === 'reviewed'
-                          ? 'bg-green-100 text-green-800'
-                          : solution.status === 'in_review'
-                            ? 'bg-amber-100 text-amber-800'
-                            : 'bg-blue-100 text-blue-800'
-                      }`}
-                    >
-                      {solution.status.replace('_', ' ')}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="bg-muted p-4 rounded-md overflow-x-auto mb-4">
-                  <pre className="text-xs font-mono line-clamp-3">
-                    <code>{solution.solutionText}</code>
-                  </pre>
-                </div>
-
-                <div className="flex justify-end">
-                  <Button asChild variant="outline" size="sm">
-                    <Link to={`/dashboard/solutions/${solution.id}`}>View Details</Link>
-                  </Button>
                 </div>
               </div>
-            </div>
             ))}
           </div>
-          
+
           {totalPages > 1 && (
             <div className="mt-8">
               <Pagination

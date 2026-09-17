@@ -24,10 +24,7 @@ export default defineConfig({
     host: true,
   },
 
-  plugins: [
-    react(),
-    nxViteTsPaths(),
-  ],
+  plugins: [react(), nxViteTsPaths()],
 
   resolve: {
     alias: {

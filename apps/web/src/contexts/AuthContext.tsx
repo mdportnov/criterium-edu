@@ -31,7 +31,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     const checkAuthStatus = async () => {
       // setIsLoading(true); // Already true
       // Always check token, regardless of environment
-      if (AuthService.isAuthenticated()) { // Simplified condition
+      if (AuthService.isAuthenticated()) {
+        // Simplified condition
         try {
           const userData = await UserService.getProfile();
           setUser(userData);

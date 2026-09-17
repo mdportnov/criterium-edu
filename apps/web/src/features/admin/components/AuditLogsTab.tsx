@@ -3,17 +3,17 @@ import { useQuery } from '@tanstack/react-query';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Search, 
-  ChevronLeft, 
-  ChevronRight, 
-  Activity, 
+import {
+  Search,
+  ChevronLeft,
+  ChevronRight,
+  Activity,
   Clock,
   Globe,
   User,
   AlertCircle,
   CheckCircle2,
-  Filter
+  Filter,
 } from 'lucide-react';
 import { adminService } from '@/services/admin.service';
 import type { AuditLog, GetAuditLogsParams } from '@/types/admin';
@@ -33,7 +33,7 @@ export const AuditLogsTab: React.FC = () => {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      setParams(prev => ({
+      setParams((prev) => ({
         ...prev,
         action: actionFilter || undefined,
         page: 1,
@@ -45,7 +45,7 @@ export const AuditLogsTab: React.FC = () => {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      setParams(prev => ({
+      setParams((prev) => ({
         ...prev,
         userId: userFilter || undefined,
         page: 1,
@@ -56,7 +56,7 @@ export const AuditLogsTab: React.FC = () => {
   }, [userFilter]);
 
   const handlePageChange = (newPage: number) => {
-    setParams(prev => ({ ...prev, page: newPage }));
+    setParams((prev) => ({ ...prev, page: newPage }));
   };
 
   const getStatusBadgeVariant = (statusCode?: number) => {
@@ -68,7 +68,8 @@ export const AuditLogsTab: React.FC = () => {
 
   const getStatusIcon = (statusCode?: number) => {
     if (!statusCode) return <Activity className="w-3 h-3" />;
-    if (statusCode >= 200 && statusCode < 300) return <CheckCircle2 className="w-3 h-3" />;
+    if (statusCode >= 200 && statusCode < 300)
+      return <CheckCircle2 className="w-3 h-3" />;
     if (statusCode >= 400) return <AlertCircle className="w-3 h-3" />;
     return <Activity className="w-3 h-3" />;
   };
@@ -93,7 +94,8 @@ export const AuditLogsTab: React.FC = () => {
     if (action.includes('create')) return 'text-green-600 dark:text-green-400';
     if (action.includes('update')) return 'text-blue-600 dark:text-blue-400';
     if (action.includes('delete')) return 'text-red-600 dark:text-red-400';
-    if (action.includes('view') || action.includes('list')) return 'text-gray-600 dark:text-gray-400';
+    if (action.includes('view') || action.includes('list'))
+      return 'text-gray-600 dark:text-gray-400';
     return 'text-purple-600 dark:text-purple-400';
   };
 
@@ -153,18 +155,35 @@ export const AuditLogsTab: React.FC = () => {
             <table className="w-full">
               <thead className="bg-muted/50 border-b border-border">
                 <tr>
-                  <th className="text-left p-4 font-medium text-muted-foreground">Timestamp</th>
-                  <th className="text-left p-4 font-medium text-muted-foreground">User</th>
-                  <th className="text-left p-4 font-medium text-muted-foreground">Action</th>
-                  <th className="text-left p-4 font-medium text-muted-foreground">Resource</th>
-                  <th className="text-left p-4 font-medium text-muted-foreground">Status</th>
-                  <th className="text-left p-4 font-medium text-muted-foreground">Duration</th>
-                  <th className="text-left p-4 font-medium text-muted-foreground">IP Address</th>
+                  <th className="text-left p-4 font-medium text-muted-foreground">
+                    Timestamp
+                  </th>
+                  <th className="text-left p-4 font-medium text-muted-foreground">
+                    User
+                  </th>
+                  <th className="text-left p-4 font-medium text-muted-foreground">
+                    Action
+                  </th>
+                  <th className="text-left p-4 font-medium text-muted-foreground">
+                    Resource
+                  </th>
+                  <th className="text-left p-4 font-medium text-muted-foreground">
+                    Status
+                  </th>
+                  <th className="text-left p-4 font-medium text-muted-foreground">
+                    Duration
+                  </th>
+                  <th className="text-left p-4 font-medium text-muted-foreground">
+                    IP Address
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {data?.data.map((log: AuditLog) => (
-                  <tr key={log.id} className="border-b border-border hover:bg-muted/30 transition-colors">
+                  <tr
+                    key={log.id}
+                    className="border-b border-border hover:bg-muted/30 transition-colors"
+                  >
                     <td className="p-4">
                       <div className="text-sm text-muted-foreground flex items-center gap-1">
                         {formatDate(log.createdAt)}
@@ -178,24 +197,32 @@ export const AuditLogsTab: React.FC = () => {
                           </div>
                           <div>
                             <div className="text-sm font-medium text-foreground">
-                              {log.user.firstName && log.user.lastName 
+                              {log.user.firstName && log.user.lastName
                                 ? `${log.user.firstName} ${log.user.lastName}`
-                                : log.user.email
-                              }
+                                : log.user.email}
                             </div>
-                            <div className="text-xs text-muted-foreground">{log.user.email}</div>
+                            <div className="text-xs text-muted-foreground">
+                              {log.user.email}
+                            </div>
                           </div>
                         </div>
                       ) : (
-                        <span className="text-sm text-muted-foreground">Anonymous</span>
+                        <span className="text-sm text-muted-foreground">
+                          Anonymous
+                        </span>
                       )}
                     </td>
                     <td className="p-4">
                       <div className="flex items-center gap-2">
-                        <Badge variant="outline" className={`${getActionColor(log.action)} border-current`}>
+                        <Badge
+                          variant="outline"
+                          className={`${getActionColor(log.action)} border-current`}
+                        >
                           {log.method}
                         </Badge>
-                        <span className={`text-sm font-medium ${getActionColor(log.action)}`}>
+                        <span
+                          className={`text-sm font-medium ${getActionColor(log.action)}`}
+                        >
                           {log.action}
                         </span>
                       </div>
@@ -203,10 +230,14 @@ export const AuditLogsTab: React.FC = () => {
                     <td className="p-4">
                       <div className="text-sm">
                         {log.resourceType && (
-                          <div className="font-medium text-foreground">{log.resourceType}</div>
+                          <div className="font-medium text-foreground">
+                            {log.resourceType}
+                          </div>
                         )}
                         {log.resourceId && (
-                          <div className="text-xs text-muted-foreground">{log.resourceId}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {log.resourceId}
+                          </div>
                         )}
                         <div className="text-xs text-muted-foreground mt-1 font-mono">
                           {log.url}
@@ -214,7 +245,10 @@ export const AuditLogsTab: React.FC = () => {
                       </div>
                     </td>
                     <td className="p-4">
-                      <Badge variant={getStatusBadgeVariant(log.statusCode)} className="flex items-center gap-1 w-fit">
+                      <Badge
+                        variant={getStatusBadgeVariant(log.statusCode)}
+                        className="flex items-center gap-1 w-fit"
+                      >
                         {getStatusIcon(log.statusCode)}
                         {log.statusCode || 'N/A'}
                       </Badge>
@@ -243,7 +277,8 @@ export const AuditLogsTab: React.FC = () => {
       {data && data.totalPages > 1 && (
         <div className="flex items-center justify-between">
           <div className="text-sm text-muted-foreground">
-            Showing {((data.page - 1) * data.limit) + 1} to {Math.min(data.page * data.limit, data.total)} of {data.total} logs
+            Showing {(data.page - 1) * data.limit + 1} to{' '}
+            {Math.min(data.page * data.limit, data.total)} of {data.total} logs
           </div>
           <div className="flex items-center gap-2">
             <Button

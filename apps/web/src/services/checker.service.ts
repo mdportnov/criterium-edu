@@ -71,8 +71,12 @@ export const CheckerService = {
     });
   },
 
-  async getCodeTemplates(): Promise<{ id: string; name: string; languageId: string; code: string }[]> {
-    return apiRequest<{ id: string; name: string; languageId: string; code: string }[]>({
+  async getCodeTemplates(): Promise<
+    { id: string; name: string; languageId: string; code: string }[]
+  > {
+    return apiRequest<
+      { id: string; name: string; languageId: string; code: string }[]
+    >({
       method: 'GET',
       url: '/checker/templates',
     });

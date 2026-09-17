@@ -3,9 +3,26 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { dashboardService, type DashboardOverview, type TaskStatistics, type SolutionStatistics, type RecentActivity } from '@/services/dashboard.service';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import {
+  dashboardService,
+  type DashboardOverview,
+  type TaskStatistics,
+  type SolutionStatistics,
+  type RecentActivity,
+} from '@/services/dashboard.service';
 import {
   FileText,
   CheckCircle2,
@@ -23,7 +40,7 @@ import {
   Zap,
   Timer,
   Award,
-  Database
+  Database,
 } from 'lucide-react';
 import { UserRole } from '@app/shared';
 
@@ -31,7 +48,9 @@ const DashboardPage: React.FC = () => {
   const { hasRole } = useAuth();
   const [overview, setOverview] = useState<DashboardOverview | null>(null);
   const [taskStats, setTaskStats] = useState<TaskStatistics | null>(null);
-  const [solutionStats, setSolutionStats] = useState<SolutionStatistics | null>(null);
+  const [solutionStats, setSolutionStats] = useState<SolutionStatistics | null>(
+    null,
+  );
   const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
@@ -52,12 +71,13 @@ const DashboardPage: React.FC = () => {
       setError('');
 
       try {
-        const [overviewData, taskStatsData, solutionStatsData, activityData] = await Promise.all([
-          dashboardService.getOverview(),
-          dashboardService.getTaskStatistics(period),
-          dashboardService.getSolutionStatistics(period),
-          dashboardService.getRecentActivity(8),
-        ]);
+        const [overviewData, taskStatsData, solutionStatsData, activityData] =
+          await Promise.all([
+            dashboardService.getOverview(),
+            dashboardService.getTaskStatistics(period),
+            dashboardService.getSolutionStatistics(period),
+            dashboardService.getRecentActivity(8),
+          ]);
 
         setOverview(overviewData);
         setTaskStats(taskStatsData);
@@ -158,7 +178,8 @@ const DashboardPage: React.FC = () => {
             Analytics Dashboard
           </h1>
           <p className="text-muted-foreground mt-2">
-            System overview and performance metrics for {new Date().toLocaleDateString('en-US', {
+            System overview and performance metrics for{' '}
+            {new Date().toLocaleDateString('en-US', {
               weekday: 'long',
               year: 'numeric',
               month: 'long',
@@ -194,7 +215,10 @@ const DashboardPage: React.FC = () => {
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>Create a new programming task with criteria and requirements</p>
+                    <p>
+                      Create a new programming task with criteria and
+                      requirements
+                    </p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -209,7 +233,9 @@ const DashboardPage: React.FC = () => {
           <Card className="p-6 dashboard-card-blue">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-blue-700 dark:text-blue-300">Total Tasks</p>
+                <p className="text-sm font-medium text-blue-700 dark:text-blue-300">
+                  Total Tasks
+                </p>
                 <p className="text-3xl font-bold text-blue-900 dark:text-blue-300 mt-1">
                   {overview.totalTasks}
                 </p>
@@ -227,7 +253,9 @@ const DashboardPage: React.FC = () => {
           <Card className="p-6 dashboard-card-green">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-green-700 dark:text-green-300">Total Solutions</p>
+                <p className="text-sm font-medium text-green-700 dark:text-green-300">
+                  Total Solutions
+                </p>
                 <p className="text-3xl font-bold text-green-900 dark:text-green-300 mt-1">
                   {overview.totalSolutions}
                 </p>
@@ -245,7 +273,9 @@ const DashboardPage: React.FC = () => {
           <Card className="p-6 dashboard-card-purple">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-purple-700 dark:text-purple-300">Total Reviews</p>
+                <p className="text-sm font-medium text-purple-700 dark:text-purple-300">
+                  Total Reviews
+                </p>
                 <p className="text-3xl font-bold text-purple-900 dark:text-purple-300 mt-1">
                   {overview.totalReviews}
                 </p>
@@ -263,7 +293,9 @@ const DashboardPage: React.FC = () => {
           <Card className="p-6 dashboard-card-orange">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-orange-700 dark:text-orange-300">Processing Rate</p>
+                <p className="text-sm font-medium text-orange-700 dark:text-orange-300">
+                  Processing Rate
+                </p>
                 <p className="text-3xl font-bold text-orange-900 dark:text-orange-300 mt-1">
                   {overview.processingRate}%
                 </p>
@@ -290,7 +322,9 @@ const DashboardPage: React.FC = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="flex items-center justify-between p-4 dashboard-card-yellow rounded-lg">
               <div>
-                <p className="text-sm text-yellow-700 dark:text-yellow-300">Pending</p>
+                <p className="text-sm text-yellow-700 dark:text-yellow-300">
+                  Pending
+                </p>
                 <p className="text-2xl font-bold text-yellow-900 dark:text-yellow-300">
                   {overview.solutionStatusBreakdown.pending}
                 </p>
@@ -299,7 +333,9 @@ const DashboardPage: React.FC = () => {
             </div>
             <div className="flex items-center justify-between p-4 dashboard-card-blue rounded-lg">
               <div>
-                <p className="text-sm text-blue-700 dark:text-blue-300">Submitted</p>
+                <p className="text-sm text-blue-700 dark:text-blue-300">
+                  Submitted
+                </p>
                 <p className="text-2xl font-bold text-blue-900 dark:text-blue-300">
                   {overview.solutionStatusBreakdown.submitted}
                 </p>
@@ -308,7 +344,9 @@ const DashboardPage: React.FC = () => {
             </div>
             <div className="flex items-center justify-between p-4 dashboard-card-orange rounded-lg">
               <div>
-                <p className="text-sm text-orange-700 dark:text-orange-300">In Review</p>
+                <p className="text-sm text-orange-700 dark:text-orange-300">
+                  In Review
+                </p>
                 <p className="text-2xl font-bold text-orange-900 dark:text-orange-300">
                   {overview.solutionStatusBreakdown.inReview}
                 </p>
@@ -317,7 +355,9 @@ const DashboardPage: React.FC = () => {
             </div>
             <div className="flex items-center justify-between p-4 dashboard-card-green rounded-lg">
               <div>
-                <p className="text-sm text-green-700 dark:text-green-300">Reviewed</p>
+                <p className="text-sm text-green-700 dark:text-green-300">
+                  Reviewed
+                </p>
                 <p className="text-2xl font-bold text-green-900 dark:text-green-300">
                   {overview.solutionStatusBreakdown.reviewed}
                 </p>
@@ -345,19 +385,25 @@ const DashboardPage: React.FC = () => {
                   <p className="text-2xl font-bold text-blue-900 dark:text-blue-300">
                     {taskStats.tasksCreated}
                   </p>
-                  <p className="text-sm text-blue-700 dark:text-blue-300">Tasks Created</p>
+                  <p className="text-sm text-blue-700 dark:text-blue-300">
+                    Tasks Created
+                  </p>
                 </div>
                 <div className="text-center p-4 dashboard-card-green rounded-lg">
                   <p className="text-2xl font-bold text-green-900 dark:text-green-300">
                     {taskStats.tasksWithSolutions}
                   </p>
-                  <p className="text-sm text-green-700 dark:text-green-300">With Solutions</p>
+                  <p className="text-sm text-green-700 dark:text-green-300">
+                    With Solutions
+                  </p>
                 </div>
                 <div className="text-center p-4 dashboard-card-orange rounded-lg">
                   <p className="text-2xl font-bold text-orange-900 dark:text-orange-300">
                     {taskStats.utilizationRate}%
                   </p>
-                  <p className="text-sm text-orange-700 dark:text-orange-300">Utilization Rate</p>
+                  <p className="text-sm text-orange-700 dark:text-orange-300">
+                    Utilization Rate
+                  </p>
                 </div>
               </div>
             </Card>
@@ -373,26 +419,36 @@ const DashboardPage: React.FC = () => {
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="text-center p-4 bg-gray-300  rounded-lg border">
-                  <p className="text-2xl font-bold">{solutionStats.totalSolutions}</p>
-                  <p className="text-sm text-muted-foreground">Total Solutions</p>
+                  <p className="text-2xl font-bold">
+                    {solutionStats.totalSolutions}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Total Solutions
+                  </p>
                 </div>
                 <div className="text-center p-4 dashboard-card-yellow rounded-lg">
                   <p className="text-2xl font-bold text-yellow-900 dark:text-yellow-300">
                     {solutionStats.statusBreakdown.pending}
                   </p>
-                  <p className="text-sm text-yellow-700 dark:text-yellow-300">Pending</p>
+                  <p className="text-sm text-yellow-700 dark:text-yellow-300">
+                    Pending
+                  </p>
                 </div>
                 <div className="text-center p-4 dashboard-card-blue rounded-lg">
                   <p className="text-2xl font-bold text-blue-900 dark:text-blue-300">
                     {solutionStats.statusBreakdown.submitted}
                   </p>
-                  <p className="text-sm text-blue-700 dark:text-blue-300">Submitted</p>
+                  <p className="text-sm text-blue-700 dark:text-blue-300">
+                    Submitted
+                  </p>
                 </div>
                 <div className="text-center p-4 dashboard-card-green rounded-lg">
                   <p className="text-2xl font-bold text-green-900 dark:text-green-300">
                     {solutionStats.statusBreakdown.reviewed}
                   </p>
-                  <p className="text-sm text-green-700 dark:text-green-300">Reviewed</p>
+                  <p className="text-sm text-green-700 dark:text-green-300">
+                    Reviewed
+                  </p>
                 </div>
               </div>
             </Card>
@@ -416,7 +472,10 @@ const DashboardPage: React.FC = () => {
             </div>
             <div className="space-y-3">
               {recentActivity.map((activity, index) => (
-                <div key={index} className="flex items-start gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors">
+                <div
+                  key={index}
+                  className="flex items-start gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors"
+                >
                   <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                     {getActivityIcon(activity.type)}
                   </div>
@@ -425,7 +484,8 @@ const DashboardPage: React.FC = () => {
                       {getActivityText(activity)}
                     </p>
                     <p className="text-xs text-muted-foreground mt-1">
-                      {activity.userEmail || activity.reviewerEmail} • {formatDate(activity.timestamp)}
+                      {activity.userEmail || activity.reviewerEmail} •{' '}
+                      {formatDate(activity.timestamp)}
                     </p>
                   </div>
                 </div>
@@ -457,7 +517,7 @@ const DashboardPage: React.FC = () => {
                     <p>Browse and manage all programming tasks in the system</p>
                   </TooltipContent>
                 </Tooltip>
-                
+
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button asChild className="w-full" variant="outline">
@@ -468,7 +528,9 @@ const DashboardPage: React.FC = () => {
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>Access solution review tools and assessment management</p>
+                    <p>
+                      Access solution review tools and assessment management
+                    </p>
                   </TooltipContent>
                 </Tooltip>
               </div>

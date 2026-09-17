@@ -335,7 +335,9 @@ const CheckerPage: React.FC = () => {
 
                           {!test.passed && (test.expected || test.actual) && (
                             <div className="mt-2 text-sm bg-red-50 p-2 rounded border border-red-100 text-red-700 font-mono whitespace-pre-wrap">
-                              {test.expected && <div>Expected: {test.expected}</div>}
+                              {test.expected && (
+                                <div>Expected: {test.expected}</div>
+                              )}
                               {test.actual && <div>Actual: {test.actual}</div>}
                             </div>
                           )}

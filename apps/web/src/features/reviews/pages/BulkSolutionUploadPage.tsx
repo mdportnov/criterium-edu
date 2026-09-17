@@ -33,7 +33,7 @@ const BulkSolutionUploadPage = () => {
     queryKey: ['tasks'],
     queryFn: () => TaskService.getTasks(),
   });
-  
+
   const tasks = tasksResponse?.data || [];
 
   const sampleJson = [

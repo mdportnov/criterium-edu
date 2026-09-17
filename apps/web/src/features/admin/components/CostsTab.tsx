@@ -1,16 +1,22 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { 
-  DollarSign, 
-  TrendingUp, 
-  Activity, 
+import {
+  DollarSign,
+  TrendingUp,
+  Activity,
   Zap,
   Calendar,
   BarChart3,
-  PieChart
+  PieChart,
 } from 'lucide-react';
 import { costTrackingService } from '@/services/cost-tracking.service';
 import type { SystemCostsDto } from '@app/shared';
@@ -18,7 +24,11 @@ import type { SystemCostsDto } from '@app/shared';
 export const CostsTab: React.FC = () => {
   const [timeRange, setTimeRange] = useState<string>('30');
 
-  const { data: systemCosts, isLoading, error } = useQuery({
+  const {
+    data: systemCosts,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ['system-costs', timeRange],
     queryFn: () => costTrackingService.getSystemCosts(parseInt(timeRange)),
   });
@@ -55,21 +65,29 @@ export const CostsTab: React.FC = () => {
     return (
       <div className="flex items-center justify-center py-8">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        <span className="ml-3 text-muted-foreground">Loading cost analytics...</span>
+        <span className="ml-3 text-muted-foreground">
+          Loading cost analytics...
+        </span>
       </div>
     );
   }
 
-  const dailyCostsArray = systemCosts?.dailyCosts 
-    ? Object.entries(systemCosts.dailyCosts).sort(([a], [b]) => a.localeCompare(b))
+  const dailyCostsArray = systemCosts?.dailyCosts
+    ? Object.entries(systemCosts.dailyCosts).sort(([a], [b]) =>
+        a.localeCompare(b),
+      )
     : [];
 
-  const modelEntries = systemCosts?.modelBreakdown 
-    ? Object.entries(systemCosts.modelBreakdown).sort(([,a], [,b]) => b.cost - a.cost)
+  const modelEntries = systemCosts?.modelBreakdown
+    ? Object.entries(systemCosts.modelBreakdown).sort(
+        ([, a], [, b]) => b.cost - a.cost,
+      )
     : [];
 
   const operationEntries = systemCosts?.operationBreakdown
-    ? Object.entries(systemCosts.operationBreakdown).sort(([,a], [,b]) => b.cost - a.cost)  
+    ? Object.entries(systemCosts.operationBreakdown).sort(
+        ([, a], [, b]) => b.cost - a.cost,
+      )
     : [];
 
   return (
@@ -97,9 +115,13 @@ export const CostsTab: React.FC = () => {
         <Card className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-muted-foreground">Total Cost</p>
+              <p className="text-sm font-medium text-muted-foreground">
+                Total Cost
+              </p>
               <p className="text-2xl font-bold text-foreground">
-                {systemCosts ? formatLargeCurrency(systemCosts.totalCost) : '$0.00'}
+                {systemCosts
+                  ? formatLargeCurrency(systemCosts.totalCost)
+                  : '$0.00'}
               </p>
             </div>
             <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
@@ -111,12 +133,13 @@ export const CostsTab: React.FC = () => {
         <Card className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-muted-foreground">Daily Average</p>
+              <p className="text-sm font-medium text-muted-foreground">
+                Daily Average
+              </p>
               <p className="text-2xl font-bold text-foreground">
-                {systemCosts && dailyCostsArray.length > 0 
+                {systemCosts && dailyCostsArray.length > 0
                   ? formatCurrency(systemCosts.totalCost / parseInt(timeRange))
-                  : '$0.00'
-                }
+                  : '$0.00'}
               </p>
             </div>
             <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
@@ -128,9 +151,13 @@ export const CostsTab: React.FC = () => {
         <Card className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-muted-foreground">Total Requests</p>
+              <p className="text-sm font-medium text-muted-foreground">
+                Total Requests
+              </p>
               <p className="text-2xl font-bold text-foreground">
-                {modelEntries.reduce((sum, [, data]) => sum + data.requests, 0).toLocaleString()}
+                {modelEntries
+                  .reduce((sum, [, data]) => sum + data.requests, 0)
+                  .toLocaleString()}
               </p>
             </div>
             <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
@@ -142,9 +169,13 @@ export const CostsTab: React.FC = () => {
         <Card className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-muted-foreground">Total Tokens</p>
+              <p className="text-sm font-medium text-muted-foreground">
+                Total Tokens
+              </p>
               <p className="text-2xl font-bold text-foreground">
-                {modelEntries.reduce((sum, [, data]) => sum + data.tokens, 0).toLocaleString()}
+                {modelEntries
+                  .reduce((sum, [, data]) => sum + data.tokens, 0)
+                  .toLocaleString()}
               </p>
             </div>
             <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
@@ -169,17 +200,17 @@ export const CostsTab: React.FC = () => {
                   <div className="flex items-center gap-2">
                     <Calendar className="w-4 h-4 text-muted-foreground" />
                     <span className="text-sm text-muted-foreground">
-                      {new Date(date).toLocaleDateString('en-US', { 
-                        month: 'short', 
-                        day: 'numeric' 
+                      {new Date(date).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
                       })}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div 
+                    <div
                       className="h-2 bg-primary rounded-full"
-                      style={{ 
-                        width: `${Math.max(20, (cost / Math.max(...dailyCostsArray.map(([, c]) => c))) * 100)}px` 
+                      style={{
+                        width: `${Math.max(20, (cost / Math.max(...dailyCostsArray.map(([, c]) => c))) * 100)}px`,
                       }}
                     />
                     <span className="text-sm font-medium min-w-[60px] text-right">
@@ -189,7 +220,9 @@ export const CostsTab: React.FC = () => {
                 </div>
               ))
             ) : (
-              <p className="text-muted-foreground text-center py-4">No cost data available</p>
+              <p className="text-muted-foreground text-center py-4">
+                No cost data available
+              </p>
             )}
           </div>
         </Card>
@@ -203,7 +236,10 @@ export const CostsTab: React.FC = () => {
           <div className="space-y-3">
             {modelEntries.length > 0 ? (
               modelEntries.map(([model, data]) => (
-                <div key={model} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                <div
+                  key={model}
+                  className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
+                >
                   <div>
                     <div className="flex items-center gap-2">
                       <Badge variant="outline" className="text-xs">
@@ -218,18 +254,21 @@ export const CostsTab: React.FC = () => {
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-medium">{formatCurrency(data.cost)}</p>
+                    <p className="text-sm font-medium">
+                      {formatCurrency(data.cost)}
+                    </p>
                     <p className="text-xs text-muted-foreground">
-                      {systemCosts && systemCosts.totalCost > 0 
+                      {systemCosts && systemCosts.totalCost > 0
                         ? `${((data.cost / systemCosts.totalCost) * 100).toFixed(1)}%`
-                        : '0%'
-                      }
+                        : '0%'}
                     </p>
                   </div>
                 </div>
               ))
             ) : (
-              <p className="text-muted-foreground text-center py-4">No model data available</p>
+              <p className="text-muted-foreground text-center py-4">
+                No model data available
+              </p>
             )}
           </div>
         </Card>
@@ -244,27 +283,35 @@ export const CostsTab: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {operationEntries.length > 0 ? (
             operationEntries.map(([operation, data]) => (
-              <div key={operation} className="p-4 border border-border rounded-lg">
+              <div
+                key={operation}
+                className="p-4 border border-border rounded-lg"
+              >
                 <div className="flex items-center justify-between mb-2">
                   <Badge variant="secondary" className="text-xs">
-                    {operation.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                    {operation
+                      .replace(/_/g, ' ')
+                      .replace(/\b\w/g, (l) => l.toUpperCase())}
                   </Badge>
-                  <span className="text-sm font-medium">{formatCurrency(data.cost)}</span>
+                  <span className="text-sm font-medium">
+                    {formatCurrency(data.cost)}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between text-xs text-muted-foreground">
                   <span>{data.requests} requests</span>
                   <span>
-                    {systemCosts && systemCosts.totalCost > 0 
+                    {systemCosts && systemCosts.totalCost > 0
                       ? `${((data.cost / systemCosts.totalCost) * 100).toFixed(1)}%`
-                      : '0%'
-                    }
+                      : '0%'}
                   </span>
                 </div>
               </div>
             ))
           ) : (
             <div className="col-span-full">
-              <p className="text-muted-foreground text-center py-4">No operation data available</p>
+              <p className="text-muted-foreground text-center py-4">
+                No operation data available
+              </p>
             </div>
           )}
         </div>

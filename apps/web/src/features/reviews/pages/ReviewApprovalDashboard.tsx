@@ -47,7 +47,7 @@ const ReviewApprovalDashboard = () => {
     queryFn: () =>
       TaskSolutionReviewService.getPendingAutoReviews(
         selectedTaskId === 'all' ? undefined : selectedTaskId,
-        { page: currentPage, size: pageSize }
+        { page: currentPage, size: pageSize },
       ),
     refetchInterval: 15000, // Refresh every 15 seconds
   });
@@ -190,11 +190,7 @@ const ReviewApprovalDashboard = () => {
             Review and approve AI-generated feedback for student solutions
           </p>
         </div>
-        <Button
-          variant="outline"
-          onClick={() => refetch()}
-          className="gap-2"
-        >
+        <Button variant="outline" onClick={() => refetch()} className="gap-2">
           <RefreshCw className="w-4 h-4" />
           Refresh
         </Button>

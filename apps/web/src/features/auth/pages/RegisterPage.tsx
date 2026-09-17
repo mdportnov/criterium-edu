@@ -29,7 +29,9 @@ const RegisterPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [registrationEnabled, setRegistrationEnabled] = useState<boolean | null>(null);
+  const [registrationEnabled, setRegistrationEnabled] = useState<
+    boolean | null
+  >(null);
   const [loadingSettings, setLoadingSettings] = useState(true);
   const { register } = useAuth();
   const navigate = useNavigate();
@@ -141,7 +143,8 @@ const RegisterPage: React.FC = () => {
         <Alert>
           <Info className="h-4 w-4" />
           <AlertDescription>
-            New user registration is not available now. Please contact support if you need access.
+            New user registration is not available now. Please contact support
+            if you need access.
           </AlertDescription>
         </Alert>
 

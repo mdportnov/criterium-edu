@@ -3,17 +3,34 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Alert } from '@/components/ui/alert';
 import { settingsService, type AppSettings } from '@/services/settings.service';
-import { Settings, Save, Eye, EyeOff, ToggleLeft, ToggleRight } from 'lucide-react';
+import {
+  Settings,
+  Save,
+  Eye,
+  EyeOff,
+  ToggleLeft,
+  ToggleRight,
+} from 'lucide-react';
 
 const SettingsTab: React.FC = () => {
   const queryClient = useQueryClient();
   const [showApiKey, setShowApiKey] = useState(false);
   const [localSettings, setLocalSettings] = useState<Partial<AppSettings>>({});
 
-  const { data: settings, isLoading, error } = useQuery({
+  const {
+    data: settings,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ['settings'],
     queryFn: () => settingsService.getSettings(),
   });
@@ -27,14 +44,15 @@ const SettingsTab: React.FC = () => {
   });
 
   const handleToggleRegistration = () => {
-    const newValue = settings?.data.registration_enabled === 'true' ? 'false' : 'true';
+    const newValue =
+      settings?.data.registration_enabled === 'true' ? 'false' : 'true';
     updateSettingsMutation.mutate({ registration_enabled: newValue });
   };
 
   const handleApiKeyChange = (value: string) => {
-    setLocalSettings(prev => ({
+    setLocalSettings((prev) => ({
       ...prev,
-      openai_api_key: value
+      openai_api_key: value,
     }));
   };
 
@@ -45,8 +63,11 @@ const SettingsTab: React.FC = () => {
   };
 
   const hasChanges = Object.keys(localSettings).length > 0;
-  const registrationEnabled = localSettings.registration_enabled ?? settings?.data.registration_enabled === 'true';
-  const apiKeyValue = localSettings.openai_api_key ?? settings?.data.openai_api_key ?? '';
+  const registrationEnabled =
+    localSettings.registration_enabled ??
+    settings?.data.registration_enabled === 'true';
+  const apiKeyValue =
+    localSettings.openai_api_key ?? settings?.data.openai_api_key ?? '';
 
   if (isLoading) {
     return <div className="flex justify-center py-8">Loading settings...</div>;
@@ -78,7 +99,9 @@ const SettingsTab: React.FC = () => {
               <div>
                 <Label className="text-sm font-medium">User Registration</Label>
                 <p className="text-sm text-muted-foreground">
-                  {registrationEnabled ? 'Users can create new accounts' : 'Registration is disabled'}
+                  {registrationEnabled
+                    ? 'Users can create new accounts'
+                    : 'Registration is disabled'}
                 </p>
               </div>
               <Button
@@ -155,9 +178,7 @@ const SettingsTab: React.FC = () => {
       )}
 
       {updateSettingsMutation.isSuccess && (
-        <Alert>
-          Settings have been updated successfully.
-        </Alert>
+        <Alert>Settings have been updated successfully.</Alert>
       )}
 
       {updateSettingsMutation.isError && (

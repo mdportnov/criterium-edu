@@ -72,3 +72,6 @@ tasks.json
 tasks/**
 data/**
 /.nx
+
+.claude/worktrees
+.claude/settings.local.json

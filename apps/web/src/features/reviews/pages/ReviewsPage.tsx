@@ -13,10 +13,19 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Pagination } from '@/components/ui/pagination';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { TaskSolutionReviewService } from '@/services';
 import { useAuth } from '@/contexts/AuthContext';
-import type { PaginatedResponse, ReviewSource, TaskSolutionReview } from '@/types';
+import type {
+  PaginatedResponse,
+  ReviewSource,
+  TaskSolutionReview,
+} from '@/types';
 import {
   Activity,
   AlertCircle,
@@ -33,7 +42,8 @@ import {
 } from 'lucide-react';
 
 const ReviewsPage: React.FC = () => {
-  const [paginatedData, setPaginatedData] = useState<PaginatedResponse<TaskSolutionReview> | null>(null);
+  const [paginatedData, setPaginatedData] =
+    useState<PaginatedResponse<TaskSolutionReview> | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
@@ -56,12 +66,12 @@ const ReviewsPage: React.FC = () => {
       if (taskId) {
         data = await TaskSolutionReviewService.getReviewsByTaskId(
           taskId,
-          pagination
+          pagination,
         );
       } else if (taskSolutionId) {
         data = await TaskSolutionReviewService.getReviewsByTaskSolutionId(
           taskSolutionId,
-          pagination
+          pagination,
         );
       } else {
         data = await TaskSolutionReviewService.getReviews(pagination);
@@ -150,7 +160,7 @@ const ReviewsPage: React.FC = () => {
                   <p>Manually create a review for a specific solution</p>
                 </TooltipContent>
               </Tooltip>
-              
+
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button variant="outline" asChild>
@@ -164,7 +174,7 @@ const ReviewsPage: React.FC = () => {
                   <p>Upload multiple student solutions at once via JSON</p>
                 </TooltipContent>
               </Tooltip>
-              
+
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button variant="outline" asChild>
@@ -178,7 +188,7 @@ const ReviewsPage: React.FC = () => {
                   <p>Use AI to automatically assess and review solutions</p>
                 </TooltipContent>
               </Tooltip>
-              
+
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button variant="outline" asChild>
@@ -227,10 +237,13 @@ const ReviewsPage: React.FC = () => {
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>Monitor real-time status of bulk operations and AI processing tasks</p>
+                    <p>
+                      Monitor real-time status of bulk operations and AI
+                      processing tasks
+                    </p>
                   </TooltipContent>
                 </Tooltip>
-                
+
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
@@ -250,10 +263,13 @@ const ReviewsPage: React.FC = () => {
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>Review, approve, or modify AI-generated assessments before publishing</p>
+                    <p>
+                      Review, approve, or modify AI-generated assessments before
+                      publishing
+                    </p>
                   </TooltipContent>
                 </Tooltip>
-                
+
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
@@ -273,10 +289,13 @@ const ReviewsPage: React.FC = () => {
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>Import multiple student solutions from JSON format for batch processing</p>
+                    <p>
+                      Import multiple student solutions from JSON format for
+                      batch processing
+                    </p>
                   </TooltipContent>
                 </Tooltip>
-                
+
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
@@ -296,7 +315,10 @@ const ReviewsPage: React.FC = () => {
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>Configure and start AI-powered automatic assessment of student solutions</p>
+                    <p>
+                      Configure and start AI-powered automatic assessment of
+                      student solutions
+                    </p>
                   </TooltipContent>
                 </Tooltip>
               </div>
@@ -370,71 +392,76 @@ const ReviewsPage: React.FC = () => {
         <>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {reviews.map((review) => (
-            <Card key={review.id} className="hover:shadow-md transition-shadow">
-              <CardHeader className="space-y-3">
-                <div className="flex items-start justify-between">
-                  <CardTitle className="text-lg">Review #{review.id}</CardTitle>
-                  {getSourceBadge(review.source)}
-                </div>
-                <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                  <div className="flex items-center gap-1">
-                    <Calendar className="h-4 w-4" />
-                    {new Date(review.createdAt).toLocaleDateString()}
+              <Card
+                key={review.id}
+                className="hover:shadow-md transition-shadow"
+              >
+                <CardHeader className="space-y-3">
+                  <div className="flex items-start justify-between">
+                    <CardTitle className="text-lg">
+                      Review #{review.id}
+                    </CardTitle>
+                    {getSourceBadge(review.source)}
                   </div>
-                  {review.reviewerId && (
+                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
                     <div className="flex items-center gap-1">
-                      <User className="h-4 w-4" />
-                      Reviewer ID: {review.reviewerId}
+                      <Calendar className="h-4 w-4" />
+                      {new Date(review.createdAt).toLocaleDateString()}
                     </div>
-                  )}
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Star className="h-4 w-4 text-yellow-500" />
-                    <span
-                      className={`font-semibold ${getScoreColor(review.totalScore)}`}
-                    >
-                      {review.totalScore} points
+                    {review.reviewerId && (
+                      <div className="flex items-center gap-1">
+                        <User className="h-4 w-4" />
+                        Reviewer ID: {review.reviewerId}
+                      </div>
+                    )}
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Star className="h-4 w-4 text-yellow-500" />
+                      <span
+                        className={`font-semibold ${getScoreColor(review.totalScore)}`}
+                      >
+                        {review.totalScore} points
+                      </span>
+                    </div>
+                    <span className="text-sm text-muted-foreground">
+                      {review.criteriaScores.length} criteria
                     </span>
                   </div>
-                  <span className="text-sm text-muted-foreground">
-                    {review.criteriaScores.length} criteria
-                  </span>
-                </div>
 
-                <div>
-                  <h4 className="font-medium mb-2">Feedback to Student</h4>
-                  <p className="text-sm text-muted-foreground line-clamp-3">
-                    {review.feedbackToStudent}
-                  </p>
-                </div>
-
-                {review.reviewerComment && (
                   <div>
-                    <h4 className="font-medium mb-2">Reviewer Comment</h4>
-                    <p className="text-sm text-muted-foreground line-clamp-2">
-                      {review.reviewerComment}
+                    <h4 className="font-medium mb-2">Feedback to Student</h4>
+                    <p className="text-sm text-muted-foreground line-clamp-3">
+                      {review.feedbackToStudent}
                     </p>
                   </div>
-                )}
 
-                <div className="flex justify-between items-center pt-4 border-t">
-                  <span className="text-sm text-muted-foreground">
-                    Task Solution #{review.taskSolutionId}
-                  </span>
-                  <Button variant="outline" size="sm" asChild>
-                    <Link to={`/dashboard/reviews/${review.id}`}>
-                      View Details
-                    </Link>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+                  {review.reviewerComment && (
+                    <div>
+                      <h4 className="font-medium mb-2">Reviewer Comment</h4>
+                      <p className="text-sm text-muted-foreground line-clamp-2">
+                        {review.reviewerComment}
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="flex justify-between items-center pt-4 border-t">
+                    <span className="text-sm text-muted-foreground">
+                      Task Solution #{review.taskSolutionId}
+                    </span>
+                    <Button variant="outline" size="sm" asChild>
+                      <Link to={`/dashboard/reviews/${review.id}`}>
+                        View Details
+                      </Link>
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
             ))}
           </div>
-          
+
           {totalPages > 1 && (
             <div className="mt-8">
               <Pagination

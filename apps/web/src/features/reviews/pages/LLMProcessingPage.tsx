@@ -41,7 +41,7 @@ const LLMProcessingPage = () => {
     queryKey: ['tasks'],
     queryFn: () => TaskService.getTasks(),
   });
-  
+
   const tasks = tasksResponse?.data || [];
 
   const { data: solutionsResponse } = useQuery({
@@ -52,10 +52,10 @@ const LLMProcessingPage = () => {
         : [],
     enabled: !!selectedTaskId,
   });
-  
-  const solutions = Array.isArray(solutionsResponse) 
-    ? solutionsResponse 
-    : (solutionsResponse?.data || []);
+
+  const solutions = Array.isArray(solutionsResponse)
+    ? solutionsResponse
+    : solutionsResponse?.data || [];
 
   const { data: selectedTask } = useQuery({
     queryKey: ['task', selectedTaskId],

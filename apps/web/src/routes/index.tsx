@@ -58,7 +58,10 @@ const dashboardPages: RouteObject[] = [
   { path: 'reviews/create', element: <CreateReviewPage /> }, // /dashboard/reviews/create
   { path: 'reviews/:id', element: <ReviewDetailPage /> }, // /dashboard/reviews/:id
   { path: 'reviews/bulk-upload', element: <BulkSolutionUploadPage /> }, // /dashboard/reviews/bulk-upload
-  { path: 'reviews/processing/:operationId', element: <ProcessingOperationPage /> }, // /dashboard/reviews/processing/:operationId
+  {
+    path: 'reviews/processing/:operationId',
+    element: <ProcessingOperationPage />,
+  }, // /dashboard/reviews/processing/:operationId
   { path: 'reviews/llm-processing', element: <LLMProcessingPage /> }, // /dashboard/reviews/llm-processing
   { path: 'reviews/approval-dashboard', element: <ReviewApprovalDashboard /> }, // /dashboard/reviews/approval-dashboard
   { path: 'reviews/processing-status', element: <ProcessingStatusPage /> }, // /dashboard/reviews/processing-status
@@ -115,9 +118,7 @@ const router = createBrowserRouter([
   // Admin Protected Routes (admin only)
   {
     path: '/admin',
-    element: (
-      <ProtectedRoute allowedRoles={[UserRole.ADMIN]} />
-    ),
+    element: <ProtectedRoute allowedRoles={[UserRole.ADMIN]} />,
     children: [
       {
         element: <MainLayout />,

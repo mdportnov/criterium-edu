@@ -48,8 +48,7 @@ const ReviewSolutionPage: React.FC = () => {
 
       try {
         // Fetch solution
-        const solutionData =
-          await TaskSolutionService.getTaskSolutionById(id);
+        const solutionData = await TaskSolutionService.getTaskSolutionById(id);
         setSolution(solutionData);
 
         // Fetch task to get criteria
@@ -139,9 +138,7 @@ const ReviewSolutionPage: React.FC = () => {
     // Check if any criterion score is invalid
     for (const score of formData.criteriaScores) {
       if (score.score < 0) {
-        setError(
-          `Score cannot be negative`,
-        );
+        setError(`Score cannot be negative`);
         return false;
       }
 
@@ -263,7 +260,10 @@ const ReviewSolutionPage: React.FC = () => {
           Tasks
         </Link>
         <span>/</span>
-        <Link to={`/dashboard/tasks/${solution?.taskId}`} className="hover:text-primary">
+        <Link
+          to={`/dashboard/tasks/${solution?.taskId}`}
+          className="hover:text-primary"
+        >
           Task #{solution?.taskId}
         </Link>
         <span>/</span>
@@ -300,7 +300,9 @@ const ReviewSolutionPage: React.FC = () => {
                     className="border-b border-border pb-6 last:border-0 last:pb-0"
                   >
                     <div className="flex justify-between items-start mb-2">
-                      <h3 className="font-medium">{taskCriteria[index]?.name || 'Criterion'}</h3>
+                      <h3 className="font-medium">
+                        {taskCriteria[index]?.name || 'Criterion'}
+                      </h3>
                       <span className="text-sm text-muted-foreground">
                         Max: {taskCriteria[index]?.maxPoints || 0} points
                       </span>
@@ -311,7 +313,8 @@ const ReviewSolutionPage: React.FC = () => {
                         <div className="flex justify-between">
                           <Label htmlFor={`points-${index}`}>Points</Label>
                           <span className="text-sm font-medium">
-                            {score.score} / {taskCriteria[index]?.maxPoints || 0}
+                            {score.score} /{' '}
+                            {taskCriteria[index]?.maxPoints || 0}
                           </span>
                         </div>
                         <Input
@@ -421,11 +424,15 @@ const ReviewSolutionPage: React.FC = () => {
 
               <div className="pt-4 border-t border-border space-y-2">
                 <Button asChild variant="outline" className="w-full">
-                  <Link to={`/dashboard/solutions/${id}`}>View Full Solution</Link>
+                  <Link to={`/dashboard/solutions/${id}`}>
+                    View Full Solution
+                  </Link>
                 </Button>
 
                 <Button asChild variant="outline" className="w-full">
-                  <Link to={`/dashboard/tasks/${solution?.taskId}`}>View Task</Link>
+                  <Link to={`/dashboard/tasks/${solution?.taskId}`}>
+                    View Task
+                  </Link>
                 </Button>
               </div>
             </div>

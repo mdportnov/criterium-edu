@@ -5,11 +5,26 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Pagination } from '@/components/ui/pagination';
 import { BulkOperationsService } from '@/services/bulk-operations.service';
-import type { PaginatedResponse, ProcessingOperation, ProcessingStatus, OperationType } from '@/types';
-import { Activity, Clock, CheckCircle, AlertCircle, RefreshCw, FileText, Zap, Trash2 } from 'lucide-react';
+import type {
+  PaginatedResponse,
+  ProcessingOperation,
+  ProcessingStatus,
+  OperationType,
+} from '@/types';
+import {
+  Activity,
+  Clock,
+  CheckCircle,
+  AlertCircle,
+  RefreshCw,
+  FileText,
+  Zap,
+  Trash2,
+} from 'lucide-react';
 
 const ProcessingStatusPage = () => {
-  const [paginatedData, setPaginatedData] = useState<PaginatedResponse<ProcessingOperation> | null>(null);
+  const [paginatedData, setPaginatedData] =
+    useState<PaginatedResponse<ProcessingOperation> | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -36,13 +51,15 @@ const ProcessingStatusPage = () => {
         setError('');
         setLoading(false);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch operations');
+        setError(
+          err instanceof Error ? err.message : 'Failed to fetch operations',
+        );
         setLoading(false);
       }
     };
 
     fetchOperations();
-    
+
     // Set up polling for updates
     const interval = setInterval(fetchOperations, 10000);
     return () => clearInterval(interval);
@@ -59,7 +76,9 @@ const ProcessingStatusPage = () => {
       setPaginatedData(data);
       setLoading(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to refresh operations');
+      setError(
+        err instanceof Error ? err.message : 'Failed to refresh operations',
+      );
       setLoading(false);
     }
   };
@@ -79,7 +98,9 @@ const ProcessingStatusPage = () => {
       });
       setPaginatedData(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete operation');
+      setError(
+        err instanceof Error ? err.message : 'Failed to delete operation',
+      );
     } finally {
       setDeletingId(null);
     }
@@ -178,7 +199,9 @@ const ProcessingStatusPage = () => {
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <AlertCircle className="h-12 w-12 text-destructive mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Error Loading Operations</h3>
+            <h3 className="text-lg font-semibold mb-2">
+              Error Loading Operations
+            </h3>
             <p className="text-muted-foreground text-center mb-4">{error}</p>
             <Button onClick={handleRefresh} variant="outline">
               Try Again
@@ -239,8 +262,9 @@ const ProcessingStatusPage = () => {
                   <div className="text-sm space-y-1">
                     {operation.metadata.taskIds && (
                       <p className="text-muted-foreground">
-                        Tasks: {Array.isArray(operation.metadata.taskIds) 
-                          ? operation.metadata.taskIds.join(', ') 
+                        Tasks:{' '}
+                        {Array.isArray(operation.metadata.taskIds)
+                          ? operation.metadata.taskIds.join(', ')
                           : operation.metadata.taskIds}
                       </p>
                     )}
@@ -263,15 +287,20 @@ const ProcessingStatusPage = () => {
                 )}
 
                 <div className="flex justify-between items-center text-sm text-muted-foreground">
-                  <span>Started: {formatDate(operation.createdAt.toString())}</span>
+                  <span>
+                    Started: {formatDate(operation.createdAt.toString())}
+                  </span>
                   {operation.updatedAt && operation.status === 'completed' && (
-                    <span>Completed: {formatDate(operation.updatedAt.toString())}</span>
+                    <span>
+                      Completed: {formatDate(operation.updatedAt.toString())}
+                    </span>
                   )}
                 </div>
 
                 <div className="flex justify-between items-center">
                   <div className="flex gap-2">
-                    {(operation.status === 'completed' || operation.status === 'failed') && (
+                    {(operation.status === 'completed' ||
+                      operation.status === 'failed') && (
                       <Button
                         variant="destructive"
                         size="sm"
@@ -284,13 +313,12 @@ const ProcessingStatusPage = () => {
                       </Button>
                     )}
                   </div>
-                  {(operation.status === 'in_progress' || operation.status === 'completed') && (
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      asChild
-                    >
-                      <Link to={`/dashboard/reviews/processing/${operation.id}`}>
+                  {(operation.status === 'in_progress' ||
+                    operation.status === 'completed') && (
+                    <Button variant="outline" size="sm" asChild>
+                      <Link
+                        to={`/dashboard/reviews/processing/${operation.id}`}
+                      >
                         View Details
                       </Link>
                     </Button>
@@ -322,19 +350,13 @@ const ProcessingStatusPage = () => {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Button variant="outline" asChild>
-              <Link to="/dashboard/reviews/bulk-upload">
-                Start Bulk Upload
-              </Link>
+              <Link to="/dashboard/reviews/bulk-upload">Start Bulk Upload</Link>
             </Button>
             <Button variant="outline" asChild>
-              <Link to="/dashboard/reviews/llm-processing">
-                LLM Assessment
-              </Link>
+              <Link to="/dashboard/reviews/llm-processing">LLM Assessment</Link>
             </Button>
             <Button variant="outline" asChild>
-              <Link to="/dashboard/bulk-import">
-                Import Tasks
-              </Link>
+              <Link to="/dashboard/bulk-import">Import Tasks</Link>
             </Button>
           </div>
         </CardContent>

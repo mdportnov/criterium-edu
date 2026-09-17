@@ -19,7 +19,7 @@ export const ThemeToggle: React.FC = () => {
       icon: Sun,
     },
     {
-      name: 'Dark', 
+      name: 'Dark',
       value: 'dark' as const,
       icon: Moon,
     },
@@ -44,8 +44,8 @@ export const ThemeToggle: React.FC = () => {
           <span className="sr-only">Toggle theme</span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent 
-        align="end" 
+      <DropdownMenuContent
+        align="end"
         className="w-36 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 shadow-xl z-[60]"
       >
         {themes.map((themeOption) => {

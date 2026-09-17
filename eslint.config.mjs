@@ -1,44 +1,45 @@
 // @ts-check
 import eslint from '@eslint/js';
-import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
+import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
 import unusedImports from 'eslint-plugin-unused-imports';
+import reactHooks from 'eslint-plugin-react-hooks';
+import reactRefresh from 'eslint-plugin-react-refresh';
 
+/**
+ * One flat config for the whole workspace. The backend and the shared library
+ * are type-checked Node code; apps/web is browser React. Anything that is a
+ * genuine defect is an error; style and tidiness are warnings so that CI can
+ * gate on `--max-warnings` separately from correctness.
+ */
 export default tseslint.config(
   {
-    ignores: ['eslint.config.mjs', 'dist/**', 'node_modules/**'],
+    ignores: [
+      'eslint.config.mjs',
+      'dist/**',
+      'node_modules/**',
+      '.nx/**',
+      'coverage/**',
+      '**/*.js',
+    ],
   },
+
   eslint.configs.recommended,
-  ...tseslint.configs.recommendedTypeChecked,
+  ...tseslint.configs.recommended,
   eslintPluginPrettierRecommended,
-  {
-    languageOptions: {
-      globals: {
-        ...globals.node,
-        ...globals.jest,
-      },
-      ecmaVersion: 2022,
-      sourceType: 'module',
-      parserOptions: {
-        project: ['./tsconfig.json', './apps/api/tsconfig.app.json', './libs/shared/tsconfig.lib.json', './apps/web/tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-    },
-    plugins: {
-      'unused-imports': unusedImports,
-    },
-  },
+
   {
     files: ['**/*.ts', '**/*.tsx'],
+    plugins: { 'unused-imports': unusedImports },
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: 'module',
+      parserOptions: { tsconfigRootDir: import.meta.dirname },
+    },
     rules: {
-      '@typescript-eslint/no-explicit-any': 'off',
-      '@typescript-eslint/no-floating-promises': 'warn',
-      '@typescript-eslint/no-unsafe-argument': 'off',
-      '@typescript-eslint/no-unsafe-assignment': 'off',
-      '@typescript-eslint/no-unsafe-call': 'off',
-      '@typescript-eslint/no-unsafe-member-access': 'off',
-      '@typescript-eslint/no-unsafe-return': 'off',
+      'no-console': ['warn', { allow: ['warn', 'error'] }],
+      '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/no-unused-vars': 'off',
       'unused-imports/no-unused-imports': 'warn',
       'unused-imports/no-unused-vars': [
@@ -48,9 +49,44 @@ export default tseslint.config(
           varsIgnorePattern: '^_',
           args: 'after-used',
           argsIgnorePattern: '^_',
+          caughtErrors: 'all',
+          caughtErrorsIgnorePattern: '^_',
           ignoreRestSiblings: true,
         },
       ],
     },
+  },
+
+  // Backend + shared library: Node globals.
+  {
+    files: ['apps/api/**/*.ts', 'libs/**/*.ts'],
+    languageOptions: { globals: { ...globals.node } },
+  },
+
+  // Frontend: browser globals and the React rules.
+  {
+    files: ['apps/web/**/*.{ts,tsx}'],
+    plugins: { 'react-hooks': reactHooks, 'react-refresh': reactRefresh },
+    languageOptions: { globals: { ...globals.browser } },
+    rules: {
+      ...reactHooks.configs.recommended.rules,
+      'react-refresh/only-export-components': [
+        'warn',
+        { allowConstantExport: true },
+      ],
+    },
+  },
+
+  // Migrations are generated: raw SQL strings and long lines are expected.
+  {
+    files: ['apps/api/src/database/migrations/**/*.ts'],
+    rules: { '@typescript-eslint/no-explicit-any': 'off' },
+  },
+
+  // Tests may reach for `any` while building fixtures.
+  {
+    files: ['**/*.spec.ts', '**/*.spec.tsx', '**/*.test.ts', '**/*.test.tsx'],
+    languageOptions: { globals: { ...globals.node } },
+    rules: { '@typescript-eslint/no-explicit-any': 'off' },
   },
 );

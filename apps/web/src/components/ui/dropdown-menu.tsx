@@ -6,7 +6,9 @@ interface DropdownContextType {
   setOpen: (open: boolean) => void;
 }
 
-const DropdownContext = createContext<DropdownContextType | undefined>(undefined);
+const DropdownContext = createContext<DropdownContextType | undefined>(
+  undefined,
+);
 
 const useDropdown = () => {
   const context = useContext(DropdownContext);
@@ -84,7 +86,8 @@ export const DropdownMenuContent: React.FC<DropdownMenuContentProps> = ({
 
     if (open) {
       document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
+      return () =>
+        document.removeEventListener('mousedown', handleClickOutside);
     }
     return undefined;
   }, [open, setOpen]);
@@ -103,7 +106,7 @@ export const DropdownMenuContent: React.FC<DropdownMenuContentProps> = ({
       className={cn(
         'absolute top-full mt-2 z-50 min-w-[8rem] overflow-hidden rounded-md border border-border bg-background p-1 text-foreground shadow-lg animate-in fade-in-0 zoom-in-95',
         alignmentClasses[align],
-        className
+        className,
       )}
     >
       {children}
@@ -139,7 +142,7 @@ export const DropdownMenuItem: React.FC<DropdownMenuItemProps> = ({
       disabled={disabled}
       className={cn(
         'relative flex w-full cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground disabled:pointer-events-none disabled:opacity-50',
-        className
+        className,
       )}
     >
       {children}

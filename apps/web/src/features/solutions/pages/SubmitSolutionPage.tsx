@@ -148,7 +148,6 @@ const SubmitSolutionPage: React.FC = () => {
                     required
                   />
                 </div>
-
               </div>
             </div>
 

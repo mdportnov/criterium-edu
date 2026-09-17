@@ -24,9 +24,9 @@ const AuthLayout: React.FC = () => {
       <div className="w-full max-w-md px-4">
         <div className="text-center mb-8 fade-in">
           <div className="inline-flex items-center justify-center gap-4 mb-4">
-            <img 
+            <img
               src="/logo.svg"
-              alt="Criterium EDU Logo" 
+              alt="Criterium EDU Logo"
               className="h-12 w-auto"
             />
           </div>
@@ -38,7 +38,10 @@ const AuthLayout: React.FC = () => {
           <Outlet />
         </div>
         <div className="text-center mt-6 text-sm text-muted-foreground">
-          <p>&copy; {new Date().getFullYear()} Criterium EDU. All rights reserved.</p>
+          <p>
+            &copy; {new Date().getFullYear()} Criterium EDU. All rights
+            reserved.
+          </p>
         </div>
       </div>
     </div>

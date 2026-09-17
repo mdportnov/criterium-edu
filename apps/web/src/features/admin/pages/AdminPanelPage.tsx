@@ -1,7 +1,20 @@
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, Activity, Shield, BarChart3, MessageSquare, DollarSign } from 'lucide-react';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import {
+  Users,
+  Activity,
+  Shield,
+  BarChart3,
+  MessageSquare,
+  DollarSign,
+} from 'lucide-react';
 import { UsersTab } from '../components/UsersTab';
 import { AuditLogsTab } from '../components/AuditLogsTab';
 import { SettingsTab } from '../components/SettingsTab';
@@ -23,29 +36,51 @@ const AdminPanelPage: React.FC = () => {
         </p>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+      <Tabs
+        value={activeTab}
+        onValueChange={setActiveTab}
+        className="space-y-6"
+      >
         <TabsList className="grid w-full grid-cols-2 lg:grid-cols-6 h-auto p-1">
-          <TabsTrigger value="users" className="flex items-center gap-2 py-3 cursor-pointer">
+          <TabsTrigger
+            value="users"
+            className="flex items-center gap-2 py-3 cursor-pointer"
+          >
             <Users className="w-4 h-4" />
             <span className="hidden sm:inline">Users</span>
           </TabsTrigger>
-          <TabsTrigger value="activity" className="flex items-center gap-2 py-3 cursor-pointer">
+          <TabsTrigger
+            value="activity"
+            className="flex items-center gap-2 py-3 cursor-pointer"
+          >
             <Activity className="w-4 h-4" />
             <span className="hidden sm:inline">Activity Logs</span>
           </TabsTrigger>
-          <TabsTrigger value="prompts" className="flex items-center gap-2 py-3 cursor-pointer">
+          <TabsTrigger
+            value="prompts"
+            className="flex items-center gap-2 py-3 cursor-pointer"
+          >
             <MessageSquare className="w-4 h-4" />
             <span className="hidden sm:inline">Prompts</span>
           </TabsTrigger>
-          <TabsTrigger value="costs" className="flex items-center gap-2 py-3 cursor-pointer">
+          <TabsTrigger
+            value="costs"
+            className="flex items-center gap-2 py-3 cursor-pointer"
+          >
             <DollarSign className="w-4 h-4" />
             <span className="hidden sm:inline">Costs</span>
           </TabsTrigger>
-          <TabsTrigger value="stats" className="flex items-center gap-2 py-3 cursor-pointer">
+          <TabsTrigger
+            value="stats"
+            className="flex items-center gap-2 py-3 cursor-pointer"
+          >
             <BarChart3 className="w-4 h-4" />
             <span className="hidden sm:inline">Statistics</span>
           </TabsTrigger>
-          <TabsTrigger value="settings" className="flex items-center gap-2 py-3 cursor-pointer">
+          <TabsTrigger
+            value="settings"
+            className="flex items-center gap-2 py-3 cursor-pointer"
+          >
             <Shield className="w-4 h-4" />
             <span className="hidden sm:inline">Settings</span>
           </TabsTrigger>
@@ -93,7 +128,8 @@ const AdminPanelPage: React.FC = () => {
                 AI Prompts Management
               </CardTitle>
               <CardDescription>
-                Configure AI prompts with multi-language support for various system operations
+                Configure AI prompts with multi-language support for various
+                system operations
               </CardDescription>
             </CardHeader>
             <CardContent>

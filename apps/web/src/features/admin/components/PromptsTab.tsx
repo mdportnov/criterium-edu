@@ -1,14 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '../../../components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '../../../components/ui/card';
 import { Badge } from '../../../components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../../components/ui/tabs';
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from '../../../components/ui/tabs';
 import { Input } from '../../../components/ui/input';
 import { Label } from '../../../components/ui/label';
 import { Textarea } from '../../../components/ui/textarea';
 import { Select } from '../../../components/ui/select';
 import { promptsService } from '../../../services';
-import type { Prompt, CreatePromptDto, UpdatePromptDto, PromptType } from '../../../types';
+import type {
+  Prompt,
+  CreatePromptDto,
+  UpdatePromptDto,
+  PromptType,
+} from '../../../types';
 
 const PROMPT_TYPES = [
   { value: 'system', label: 'System' },
@@ -80,7 +95,7 @@ export const PromptsTab: React.FC = () => {
 
   const handleUpdatePrompt = async () => {
     if (!selectedPrompt) return;
-    
+
     try {
       setSaving(true);
       const updateData: UpdatePromptDto = {
@@ -92,9 +107,14 @@ export const PromptsTab: React.FC = () => {
         variables: formData.variables,
         translations: formData.translations,
       };
-      
-      const updatedPrompt = await promptsService.updatePrompt(selectedPrompt.id, updateData);
-      setPrompts(prompts.map(p => p.id === updatedPrompt.id ? updatedPrompt : p));
+
+      const updatedPrompt = await promptsService.updatePrompt(
+        selectedPrompt.id,
+        updateData,
+      );
+      setPrompts(
+        prompts.map((p) => (p.id === updatedPrompt.id ? updatedPrompt : p)),
+      );
       setSelectedPrompt(updatedPrompt);
       setIsEditing(false);
     } catch (error) {
@@ -106,10 +126,10 @@ export const PromptsTab: React.FC = () => {
 
   const handleDeletePrompt = async (promptId: string) => {
     if (!confirm('Are you sure you want to delete this prompt?')) return;
-    
+
     try {
       await promptsService.deletePrompt(promptId);
-      setPrompts(prompts.filter(p => p.id !== promptId));
+      setPrompts(prompts.filter((p) => p.id !== promptId));
       if (selectedPrompt?.id === promptId) {
         setSelectedPrompt(null);
       }
@@ -143,9 +163,11 @@ export const PromptsTab: React.FC = () => {
       promptType: prompt.promptType,
       defaultLanguage: prompt.defaultLanguage,
       variables: prompt.variables,
-      translations: LANGUAGES.map(lang => ({
+      translations: LANGUAGES.map((lang) => ({
         languageCode: lang.value,
-        content: prompt.translations.find(t => t.languageCode === lang.value)?.content || '',
+        content:
+          prompt.translations.find((t) => t.languageCode === lang.value)
+            ?.content || '',
       })),
     });
     setSelectedPrompt(prompt);
@@ -153,10 +175,10 @@ export const PromptsTab: React.FC = () => {
   };
 
   const updateFormTranslation = (languageCode: string, content: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      translations: prev.translations.map(t =>
-        t.languageCode === languageCode ? { ...t, content } : t
+      translations: prev.translations.map((t) =>
+        t.languageCode === languageCode ? { ...t, content } : t,
       ),
     }));
   };
@@ -188,11 +210,15 @@ export const PromptsTab: React.FC = () => {
                   <div className="flex justify-between items-start">
                     <div>
                       <h5 className="font-medium">{prompt.name}</h5>
-                      <p className="text-sm text-gray-600 mt-1">Key: {prompt.key}</p>
+                      <p className="text-sm text-gray-600 mt-1">
+                        Key: {prompt.key}
+                      </p>
                       <div className="flex gap-2 mt-2">
                         <Badge variant="secondary">{prompt.category}</Badge>
                         <Badge variant="outline">{prompt.promptType}</Badge>
-                        {!prompt.isActive && <Badge variant="destructive">Inactive</Badge>}
+                        {!prompt.isActive && (
+                          <Badge variant="destructive">Inactive</Badge>
+                        )}
                       </div>
                     </div>
                     <div className="flex gap-1">
@@ -261,13 +287,23 @@ export const PromptsTab: React.FC = () => {
                     <Tabs defaultValue="en" className="mt-2">
                       <TabsList>
                         {selectedPrompt.translations.map((translation) => (
-                          <TabsTrigger key={translation.languageCode} value={translation.languageCode}>
-                            {LANGUAGES.find(l => l.value === translation.languageCode)?.label}
+                          <TabsTrigger
+                            key={translation.languageCode}
+                            value={translation.languageCode}
+                          >
+                            {
+                              LANGUAGES.find(
+                                (l) => l.value === translation.languageCode,
+                              )?.label
+                            }
                           </TabsTrigger>
                         ))}
                       </TabsList>
                       {selectedPrompt.translations.map((translation) => (
-                        <TabsContent key={translation.languageCode} value={translation.languageCode}>
+                        <TabsContent
+                          key={translation.languageCode}
+                          value={translation.languageCode}
+                        >
                           <div className="bg-gray-50 p-3 rounded text-sm whitespace-pre-wrap">
                             {translation.content}
                           </div>
@@ -283,7 +319,9 @@ export const PromptsTab: React.FC = () => {
           {(isCreating || isEditing) && (
             <Card>
               <CardHeader>
-                <CardTitle>{isCreating ? 'Create New Prompt' : 'Edit Prompt'}</CardTitle>
+                <CardTitle>
+                  {isCreating ? 'Create New Prompt' : 'Edit Prompt'}
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -292,7 +330,9 @@ export const PromptsTab: React.FC = () => {
                     <Input
                       id="key"
                       value={formData.key}
-                      onChange={(e) => setFormData({ ...formData, key: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, key: e.target.value })
+                      }
                       disabled={isEditing}
                       placeholder="e.g., task_review_system"
                     />
@@ -303,7 +343,9 @@ export const PromptsTab: React.FC = () => {
                     <Input
                       id="name"
                       value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, name: e.target.value })
+                      }
                       placeholder="Human-readable name"
                     />
                   </div>
@@ -313,7 +355,12 @@ export const PromptsTab: React.FC = () => {
                     <Input
                       id="description"
                       value={formData.description}
-                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          description: e.target.value,
+                        })
+                      }
                       placeholder="Optional description"
                     />
                   </div>
@@ -323,20 +370,29 @@ export const PromptsTab: React.FC = () => {
                     <Input
                       id="category"
                       value={formData.category}
-                      onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, category: e.target.value })
+                      }
                       placeholder="e.g., task_review, solution_analysis"
                     />
                   </div>
 
                   <div>
-                    <Label htmlFor="variables">Variables (comma-separated)</Label>
+                    <Label htmlFor="variables">
+                      Variables (comma-separated)
+                    </Label>
                     <Input
                       id="variables"
                       value={formData.variables.join(', ')}
-                      onChange={(e) => setFormData({ 
-                        ...formData, 
-                        variables: e.target.value.split(',').map(v => v.trim()).filter(Boolean)
-                      })}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          variables: e.target.value
+                            .split(',')
+                            .map((v) => v.trim())
+                            .filter(Boolean),
+                        })
+                      }
                       placeholder="task_title, solution_code, criteria"
                     />
                   </div>
@@ -354,8 +410,14 @@ export const PromptsTab: React.FC = () => {
                       {LANGUAGES.map((lang) => (
                         <TabsContent key={lang.value} value={lang.value}>
                           <Textarea
-                            value={formData.translations.find(t => t.languageCode === lang.value)?.content || ''}
-                            onChange={(e) => updateFormTranslation(lang.value, e.target.value)}
+                            value={
+                              formData.translations.find(
+                                (t) => t.languageCode === lang.value,
+                              )?.content || ''
+                            }
+                            onChange={(e) =>
+                              updateFormTranslation(lang.value, e.target.value)
+                            }
                             placeholder={`Enter prompt content in ${lang.label}...`}
                             rows={8}
                           />
@@ -366,7 +428,9 @@ export const PromptsTab: React.FC = () => {
 
                   <div className="flex gap-2">
                     <Button
-                      onClick={isCreating ? handleCreatePrompt : handleUpdatePrompt}
+                      onClick={
+                        isCreating ? handleCreatePrompt : handleUpdatePrompt
+                      }
                       disabled={saving || !formData.key || !formData.name}
                     >
                       {saving ? 'Saving...' : isCreating ? 'Create' : 'Update'}

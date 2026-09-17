@@ -29,8 +29,7 @@ const SolutionDetailPage: React.FC = () => {
       setError('');
 
       try {
-        const solutionData =
-          await TaskSolutionService.getTaskSolutionById(id);
+        const solutionData = await TaskSolutionService.getTaskSolutionById(id);
         setSolution(solutionData);
 
         // Check if there's a review for this solution
@@ -129,7 +128,10 @@ const SolutionDetailPage: React.FC = () => {
           Tasks
         </Link>
         <span>/</span>
-        <Link to={`/dashboard/tasks/${solution.taskId}`} className="hover:text-primary">
+        <Link
+          to={`/dashboard/tasks/${solution.taskId}`}
+          className="hover:text-primary"
+        >
           Task #{solution.taskId}
         </Link>
         <span>/</span>
@@ -170,7 +172,6 @@ const SolutionDetailPage: React.FC = () => {
             </pre>
           </div>
 
-
           {/* Review */}
           {review && (
             <div className="bg-card rounded-lg shadow-sm border border-border p-6">
@@ -200,13 +201,14 @@ const SolutionDetailPage: React.FC = () => {
                 {/* Overall Feedback */}
                 <div className="space-y-2">
                   <h3 className="text-lg font-medium">Overall Feedback</h3>
-                  <p className="whitespace-pre-line">{review.feedbackToStudent}</p>
+                  <p className="whitespace-pre-line">
+                    {review.feedbackToStudent}
+                  </p>
                 </div>
 
                 {/* Reviewer */}
                 <div className="text-sm text-muted-foreground">
-                  Reviewed on{' '}
-                  {new Date(review.updatedAt).toLocaleString()}
+                  Reviewed on {new Date(review.updatedAt).toLocaleString()}
                 </div>
               </div>
             </div>
@@ -279,7 +281,9 @@ const SolutionDetailPage: React.FC = () => {
 
               <div className="pt-4 border-t border-border">
                 <Button asChild variant="outline" className="w-full">
-                  <Link to={`/dashboard/tasks/${solution.taskId}`}>View Task</Link>
+                  <Link to={`/dashboard/tasks/${solution.taskId}`}>
+                    View Task
+                  </Link>
                 </Button>
               </div>
             </div>

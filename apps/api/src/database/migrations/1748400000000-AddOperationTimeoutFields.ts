@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner, TableColumn } from 'typeorm';
 
-export class AddOperationTimeoutFields1748400000000
-  implements MigrationInterface
-{
+export class AddOperationTimeoutFields1748400000000 implements MigrationInterface {
   name = 'AddOperationTimeoutFields1748400000000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {

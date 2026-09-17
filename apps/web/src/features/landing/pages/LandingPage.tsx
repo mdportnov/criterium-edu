@@ -57,13 +57,23 @@ const LandingPage: React.FC = () => {
             structured review processes. Built for educators and administrators.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button asChild variant="outline" size="lg" className="px-8 hover:-translate-y-1">
+            <Button
+              asChild
+              variant="outline"
+              size="lg"
+              className="px-8 hover:-translate-y-1"
+            >
               <Link to="/register">
                 Start Your Journey
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Link>
             </Button>
-            <Button asChild variant="outline" size="lg" className="px-8 hover:-translate-y-1">
+            <Button
+              asChild
+              variant="outline"
+              size="lg"
+              className="px-8 hover:-translate-y-1"
+            >
               <Link to="/login">Access Dashboard</Link>
             </Button>
           </div>
@@ -221,8 +231,8 @@ const LandingPage: React.FC = () => {
             <div className="flex items-center gap-2 mb-4 sm:mb-0">
               <img src="/logo.svg" alt="Criterium EDU" className="w-6 h-6" />
               <span className="text-sm text-muted-foreground">
-                © {new Date().getFullYear()} Criterium EDU. Educational
-                Platform for Excellence.
+                © {new Date().getFullYear()} Criterium EDU. Educational Platform
+                for Excellence.
               </span>
             </div>
             <div className="flex gap-6 text-sm text-muted-foreground">

@@ -72,7 +72,7 @@ export function Pagination({
           ))}
         </Select>
       </div>
-      
+
       <div className="flex items-center space-x-2">
         <Button
           variant="outline"
@@ -82,7 +82,7 @@ export function Pagination({
         >
           Previous
         </Button>
-        
+
         <div className="flex items-center space-x-1">
           {getVisiblePages().map((page, index) =>
             page === '...' ? (
@@ -98,10 +98,10 @@ export function Pagination({
               >
                 {page}
               </Button>
-            )
+            ),
           )}
         </div>
-        
+
         <Button
           variant="outline"
           size="sm"
