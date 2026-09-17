@@ -4,6 +4,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from '@app/shared';
+import { UpdateSettingsDto } from '../../common/dto';
 
 @Controller('settings')
 export class SettingsController {
@@ -26,9 +27,7 @@ export class SettingsController {
   @Put()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
-  async updateSettings(
-    @Body() settings: Record<string, string>,
-  ): Promise<void> {
+  async updateSettings(@Body() settings: UpdateSettingsDto): Promise<void> {
     await this.settingsService.updateSettings(settings);
   }
 }

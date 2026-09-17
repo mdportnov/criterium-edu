@@ -1,4 +1,5 @@
 import { randomBytes } from 'crypto';
+import type { StartLlmAssessmentInput } from '../../common/dto';
 import {
   BadRequestException,
   Injectable,
@@ -357,15 +358,9 @@ export class BulkOperationsService {
     return this.mapOperationToDto(operation);
   }
 
-  async startLLMAssessment(data: {
-    solutionIds: string[];
-    llmModel?: string;
-    taskId?: string;
-    systemPrompt?: string;
-    userId: string;
-    sessionName?: string;
-    sessionDescription?: string;
-  }): Promise<ProcessingOperationDto> {
+  async startLLMAssessment(
+    data: StartLlmAssessmentInput,
+  ): Promise<ProcessingOperationDto> {
     this.logger.log(
       {
         message: 'Starting LLM assessment',
@@ -398,15 +393,7 @@ export class BulkOperationsService {
 
   private async processLLMAssessmentAsync(
     operationId: string,
-    data: {
-      solutionIds: string[];
-      llmModel?: string;
-      taskId?: string;
-      systemPrompt?: string;
-      userId: string;
-      sessionName?: string;
-      sessionDescription?: string;
-    },
+    data: StartLlmAssessmentInput,
   ): Promise<void> {
     try {
       await this.updateOperationStatus(

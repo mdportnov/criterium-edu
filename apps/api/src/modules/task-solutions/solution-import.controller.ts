@@ -3,7 +3,7 @@ import { UserRole } from '@app/shared';
 import { ApiTags } from '@nestjs/swagger';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { SolutionImportService } from './solution-import.service';
-import { BatchImportSolutionsDto } from './entities/solution-import.dto';
+import { BatchImportSolutionsDto } from '../../common/dto';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 

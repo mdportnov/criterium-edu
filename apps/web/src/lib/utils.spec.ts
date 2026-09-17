@@ -7,7 +7,8 @@ describe('cn', () => {
   });
 
   it('drops falsy entries', () => {
-    expect(cn('a', false && 'b', undefined, null, 'c')).toBe('a c');
+    const hidden = false as boolean;
+    expect(cn('a', hidden && 'b', undefined, null, 'c')).toBe('a c');
   });
 
   it('lets the last Tailwind utility of a group win', () => {

@@ -10,14 +10,8 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { TasksService } from './tasks.service';
-import {
-  CreateTaskDto,
-  TaskDto,
-  UpdateTaskDto,
-  UserRole,
-  PaginationDto,
-  PaginatedResponse,
-} from '@app/shared';
+import { TaskDto, UserRole, PaginatedResponse } from '@app/shared';
+import { CreateTaskDto, PaginationDto, UpdateTaskDto } from '../../common/dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';

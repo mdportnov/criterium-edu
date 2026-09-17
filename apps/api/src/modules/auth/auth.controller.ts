@@ -1,13 +1,7 @@
 import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import {
-  LoginAsDto,
-  LoginDto,
-  RegisterDto,
-  TokenDto,
-  UserDto,
-  UserRole,
-} from '@app/shared';
+import { TokenDto, UserDto, UserRole } from '@app/shared';
+import { LoginAsDto, LoginDto, RegisterDto } from '../../common/dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';

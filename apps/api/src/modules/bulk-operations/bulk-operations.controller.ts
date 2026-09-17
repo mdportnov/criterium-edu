@@ -18,12 +18,14 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { Response } from 'express';
+import { PaginatedResponse } from '@app/shared/dto';
 import {
-  BulkImportSolutionDto,
-  BulkImportTaskDto,
-  PaginatedResponse,
+  BulkImportSolutionsDto,
+  BulkImportTasksDto,
   PaginationDto,
-} from '@app/shared/dto';
+  StartLlmAssessmentDto,
+  StartLlmAssessmentSchema,
+} from '../../common/dto';
 import { CurrentUser, UserRole } from '@app/shared/interfaces';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -45,7 +47,7 @@ export class BulkOperationsController {
   @ApiResponse({ status: 201, description: 'Tasks imported successfully' })
   @ApiResponse({ status: 400, description: 'Invalid JSON data' })
   async importTasksJson(
-    @Body() tasksData: BulkImportTaskDto[],
+    @Body() tasksData: BulkImportTasksDto,
     @GetCurrentUser() user: CurrentUser,
   ) {
     return this.bulkOperationsService.importTasksJson(tasksData, user.id);
@@ -81,7 +83,7 @@ export class BulkOperationsController {
   })
   @ApiResponse({ status: 201, description: 'Solutions import started' })
   @ApiResponse({ status: 400, description: 'Invalid JSON data' })
-  async importSolutionsJson(@Body() solutionsData: BulkImportSolutionDto[]) {
+  async importSolutionsJson(@Body() solutionsData: BulkImportSolutionsDto) {
     return this.bulkOperationsService.importSolutionsJson(solutionsData);
   }
 
@@ -135,17 +137,11 @@ export class BulkOperationsController {
   @ApiResponse({ status: 201, description: 'LLM assessment started' })
   @ApiResponse({ status: 400, description: 'Invalid request data' })
   async startLLMAssessment(
-    @Body()
-    requestData: {
-      solutionIds: string[];
-      llmModel?: string;
-      taskId?: string;
-      systemPrompt?: string;
-    },
+    @Body() requestData: StartLlmAssessmentDto,
     @GetCurrentUser() user: CurrentUser,
   ) {
     return this.bulkOperationsService.startLLMAssessment({
-      ...requestData,
+      ...StartLlmAssessmentSchema.parse(requestData),
       userId: user.id,
     });
   }

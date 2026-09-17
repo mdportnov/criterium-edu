@@ -11,15 +11,17 @@ import {
 } from '@nestjs/common';
 import { TaskSolutionReviewsService } from './task-solution-reviews.service';
 import {
-  CreateTaskSolutionReviewDto,
   CurrentUser,
   PaginatedResponse,
-  PaginationDto,
   ReviewSource,
   TaskSolutionReviewDto,
-  UpdateTaskSolutionReviewDto,
   UserRole,
 } from '@app/shared';
+import {
+  CreateTaskSolutionReviewDto,
+  PaginationDto,
+  UpdateTaskSolutionReviewDto,
+} from '../../common/dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';

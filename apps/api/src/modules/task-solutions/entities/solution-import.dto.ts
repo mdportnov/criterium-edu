@@ -1,59 +1,23 @@
-import { IsArray, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import type { z } from 'zod';
+import type {
+  AutoAssessRequestSchema,
+  BatchImportSolutionsSchema,
+  ImportSolutionSchema,
+  SourceAutoAssessRequestSchema,
+  TaskAutoAssessRequestSchema,
+} from '../../../common/dto';
 
-export class ImportSolutionDto {
-  @IsString()
-  @IsNotEmpty()
-  content: string;
+// Service-facing types. The validated shapes live in common/dto, where the
+// HTTP layer wraps them into ZodDto classes.
+export type ImportSolutionDto = z.infer<typeof ImportSolutionSchema>;
+export type BatchImportSolutionsDto = z.infer<
+  typeof BatchImportSolutionsSchema
+>;
 
-  @IsString()
-  @IsNotEmpty()
-  taskId: string;
-
-  @IsString()
-  @IsOptional()
-  externalId?: string;
-
-  @IsString()
-  @IsOptional()
-  userId?: string;
-}
-
-export class BatchImportSolutionsDto {
-  @IsArray()
-  @IsNotEmpty()
-  solutions: ImportSolutionDto[];
-
-  @IsString()
-  @IsNotEmpty()
-  sourceName: string;
-}
-
-export class AutoAssessRequestDto {
-  @IsArray()
-  @IsNotEmpty()
-  solutionIds: string[];
-
-  @IsString()
-  @IsOptional()
-  llmModel?: string;
-}
-
-export class TaskAutoAssessRequestDto {
-  @IsString()
-  @IsNotEmpty()
-  taskId: string;
-
-  @IsString()
-  @IsOptional()
-  llmModel?: string;
-}
-
-export class SourceAutoAssessRequestDto {
-  @IsString()
-  @IsNotEmpty()
-  sourceId: string;
-
-  @IsString()
-  @IsOptional()
-  llmModel?: string;
-}
+export type AutoAssessRequestDto = z.infer<typeof AutoAssessRequestSchema>;
+export type TaskAutoAssessRequestDto = z.infer<
+  typeof TaskAutoAssessRequestSchema
+>;
+export type SourceAutoAssessRequestDto = z.infer<
+  typeof SourceAutoAssessRequestSchema
+>;

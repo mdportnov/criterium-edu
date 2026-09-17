@@ -8,20 +8,16 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import {
-  CurrentUser,
-  PaginatedResponse,
-  PaginationDto,
-  UserRole,
-} from '@app/shared';
-import { ApiTags } from '@nestjs/swagger';
+import { CurrentUser, PaginatedResponse, UserRole } from '@app/shared';
 import {
   AutoAssessRequestDto,
+  CreateSessionDto,
+  PaginationDto,
   SourceAutoAssessRequestDto,
   TaskAutoAssessRequestDto,
-} from '../task-solutions/entities/solution-import.dto';
+} from '../../common/dto';
+import { ApiTags } from '@nestjs/swagger';
 import { AutoAssessmentService } from './auto-assessment.service';
-import { CreateSessionDto } from '@app/shared';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
