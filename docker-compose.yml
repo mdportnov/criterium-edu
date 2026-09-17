@@ -45,6 +45,7 @@ services:
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set in .env}
       JWT_EXPIRATION_TIME: ${JWT_EXPIRATION_TIME:-1d}
       CORS_ORIGINS: ${CORS_ORIGINS:?CORS_ORIGINS must be set in .env}
+      SETTINGS_ENCRYPTION_KEY: ${SETTINGS_ENCRYPTION_KEY:?SETTINGS_ENCRYPTION_KEY must be set in .env}
       SWAGGER_ENABLED: ${SWAGGER_ENABLED:-false}
       LOG_LEVEL: ${LOG_LEVEL:-info}
     depends_on:

@@ -17,16 +17,16 @@ export class Prompt {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ unique: true })
+  @Column({ type: 'varchar', unique: true })
   key: string;
 
-  @Column()
+  @Column({ type: 'varchar' })
   name: string;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   description?: string;
 
-  @Column()
+  @Column({ type: 'varchar' })
   category: string;
 
   @Column({
@@ -36,7 +36,7 @@ export class Prompt {
   })
   promptType: PromptType;
 
-  @Column({ default: 'en' })
+  @Column({ type: 'varchar', length: 5, default: 'en' })
   defaultLanguage: string;
 
   @Column('simple-array', { nullable: true })
@@ -49,7 +49,7 @@ export class Prompt {
   @JoinColumn({ name: 'createdBy' })
   creator: User;
 
-  @Column({ default: true })
+  @Column({ type: 'boolean', default: true })
   isActive: boolean;
 
   @OneToMany(

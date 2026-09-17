@@ -6,6 +6,7 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { LoggerModule } from 'nestjs-pino';
 
 import configuration, { type AppConfig } from './config/configuration';
+import { CryptoModule } from './common/crypto/crypto.module';
 import { connectionOptions } from './database/data-source';
 
 import { UsersModule } from './modules/users/users.module';
@@ -91,6 +92,7 @@ import { AuditMiddleware } from './modules/audit/audit.middleware';
       },
     }),
 
+    CryptoModule,
     HealthModule,
     UsersModule,
     AuthModule,

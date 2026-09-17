@@ -13,6 +13,8 @@ const valid = {
     'f0e1d2c3b4a5968778695a4b3c2d1e0f00112233445566778899aabbccddeeff',
   JWT_EXPIRATION_TIME: '1d',
   CORS_ORIGINS: 'https://criterium.command.mephi.ru',
+  SETTINGS_ENCRYPTION_KEY:
+    '00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff',
 } as NodeJS.ProcessEnv;
 
 describe('buildConfig', () => {
@@ -82,6 +84,16 @@ describe('buildConfig', () => {
     expect(() => buildConfig({ ...valid, CORS_ORIGINS: '' })).toThrow(
       /CORS_ORIGINS/,
     );
+  });
+
+  it('requires a 32-byte hex settings encryption key', () => {
+    expect(() =>
+      buildConfig({ ...valid, SETTINGS_ENCRYPTION_KEY: 'too-short' }),
+    ).toThrow(/SETTINGS_ENCRYPTION_KEY/);
+    expect(() => {
+      const { SETTINGS_ENCRYPTION_KEY: _omitted, ...withoutKey } = valid;
+      return buildConfig(withoutKey);
+    }).toThrow(/SETTINGS_ENCRYPTION_KEY/);
   });
 
   it('rejects a bcrypt cost below 10', () => {

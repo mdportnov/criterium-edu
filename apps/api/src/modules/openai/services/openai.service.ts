@@ -48,6 +48,7 @@ const RETRYABLE_STATUS = new Set([408, 409, 429, 500, 502, 503, 504]);
 @Injectable()
 export class OpenaiApiService {
   private client: OpenAI | null = null;
+  private clientKey: string | null = null;
   private readonly logger = new Logger(OpenaiApiService.name);
 
   constructor(
@@ -172,11 +173,12 @@ export class OpenaiApiService {
     return cost.totalCost;
   }
 
+  /**
+   * The client is cached against the key it was built with, so rotating the
+   * key in the admin settings takes effect on the next call. Caching the
+   * client alone meant a rotated key was ignored until the process restarted.
+   */
   private async getClient(): Promise<OpenAI> {
-    if (this.client) {
-      return this.client;
-    }
-
     const apiKey = await this.settingsService.getOpenAIApiKey();
     if (!apiKey) {
       throw new ServiceUnavailableException(
@@ -184,13 +186,12 @@ export class OpenaiApiService {
       );
     }
 
-    this.client = new OpenAI({ apiKey });
-    return this.client;
-  }
+    if (!this.client || this.clientKey !== apiKey) {
+      this.client = new OpenAI({ apiKey });
+      this.clientKey = apiKey;
+    }
 
-  /** Drops the cached client so a rotated key is picked up on the next call. */
-  resetClient(): void {
-    this.client = null;
+    return this.client;
   }
 
   private async callWithRetry<T>(call: () => Promise<T>): Promise<T> {

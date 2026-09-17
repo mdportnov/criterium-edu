@@ -42,14 +42,14 @@ export class AssessmentSession {
   @JoinColumn({ name: 'initiated_by_id' })
   initiatedBy: User;
 
-  @Column({ name: 'initiated_by_id' })
+  @Column({ type: 'uuid', name: 'initiated_by_id', nullable: true })
   initiatedById: string;
 
   @ManyToOne(() => Task, { nullable: true })
   @JoinColumn({ name: 'task_id' })
   task?: Task;
 
-  @Column({ name: 'task_id', nullable: true })
+  @Column({ type: 'uuid', name: 'task_id', nullable: true })
   taskId?: string;
 
   @Column({ type: 'varchar', length: 100, default: 'gpt-4o' })

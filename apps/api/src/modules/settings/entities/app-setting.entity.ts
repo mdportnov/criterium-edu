@@ -11,13 +11,13 @@ export class AppSetting {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ unique: true })
+  @Column({ type: 'varchar', unique: true })
   key: string;
 
-  @Column('text')
+  @Column({ type: 'text' })
   value: string;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   description?: string;
 
   @CreateDateColumn()

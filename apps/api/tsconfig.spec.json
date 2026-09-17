@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.app.json",
+  "compilerOptions": {
+    "noEmit": true,
+    // Vitest runs the specs through Vite, so they may use import.meta.
+    "module": "esnext",
+    "moduleResolution": "node",
+    "types": ["node", "vitest/globals", "vite/client"]
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "dist"]
+}

@@ -23,31 +23,36 @@ export class AuditLog {
   @JoinColumn({ name: 'user_id' })
   user?: User;
 
-  @Column({ name: 'user_id', nullable: true })
+  @Column({ type: 'uuid', name: 'user_id', nullable: true })
   userId?: string;
 
-  @Column({ length: 255 })
+  @Column({ type: 'varchar', length: 255 })
   action: string;
 
-  @Column({ name: 'resource_type', length: 100, nullable: true })
+  @Column({
+    type: 'varchar',
+    name: 'resource_type',
+    length: 100,
+    nullable: true,
+  })
   resourceType?: string;
 
-  @Column({ name: 'resource_id', length: 255, nullable: true })
+  @Column({ type: 'varchar', name: 'resource_id', length: 255, nullable: true })
   resourceId?: string;
 
-  @Column({ name: 'ip_address', length: 45, nullable: true })
+  @Column({ type: 'varchar', name: 'ip_address', length: 45, nullable: true })
   ipAddress?: string;
 
   @Column({ name: 'user_agent', type: 'text', nullable: true })
   userAgent?: string;
 
-  @Column({ length: 10 })
+  @Column({ type: 'varchar', length: 10 })
   method: string;
 
-  @Column({ length: 500 })
+  @Column({ type: 'varchar', length: 500 })
   url: string;
 
-  @Column({ name: 'status_code', nullable: true })
+  @Column({ type: 'int', name: 'status_code', nullable: true })
   statusCode?: number;
 
   @Column({ name: 'request_data', type: 'jsonb', nullable: true })
@@ -59,7 +64,7 @@ export class AuditLog {
   @Column({ name: 'error_message', type: 'text', nullable: true })
   errorMessage?: string;
 
-  @Column({ name: 'duration_ms', nullable: true })
+  @Column({ type: 'int', name: 'duration_ms', nullable: true })
   durationMs?: number;
 
   @CreateDateColumn({ name: 'created_at' })

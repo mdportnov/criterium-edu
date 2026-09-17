@@ -33,7 +33,7 @@ template and fill it in.
 
 ```bash
 cp .env.example .env
-# JWT_SECRET must be at least 32 characters and unique per environment
+# JWT_SECRET and SETTINGS_ENCRYPTION_KEY each need their own value
 openssl rand -hex 32
 ```
 

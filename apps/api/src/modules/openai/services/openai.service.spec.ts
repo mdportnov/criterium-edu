@@ -25,10 +25,12 @@ describe('OpenaiApiService', () => {
       promptsService,
       costTrackingService,
     );
-    // Stand in for the real client so no HTTP happens.
-    (service as unknown as { client: unknown }).client = {
-      chat: { completions: { create } },
-    };
+    // Stand in for the real client so no HTTP happens. clientKey has to match
+    // what getOpenAIApiKey returns, or the service rebuilds the real client.
+    Object.assign(service as unknown as Record<string, unknown>, {
+      client: { chat: { completions: { create } } },
+      clientKey: 'sk-test',
+    });
     return service;
   };
 

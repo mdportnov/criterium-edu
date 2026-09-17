@@ -25,7 +25,7 @@ export class PromptTranslation {
   @JoinColumn({ name: 'promptId' })
   prompt: Prompt;
 
-  @Column({ length: 5 })
+  @Column({ type: 'varchar', length: 5 })
   languageCode: string;
 
   @Column('text')

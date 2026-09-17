@@ -53,6 +53,14 @@ const envSchema = z
       )
       .default('1d'),
     BCRYPT_ROUNDS: z.coerce.number().int().min(10).max(15).default(12),
+    // 32 bytes of hex - `openssl rand -hex 32`. Encrypts the provider
+    // credentials stored in app_settings.
+    SETTINGS_ENCRYPTION_KEY: z
+      .string()
+      .regex(
+        /^[0-9a-fA-F]{64}$/,
+        'SETTINGS_ENCRYPTION_KEY must be 64 hex characters (32 bytes)',
+      ),
 
     CORS_ORIGINS: csvList.default('http://localhost:5173'),
     SWAGGER_ENABLED: booleanFromEnv.optional(),
@@ -86,7 +94,11 @@ export interface AppConfig {
     logging: boolean;
   };
   jwt: { secret: string; expiresIn: string };
-  security: { bcryptRounds: number; corsOrigins: string[] };
+  security: {
+    bcryptRounds: number;
+    corsOrigins: string[];
+    settingsEncryptionKey: string;
+  };
   swagger: { enabled: boolean };
   logging: { level: EnvSchema['LOG_LEVEL'] };
 }
@@ -124,6 +136,7 @@ export const buildConfig = (source: NodeJS.ProcessEnv): AppConfig => {
     security: {
       bcryptRounds: env.BCRYPT_ROUNDS,
       corsOrigins: env.CORS_ORIGINS,
+      settingsEncryptionKey: env.SETTINGS_ENCRYPTION_KEY,
     },
     swagger: {
       enabled: env.SWAGGER_ENABLED ?? !isProduction,

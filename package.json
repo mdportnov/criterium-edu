@@ -36,7 +36,7 @@
     "test": "nx run-many --target=test --all",
     "test:api": "nx test api",
     "test:web": "nx test web",
-    "typecheck": "tsc -p libs/shared/tsconfig.lib.json --noEmit && tsc -p apps/api/tsconfig.app.json --noEmit && tsc -p apps/web/tsconfig.app.json",
+    "typecheck": "tsc -p libs/shared/tsconfig.lib.json --noEmit && tsc -p apps/api/tsconfig.app.json --noEmit && tsc -p apps/api/tsconfig.spec.json && tsc -p apps/web/tsconfig.app.json",
     "verify": "npm run lint:all && npm run typecheck && npm test && npm run build:all"
   },
   "keywords": [
