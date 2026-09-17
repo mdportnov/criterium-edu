@@ -62,6 +62,9 @@ const envSchema = z
         'SETTINGS_ENCRYPTION_KEY must be 64 hex characters (32 bytes)',
       ),
 
+    // Where the browser reaches this deployment. Used to build the
+    // one-time links in password-reset emails and admin hand-offs.
+    APP_BASE_URL: z.string().url().default('http://localhost:5173'),
     CORS_ORIGINS: csvList.default('http://localhost:5173'),
     SWAGGER_ENABLED: booleanFromEnv.optional(),
 
@@ -85,6 +88,7 @@ export interface AppConfig {
   nodeEnv: EnvSchema['NODE_ENV'];
   port: number;
   isProduction: boolean;
+  appBaseUrl: string;
   database: {
     host: string;
     port: number;
@@ -121,6 +125,7 @@ export const buildConfig = (source: NodeJS.ProcessEnv): AppConfig => {
     nodeEnv: env.NODE_ENV,
     port: env.BACKEND_PORT,
     isProduction,
+    appBaseUrl: env.APP_BASE_URL,
     database: {
       host: env.DB_HOST,
       port: env.DB_PORT,

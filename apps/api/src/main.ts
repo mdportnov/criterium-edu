@@ -6,6 +6,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ZodValidationPipe } from 'nestjs-zod';
 import { VersioningType } from '@nestjs/common';
 import helmet from 'helmet';
+import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import type { AppConfig } from './config/configuration';
@@ -18,6 +19,7 @@ async function bootstrap() {
     nodeEnv: configService.getOrThrow('nodeEnv'),
     port: configService.getOrThrow('port'),
     isProduction: configService.getOrThrow('isProduction'),
+    appBaseUrl: configService.getOrThrow('appBaseUrl'),
     database: configService.getOrThrow('database'),
     jwt: configService.getOrThrow('jwt'),
     security: configService.getOrThrow('security'),
@@ -53,6 +55,8 @@ async function bootstrap() {
   // orchestrators can reach it without knowing the version.
   app.setGlobalPrefix('api', { exclude: ['health', 'health/ready'] });
   app.enableVersioning({ type: VersioningType.URI, defaultVersion: '1' });
+
+  app.use(cookieParser());
 
   app.useGlobalPipes(new ZodValidationPipe());
   app.useGlobalFilters(new AllExceptionsFilter());

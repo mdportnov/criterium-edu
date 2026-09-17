@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule, type JwtModuleOptions } from '@nestjs/jwt';
 import type { StringValue } from 'ms';
 import { PassportModule } from '@nestjs/passport';
@@ -8,9 +9,12 @@ import { AuthController } from './auth.controller';
 import { UsersModule } from '../users/users.module';
 import { SettingsModule } from '../settings/settings.module';
 import { JwtStrategy } from './strategies/jwt.strategy';
+import { PasswordResetService } from './password-reset.service';
+import { PasswordResetToken } from './entities/password-reset-token.entity';
 
 @Module({
   imports: [
+    TypeOrmModule.forFeature([PasswordResetToken]),
     UsersModule,
     SettingsModule,
     PassportModule,
@@ -27,8 +31,8 @@ import { JwtStrategy } from './strategies/jwt.strategy';
       }),
     }),
   ],
-  providers: [AuthService, JwtStrategy],
+  providers: [AuthService, JwtStrategy, PasswordResetService],
   controllers: [AuthController],
-  exports: [AuthService],
+  exports: [AuthService, PasswordResetService],
 })
 export class AuthModule {}

@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { AuthService } from '@/services/auth.service';
-import { UserService } from '@/services/user.service';
 import { type User, UserRole } from '@app/shared';
 
 interface AuthContextType {
@@ -14,7 +13,7 @@ interface AuthContextType {
     lastName: string,
     password: string,
   ) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
   hasRole: (roles: UserRole | UserRole[]) => boolean;
 }
 
@@ -28,36 +27,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
 
   useEffect(() => {
+    // The session cookie is httpOnly, so the only way to know whether one is
+    // live is to ask the server.
     const checkAuthStatus = async () => {
-      // setIsLoading(true); // Already true
-      // Always check token, regardless of environment
-      if (AuthService.isAuthenticated()) {
-        // Simplified condition
-        try {
-          const userData = await UserService.getProfile();
-          setUser(userData);
-          setIsAuthenticated(true);
-        } catch (error) {
-          console.error('Error fetching user profile:', error);
-          AuthService.logout();
-          setUser(null);
-          setIsAuthenticated(false);
-        }
-      } // If no token, user remains null, isAuthenticated remains false.
-      setIsLoading(false);
+      try {
+        setUser(await AuthService.getCurrentUser());
+        setIsAuthenticated(true);
+      } catch {
+        setUser(null);
+        setIsAuthenticated(false);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
-    checkAuthStatus();
+    void checkAuthStatus();
   }, []);
 
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      // Always use AuthService
-      const response = await AuthService.login({ email, password });
-      localStorage.setItem('token', response.access_token);
-      const userData = await UserService.getProfile();
-      setUser(userData);
+      setUser(await AuthService.login({ email, password }));
       setIsAuthenticated(true);
     } catch (error) {
       console.error('Login error:', error);
@@ -77,16 +67,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   ) => {
     setIsLoading(true);
     try {
-      // Always use AuthService
-      const response = await AuthService.register({
-        email,
-        firstName,
-        lastName,
-        password,
-      });
-      localStorage.setItem('token', response.access_token);
-      const userData = await UserService.getProfile();
-      setUser(userData);
+      setUser(
+        await AuthService.register({ email, firstName, lastName, password }),
+      );
       setIsAuthenticated(true);
     } catch (error) {
       console.error('Registration error:', error);
@@ -98,10 +81,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
-  const logout = () => {
-    AuthService.logout();
-    setUser(null);
-    setIsAuthenticated(false);
+  const logout = async () => {
+    try {
+      await AuthService.logout();
+    } finally {
+      // Whatever the server said, this browser is done with the session.
+      setUser(null);
+      setIsAuthenticated(false);
+    }
   };
 
   const hasRole = (roles: UserRole | UserRole[]) => {

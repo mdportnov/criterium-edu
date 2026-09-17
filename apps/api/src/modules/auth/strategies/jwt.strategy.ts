@@ -1,6 +1,8 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
+import type { Request } from 'express';
+import { SESSION_COOKIE } from '../session-cookie';
 import { ConfigService } from '@nestjs/config';
 import { UsersService } from '../../users/users.service';
 
@@ -18,7 +20,15 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     private readonly usersService: UsersService,
   ) {
     super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      // Browsers send the httpOnly session cookie; service clients may still
+      // present a bearer token.
+      jwtFromRequest: ExtractJwt.fromExtractors([
+        (request: Request) =>
+          ((request?.cookies ?? {}) as Record<string, string>)[
+            SESSION_COOKIE
+          ] ?? null,
+        ExtractJwt.fromAuthHeaderAsBearerToken(),
+      ]),
       ignoreExpiration: false,
       secretOrKey: configService.getOrThrow<string>('jwt.secret'),
     });

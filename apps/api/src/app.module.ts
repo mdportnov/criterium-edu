@@ -25,6 +25,7 @@ import { PromptsModule } from './modules/prompts/prompts.module';
 import { CostTrackingModule } from './modules/cost-tracking/cost-tracking.module';
 import { HealthModule } from './modules/health/health.module';
 import { AuditMiddleware } from './modules/audit/audit.middleware';
+import { CsrfGuard } from './modules/auth/guards/csrf.guard';
 
 @Module({
   imports: [
@@ -109,7 +110,11 @@ import { AuditMiddleware } from './modules/audit/audit.middleware';
     PromptsModule,
     CostTrackingModule,
   ],
-  providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
+  providers: [
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
+    // Runs on every request; only checks the ones authenticated by cookie.
+    { provide: APP_GUARD, useClass: CsrfGuard },
+  ],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

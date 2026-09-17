@@ -36,6 +36,14 @@ export class LoginDto extends createZodDto(LoginSchema) {}
 export class RegisterDto extends createZodDto(RegisterSchema) {}
 export class LoginAsDto extends createZodDto(LoginAsSchema) {}
 
+export const CompletePasswordResetSchema = z.object({
+  token: z.string().min(20).max(200),
+  password: z.string().min(8).max(200),
+});
+export class CompletePasswordResetDto extends createZodDto(
+  CompletePasswordResetSchema,
+) {}
+
 // --- shared query strings ---
 export class PaginationDto extends createZodDto(PaginationDtoSchema) {}
 

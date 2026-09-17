@@ -4,6 +4,7 @@ import {
   Get,
   Param,
   ParseUUIDPipe,
+  Post,
   Put,
   Query,
   UseGuards,
@@ -16,6 +17,9 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from '@app/shared';
 import { AdminService } from './admin.service';
+import { PasswordResetService } from '../auth/password-reset.service';
+import { GetCurrentUser } from '../auth/decorators/current-user.decorator';
+import type { CurrentUser } from '@app/shared';
 import {
   AdminListQueryDto,
   AuditLogQueryDto,
@@ -34,7 +38,10 @@ export class UpdateUserRoleDto extends createZodDto(
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(UserRole.ADMIN)
 export class AdminController {
-  constructor(private readonly adminService: AdminService) {}
+  constructor(
+    private readonly adminService: AdminService,
+    private readonly passwordResetService: PasswordResetService,
+  ) {}
 
   @Get('users')
   async getUsers(@Query() query: AdminListQueryDto) {
@@ -70,6 +77,19 @@ export class AdminController {
   @Get('stats/activity')
   async getActivityStats(@Query() query: MonthWindowQueryDto) {
     return this.adminService.getActivityStats(query.days);
+  }
+
+  /**
+   * A one-time link the administrator hands to the user out of band. Bulk
+   * import creates accounts with a random password nobody holds, so this is
+   * the only way those accounts ever become usable.
+   */
+  @Post('users/:id/password-reset-link')
+  async issuePasswordResetLink(
+    @Param('id', ParseUUIDPipe) userId: string,
+    @GetCurrentUser() admin: CurrentUser,
+  ) {
+    return this.passwordResetService.issueFor(userId, admin.id);
   }
 
   @Put('users/:id/role')

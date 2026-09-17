@@ -44,6 +44,7 @@ services:
       # API happily signed tokens with an empty secret.
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set in .env}
       JWT_EXPIRATION_TIME: ${JWT_EXPIRATION_TIME:-1d}
+      APP_BASE_URL: ${APP_BASE_URL:?APP_BASE_URL must be set in .env}
       CORS_ORIGINS: ${CORS_ORIGINS:?CORS_ORIGINS must be set in .env}
       SETTINGS_ENCRYPTION_KEY: ${SETTINGS_ENCRYPTION_KEY:?SETTINGS_ENCRYPTION_KEY must be set in .env}
       SWAGGER_ENABLED: ${SWAGGER_ENABLED:-false}

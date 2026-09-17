@@ -6,9 +6,19 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
 import { SettingsService } from '../settings/settings.service';
-import { LoginDto, RegisterDto, TokenDto, UserRole } from '@app/shared';
+import { randomBytes } from 'crypto';
+import { UserRole } from '@app/shared';
+import type { LoginDto, RegisterDto, UserDto } from '@app/shared';
 import * as bcrypt from 'bcrypt';
 import { Logger } from 'nestjs-pino';
+
+export interface AuthResult {
+  /** Goes into the httpOnly session cookie; never into a response body. */
+  token: string;
+  /** Echoed back to the client for the double-submit CSRF check. */
+  csrfToken: string;
+  user: UserDto;
+}
 
 @Injectable()
 export class AuthService {
@@ -19,7 +29,7 @@ export class AuthService {
     private readonly logger: Logger,
   ) {}
 
-  async login(loginDto: LoginDto): Promise<TokenDto> {
+  async login(loginDto: LoginDto): Promise<AuthResult> {
     this.logger.log(
       {
         message: 'Login attempt',
@@ -30,14 +40,6 @@ export class AuthService {
 
     const user = await this.validateUser(loginDto.email, loginDto.password);
 
-    const payload = {
-      email: user.email,
-      sub: user.id,
-      role: user.role,
-      firstName: user.firstName,
-      lastName: user.lastName,
-    };
-
     this.logger.log(
       {
         message: 'Login successful',
@@ -47,12 +49,10 @@ export class AuthService {
       AuthService.name,
     );
 
-    return {
-      access_token: this.jwtService.sign(payload),
-    };
+    return this.issue(user);
   }
 
-  async register(registerDto: RegisterDto): Promise<TokenDto> {
+  async register(registerDto: RegisterDto): Promise<AuthResult> {
     this.logger.log(
       {
         message: 'Registration attempt',
@@ -91,14 +91,6 @@ export class AuthService {
       role: UserRole.STUDENT, // Default role for new registrations
     });
 
-    const payload = {
-      email: user.email,
-      sub: user.id,
-      role: user.role,
-      firstName: user.firstName,
-      lastName: user.lastName,
-    };
-
     this.logger.log(
       {
         message: 'Registration successful',
@@ -108,12 +100,10 @@ export class AuthService {
       AuthService.name,
     );
 
-    return {
-      access_token: this.jwtService.sign(payload),
-    };
+    return this.issue(user);
   }
 
-  async loginAs(userId: string, adminId: string): Promise<TokenDto> {
+  async loginAs(userId: string, adminId: string): Promise<AuthResult> {
     // Check if the target user exists
     const user = await this.usersService.findOne(userId);
 
@@ -129,19 +119,40 @@ export class AuthService {
       AuthService.name,
     );
 
-    // Create a JWT token for the target user
-    const payload = {
-      email: user.email,
+    return this.issue(user, adminId);
+  }
+
+  private issue(
+    user: {
+      id: string;
+      email: string;
+      firstName: string;
+      lastName: string;
+      role: UserRole;
+      createdAt?: Date;
+      updatedAt?: Date;
+    },
+    impersonatedBy?: string,
+  ): AuthResult {
+    const token = this.jwtService.sign({
       sub: user.id,
+      email: user.email,
       role: user.role,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      // Add a flag to identify this as an impersonation session
-      impersonatedBy: adminId,
-    };
+      ...(impersonatedBy ? { impersonatedBy } : {}),
+    });
 
     return {
-      access_token: this.jwtService.sign(payload),
+      token,
+      csrfToken: randomBytes(24).toString('base64url'),
+      user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role,
+        createdAt: user.createdAt as Date,
+        updatedAt: user.updatedAt as Date,
+      },
     };
   }
 

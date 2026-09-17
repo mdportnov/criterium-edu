@@ -1,36 +1,34 @@
 import { apiRequest } from './api';
-import type { AuthResponse, LoginRequest, RegisterRequest } from '@/types';
+import type { User } from '@app/shared';
+import type { LoginRequest, RegisterRequest } from '@/types';
 
+/**
+ * Sessions are httpOnly cookies set by the server. Nothing here stores a
+ * token: the browser attaches the cookie, and the only way to know whether a
+ * session is live is to ask the server.
+ */
 export const AuthService = {
-  async login(data: LoginRequest): Promise<AuthResponse> {
-    return apiRequest<AuthResponse>({
+  async login(data: LoginRequest): Promise<User> {
+    return apiRequest<User>({ method: 'POST', url: '/auth/login', data });
+  },
+
+  async register(data: RegisterRequest): Promise<User> {
+    return apiRequest<User>({ method: 'POST', url: '/auth/register', data });
+  },
+
+  async getCurrentUser(): Promise<User> {
+    return apiRequest<User>({ method: 'GET', url: '/auth/profile' });
+  },
+
+  async logout(): Promise<void> {
+    await apiRequest<void>({ method: 'POST', url: '/auth/logout' });
+  },
+
+  async setPassword(token: string, password: string): Promise<void> {
+    await apiRequest<void>({
       method: 'POST',
-      url: '/auth/login',
-      data,
+      url: '/auth/set-password',
+      data: { token, password },
     });
-  },
-
-  async register(data: RegisterRequest): Promise<AuthResponse> {
-    return apiRequest<AuthResponse>({
-      method: 'POST',
-      url: '/auth/register',
-      data,
-    });
-  },
-
-  async getCurrentUser() {
-    return apiRequest({
-      method: 'GET',
-      url: '/auth/profile',
-    });
-  },
-
-  logout() {
-    localStorage.removeItem('token');
-    // You might want to redirect to login page or refresh the app state
-  },
-
-  isAuthenticated(): boolean {
-    return !!localStorage.getItem('token');
   },
 };

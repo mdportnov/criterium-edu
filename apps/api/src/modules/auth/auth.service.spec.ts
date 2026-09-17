@@ -51,11 +51,52 @@ describe('AuthService', () => {
         password: 'Correct-horse-1',
       } as never);
 
-      expect(result.access_token).toBe('signed.jwt.token');
+      expect(result.token).toBe('signed.jwt.token');
+      expect(result.user).toMatchObject({
+        id: 'user-1',
+        email: 'student@example.com',
+        role: UserRole.STUDENT,
+      });
       expect(vi.mocked(jwtService.sign).mock.calls[0][0]).toMatchObject({
         sub: 'user-1',
         role: UserRole.STUDENT,
       });
+    });
+
+    it('returns a fresh CSRF token with every session', async () => {
+      vi.mocked(usersService.findByEmail).mockResolvedValue(
+        (await makeUser('Correct-horse-1')) as never,
+      );
+      const auth = service();
+
+      const first = await auth.login({
+        email: 'student@example.com',
+        password: 'Correct-horse-1',
+      } as never);
+      const second = await auth.login({
+        email: 'student@example.com',
+        password: 'Correct-horse-1',
+      } as never);
+
+      expect(first.csrfToken).toHaveLength(32);
+      expect(first.csrfToken).not.toBe(second.csrfToken);
+    });
+
+    // The token goes into an httpOnly cookie; the body the browser can read
+    // must not contain it.
+    it('returns a user profile with no token and no password', async () => {
+      vi.mocked(usersService.findByEmail).mockResolvedValue(
+        (await makeUser('Correct-horse-1')) as never,
+      );
+
+      const result = await service().login({
+        email: 'student@example.com',
+        password: 'Correct-horse-1',
+      } as never);
+
+      expect(result.user).not.toHaveProperty('password');
+      expect(result.user).not.toHaveProperty('access_token');
+      expect(JSON.stringify(result.user)).not.toContain('signed.jwt.token');
     });
 
     it('never puts the password hash into the token payload', async () => {
