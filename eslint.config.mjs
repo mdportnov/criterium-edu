@@ -90,6 +90,13 @@ export default tseslint.config(
     rules: { 'react-refresh/only-export-components': 'off' },
   },
 
+  // Standalone entry points run before the Nest logger exists; console is the
+  // only output they have.
+  {
+    files: ['apps/api/src/database/migrate.ts', 'apps/api/src/main.ts'],
+    rules: { 'no-console': 'off' },
+  },
+
   // Migrations are generated: raw SQL strings and long lines are expected.
   {
     files: ['apps/api/src/database/migrations/**/*.ts'],
